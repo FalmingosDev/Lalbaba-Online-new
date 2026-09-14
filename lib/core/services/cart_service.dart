@@ -1,8 +1,9 @@
 
+
 // import 'dart:convert';
+
 // import 'package:flutter/foundation.dart';
 // import 'package:shared_preferences/shared_preferences.dart';
-
 
 // import 'cart_notification_item.dart';
 
@@ -13,128 +14,108 @@
 //   // LOCAL STORAGE KEYS
 //   // ===========================================================================
 
-//   static const String _cartCountKey =
-//       'lalbaba_cart_count';
+//   static const String _cartCountKey = 'lalbaba_cart_count';
 
-//   static const String _cartItemsKey =
-//       'lalbaba_cart_items';
+//   static const String _cartItemsKey = 'lalbaba_cart_items';
 
 //   // ===========================================================================
 //   // INITIALIZATION
 //   // ===========================================================================
 
-//   static bool _isInitialized =
-//       false;
+//   static bool _isInitialized = false;
 
-//   static Future<void>?
-//       _initializingFuture;
+//   static Future<void>? _initializingFuture;
+
+
+//   static Future<void> initialize() async {
+//     await _ensureInitialized();
+//   }
 
 //   // ===========================================================================
 //   // GLOBAL CART COUNT
 //   // ===========================================================================
 
-//   static final ValueNotifier<int>
-//       count =
-//       ValueNotifier<int>(0);
+//   static final ValueNotifier<int> count = ValueNotifier<int>(0);
 
-//   static int get currentCount =>
-//       count.value;
+//   static int get currentCount => count.value;
 
 //   // ===========================================================================
 //   // GLOBAL CART ITEMS
 //   // ===========================================================================
 
-//   static final ValueNotifier<
-//       List<CartNotificationItem>> items =
-//       ValueNotifier<
-//           List<CartNotificationItem>>(
+//   static final ValueNotifier<List<CartNotificationItem>> items =
+//       ValueNotifier<List<CartNotificationItem>>(
 //     <CartNotificationItem>[],
 //   );
 
-//   static List<CartNotificationItem>
-//       get currentItems =>
-//           List<CartNotificationItem>
-//               .unmodifiable(
-//             items.value,
-//           );
+//   static List<CartNotificationItem> get currentItems =>
+//       List<CartNotificationItem>.unmodifiable(
+//         items.value,
+//       );
 
 //   // ===========================================================================
-//   // ENSURE LOCAL DATA LOADED
+//   // ENSURE INITIALIZED
 //   // ===========================================================================
 
-//   static Future<void>
-//       _ensureInitialized() async {
+//   static Future<void> _ensureInitialized() async {
 //     if (_isInitialized) {
 //       return;
 //     }
 
-//     // Multiple page same time initialize
-//     // korleo ekbar-i SharedPreferences
-//     // load hobe.
-//     _initializingFuture ??=
-//         _loadFromLocal();
+//     _initializingFuture ??= _loadFromLocal();
 
 //     await _initializingFuture;
 //   }
 
 //   // ===========================================================================
-//   // LOAD FROM LOCAL STORAGE
+//   // LOAD CART FROM LOCAL STORAGE
 //   // ===========================================================================
 
-//   static Future<void>
-//       _loadFromLocal() async {
+//   static Future<void> _loadFromLocal() async {
 //     try {
 //       final SharedPreferences prefs =
-//           await SharedPreferences
-//               .getInstance();
+//           await SharedPreferences.getInstance();
+
+//       // Disk-er latest value force kore reload korbe.
+//       //
+//       // App completely close kore abar open korleo
+//       // latest saved cart data read korbe.
+//       await prefs.reload();
 
 //       // -----------------------------------------------------------------------
-//       // SAVED COUNT
+//       // LOAD SAVED COUNT
 //       // -----------------------------------------------------------------------
 
 //       final int savedCount =
-//           prefs.getInt(
-//                 _cartCountKey,
-//               ) ??
-//               0;
+//           prefs.getInt(_cartCountKey) ?? 0;
 
 //       // -----------------------------------------------------------------------
-//       // SAVED ITEMS
+//       // LOAD SAVED ITEMS
 //       // -----------------------------------------------------------------------
 
-//       final List<String>
-//           savedItems =
-//           prefs.getStringList(
-//                 _cartItemsKey,
-//               ) ??
+//       final List<String> savedItems =
+//           prefs.getStringList(_cartItemsKey) ??
 //               <String>[];
 
-//       final List<CartNotificationItem>
-//           loadedItems =
+//       final List<CartNotificationItem> loadedItems =
 //           <CartNotificationItem>[];
 
-//       for (final String rawItem
-//           in savedItems) {
+//       for (final String rawItem in savedItems) {
 //         try {
-//           final dynamic decoded =
-//               jsonDecode(
+//           final dynamic decoded = jsonDecode(
 //             rawItem,
 //           );
 
-//           if (decoded
-//               is Map<String, dynamic>) {
+//           if (decoded is Map<String, dynamic>) {
 //             loadedItems.add(
-//               CartNotificationItem
-//                   .fromJson(
+//               CartNotificationItem.fromJson(
 //                 decoded,
 //               ),
 //             );
 //           } else if (decoded is Map) {
 //             loadedItems.add(
-//               CartNotificationItem
-//                   .fromJson(
-//                 Map<String, dynamic>
-//                     .from(
+//               CartNotificationItem.fromJson(
+//                 Map<String, dynamic>.from(
 //                   decoded,
 //                 ),
 //               ),
@@ -147,35 +128,34 @@
 //         }
 //       }
 
+//       // Loaded items globally set.
 //       items.value =
-//           loadedItems;
+//           List<CartNotificationItem>.from(
+//         loadedItems,
+//       );
 
-//       // Normally count saved thakbe.
-//       //
-//       // Jodi kono reason-e saved count
-//       // missing hoy but products thake,
-//       // quantity theke count calculate hobe.
+//       // -----------------------------------------------------------------------
+//       // CALCULATE ACTUAL COUNT
+//       // -----------------------------------------------------------------------
 
 //       final int calculatedCount =
 //           _calculateTotalQuantity(
 //         loadedItems,
 //       );
 
-//       count.value =
-//           savedCount > 0
-//               ? savedCount
-//               : calculatedCount;
-
-//       // Jodi stored count ar actual item
-//       // quantity mismatch hoy,
-//       // item data-ke source of truth
-//       // dhorbo.
-//       if (loadedItems.isNotEmpty &&
-//           calculatedCount !=
-//               count.value) {
+//       // Product thakle product quantity-i source of truth.
+//       //
+//       // Product na thakle old saved count fallback hisebe nibe.
+//       if (loadedItems.isNotEmpty) {
+//         count.value = calculatedCount;
+//       } else {
 //         count.value =
-//             calculatedCount;
+//             savedCount < 0 ? 0 : savedCount;
+//       }
 
+//       // Saved count mismatch hole correct kore save kore dibe.
+//       if (loadedItems.isNotEmpty &&
+//           savedCount != calculatedCount) {
 //         await prefs.setInt(
 //           _cartCountKey,
 //           calculatedCount,
@@ -183,55 +163,71 @@
 //       }
 
 //       _isInitialized = true;
+
+//       debugPrint(
+//         'Cart loaded successfully. '
+//         'Items: ${items.value.length}, '
+//         'Count: ${count.value}',
+//       );
 //     } catch (error) {
 //       debugPrint(
 //         'Cart local load error: $error',
 //       );
 
+//       // App jeno crash/loop na kore.
 //       _isInitialized = true;
 //     }
 //   }
 
 //   // ===========================================================================
-//   // SAVE ALL DATA LOCALLY
+//   // SAVE CART TO LOCAL STORAGE
 //   // ===========================================================================
 
-//   static Future<void>
-//       _saveToLocal() async {
+//   static Future<void> _saveToLocal() async {
 //     try {
 //       final SharedPreferences prefs =
-//           await SharedPreferences
-//               .getInstance();
+//           await SharedPreferences.getInstance();
 
 //       // -----------------------------------------------------------------------
-//       // SAVE COUNT
+//       // ENCODE ALL ITEMS
 //       // -----------------------------------------------------------------------
 
-//       await prefs.setInt(
-//         _cartCountKey,
-//         count.value,
-//       );
-
-//       // -----------------------------------------------------------------------
-//       // SAVE PRODUCT DATA
-//       // -----------------------------------------------------------------------
-
-//       final List<String>
-//           encodedItems =
+//       final List<String> encodedItems =
 //           items.value
 //               .map(
-//                 (
-//                   item,
-//                 ) =>
+//                 (CartNotificationItem item) =>
 //                     jsonEncode(
 //                   item.toJson(),
 //                 ),
 //               )
 //               .toList();
 
-//       await prefs.setStringList(
+//       // -----------------------------------------------------------------------
+//       // SAVE ITEMS FIRST
+//       // -----------------------------------------------------------------------
+
+//       final bool itemsSaved =
+//           await prefs.setStringList(
 //         _cartItemsKey,
 //         encodedItems,
+//       );
+
+//       // -----------------------------------------------------------------------
+//       // SAVE COUNT
+//       // -----------------------------------------------------------------------
+
+//       final bool countSaved =
+//           await prefs.setInt(
+//         _cartCountKey,
+//         count.value,
+//       );
+
+//       debugPrint(
+//         'Cart saved. '
+//         'itemsSaved: $itemsSaved, '
+//         'countSaved: $countSaved, '
+//         'items: ${items.value.length}, '
+//         'count: ${count.value}',
 //       );
 //     } catch (error) {
 //       debugPrint(
@@ -245,32 +241,24 @@
 //   // ===========================================================================
 
 //   static int _calculateTotalQuantity(
-//     List<CartNotificationItem>
-//         cartItems,
+//     List<CartNotificationItem> cartItems,
 //   ) {
 //     return cartItems.fold<int>(
 //       0,
 //       (
-//         total,
-//         item,
-//       ) =>
-//           total + item.quantity,
+//         int total,
+//         CartNotificationItem item,
+//       ) {
+//         return total + item.quantity;
+//       },
 //     );
 //   }
 
 //   // ===========================================================================
 //   // GET CART COUNT
 //   // ===========================================================================
-//   //
-//   // HomePage / ProductListPage theke
-//   // already ei function call hocche.
-//   //
-//   // Ekhon sudhu count na,
-//   // local cart product data-o load korbe.
-//   // ===========================================================================
 
-//   static Future<int>
-//       getCartCount() async {
+//   static Future<int> getCartCount() async {
 //     await _ensureInitialized();
 
 //     return count.value;
@@ -280,19 +268,17 @@
 //   // GET CART ITEMS
 //   // ===========================================================================
 
-//   static Future<
-//           List<CartNotificationItem>>
+//   static Future<List<CartNotificationItem>>
 //       getCartItems() async {
 //     await _ensureInitialized();
 
-//     return List<
-//         CartNotificationItem>.unmodifiable(
+//     return List<CartNotificationItem>.unmodifiable(
 //       items.value,
 //     );
 //   }
 
 //   // ===========================================================================
-//   // POST ADD TO CART
+//   // ADD TO CART
 //   // ===========================================================================
 
 //   static Future<int> postAddToCart({
@@ -304,137 +290,78 @@
 //     String? weight,
 //     int quantity = 1,
 //   }) async {
-//     if (quantity <= 0) {
-//       await _ensureInitialized();
+//     await _ensureInitialized();
 
+//     if (quantity <= 0) {
 //       return count.value;
 //     }
 
-//     // Important:
-//     // existing local cart first load hobe.
-//     //
-//     // Tarpor new item add hobe.
-//     //
-//     // Nahole app restart-er por old item
-//     // overwrite hoye jete parto.
-
-//     await _ensureInitialized();
-
-//     // =======================================================================
-//     // TODO: FUTURE API POST CALL
-//     // =======================================================================
-//     //
-//     // final response =
-//     //     await ApiService.post(
-//     //   '/cart/add',
-//     //   body: {
-//     //     'product_id': productId,
-//     //     'quantity': quantity,
-//     //   },
-//     // );
-//     //
-//     // =======================================================================
-
 //     final String safeName =
-//         productName
-//                     ?.trim()
-//                     .isNotEmpty ==
-//                 true
+//         productName?.trim().isNotEmpty == true
 //             ? productName!.trim()
 //             : 'Product';
 
-//     final CartNotificationItem
-//         incoming =
+//     final String? safeProductId =
+//         productId?.trim().isNotEmpty == true
+//             ? productId!.trim()
+//             : null;
+
+//     final String? safeOriginalPrice =
+//         originalPrice?.trim().isNotEmpty == true
+//             ? originalPrice!.trim()
+//             : null;
+
+//     final String? safeWeight =
+//         weight?.trim().isNotEmpty == true
+//             ? weight!.trim()
+//             : null;
+
+//     final CartNotificationItem incoming =
 //         CartNotificationItem(
-//       productId:
-//           productId
-//                       ?.trim()
-//                       .isNotEmpty ==
-//                   true
-//               ? productId!.trim()
-//               : null,
-
-//       name:
-//           safeName,
-
-//       imageUrl:
-//           imageUrl?.trim() ?? '',
-
-//       price:
-//           price?.trim() ?? '',
-
-//       originalPrice:
-//           originalPrice
-//                       ?.trim()
-//                       .isNotEmpty ==
-//                   true
-//               ? originalPrice!.trim()
-//               : null,
-
-//       weight:
-//           weight
-//                       ?.trim()
-//                       .isNotEmpty ==
-//                   true
-//               ? weight!.trim()
-//               : null,
-
-//       quantity:
-//           quantity,
+//       productId: safeProductId,
+//       name: safeName,
+//       imageUrl: imageUrl?.trim() ?? '',
+//       price: price?.trim() ?? '',
+//       originalPrice: safeOriginalPrice,
+//       weight: safeWeight,
+//       quantity: quantity,
 //     );
 
-//     final List<CartNotificationItem>
-//         updated =
+//     final List<CartNotificationItem> updated =
 //         List<CartNotificationItem>.from(
 //       items.value,
 //     );
 
-//     // Same product + same weight already
-//     // list-e ache kina check.
+//     // -------------------------------------------------------------------------
+//     // SAME PRODUCT + SAME WEIGHT CHECK
+//     // -------------------------------------------------------------------------
 
 //     final int existingIndex =
 //         updated.indexWhere(
-//       (
-//         item,
-//       ) =>
+//       (CartNotificationItem item) =>
 //           item.uniqueKey ==
 //           incoming.uniqueKey,
 //     );
 
 //     if (existingIndex >= 0) {
-//       // ---------------------------------------------------------------------
-//       // SAME PRODUCT
-//       // ---------------------------------------------------------------------
-//       //
-//       // New notification card create
-//       // korbe na.
-//       //
+//       // Same item already cart-e ache.
+//       // New card create korbe na.
 //       // Quantity increase korbe.
-//       // ---------------------------------------------------------------------
 
-//       final CartNotificationItem
-//           existing =
-//           updated[
-//               existingIndex];
+//       final CartNotificationItem existing =
+//           updated[existingIndex];
 
 //       updated[existingIndex] =
 //           existing.copyWith(
-//         name:
-//             incoming.name,
+//         name: incoming.name,
 
-//         imageUrl:
-//             incoming
-//                     .imageUrl
-//                     .isNotEmpty
-//                 ? incoming.imageUrl
-//                 : existing.imageUrl,
+//         imageUrl: incoming.imageUrl.isNotEmpty
+//             ? incoming.imageUrl
+//             : existing.imageUrl,
 
-//         price:
-//             incoming
-//                     .price
-//                     .isNotEmpty
-//                 ? incoming.price
-//                 : existing.price,
+//         price: incoming.price.isNotEmpty
+//             ? incoming.price
+//             : existing.price,
 
 //         originalPrice:
 //             incoming.originalPrice ??
@@ -445,16 +372,11 @@
 //                 existing.weight,
 
 //         quantity:
-//             existing.quantity +
-//                 quantity,
+//             existing.quantity + quantity,
 //       );
 //     } else {
-//       // ---------------------------------------------------------------------
-//       // NEW PRODUCT
-//       // ---------------------------------------------------------------------
-//       //
-//       // Latest added product top-e.
-//       // ---------------------------------------------------------------------
+//       // New product.
+//       // Latest product list-er top-e thakbe.
 
 //       updated.insert(
 //         0,
@@ -462,17 +384,25 @@
 //       );
 //     }
 
-//     // Global product list update.
-//     items.value =
-//         updated;
+//     // -------------------------------------------------------------------------
+//     // UPDATE GLOBAL CART
+//     // -------------------------------------------------------------------------
 
-//     // Total quantity calculate.
+//     items.value =
+//         List<CartNotificationItem>.from(
+//       updated,
+//     );
+
 //     count.value =
 //         _calculateTotalQuantity(
 //       updated,
 //     );
 
-//     // Local storage save.
+//     // -------------------------------------------------------------------------
+//     // IMPORTANT:
+//     // Every add-er por immediately local storage-e save.
+//     // -------------------------------------------------------------------------
+
 //     await _saveToLocal();
 
 //     return count.value;
@@ -487,17 +417,14 @@
 //   ) async {
 //     await _ensureInitialized();
 
-//     final List<CartNotificationItem>
-//         updated =
+//     final List<CartNotificationItem> updated =
 //         List<CartNotificationItem>.from(
 //       items.value,
 //     );
 
 //     final int index =
 //         updated.indexWhere(
-//       (
-//         element,
-//       ) =>
+//       (CartNotificationItem element) =>
 //           element.uniqueKey ==
 //           item.uniqueKey,
 //     );
@@ -511,16 +438,16 @@
 //     );
 
 //     items.value =
-//         updated;
+//         List<CartNotificationItem>.from(
+//       updated,
+//     );
 
-//     // Remaining items theke
-//     // total quantity calculate.
 //     count.value =
 //         _calculateTotalQuantity(
 //       updated,
 //     );
 
-//     // Local save.
+//     // Delete-er por immediately save.
 //     await _saveToLocal();
 //   }
 
@@ -528,8 +455,7 @@
 //   // REMOVE QUANTITY FROM CART
 //   // ===========================================================================
 
-//   static Future<int>
-//       removeFromCart({
+//   static Future<int> removeFromCart({
 //     String? productId,
 //     int quantity = 1,
 //   }) async {
@@ -539,37 +465,29 @@
 //       return count.value;
 //     }
 
-//     // =======================================================================
-//     // FUTURE API REMOVE CALL
-//     // =======================================================================
-
 //     if (productId != null &&
-//         productId
-//             .trim()
-//             .isNotEmpty) {
-//       final List<CartNotificationItem>
-//           updated =
+//         productId.trim().isNotEmpty) {
+//       final String safeProductId =
+//           productId.trim();
+
+//       final List<CartNotificationItem> updated =
 //           List<CartNotificationItem>.from(
 //         items.value,
 //       );
 
 //       final int index =
 //           updated.indexWhere(
-//         (
-//           item,
-//         ) =>
+//         (CartNotificationItem item) =>
 //             item.productId ==
-//             productId,
+//             safeProductId,
 //       );
 
 //       if (index >= 0) {
-//         final CartNotificationItem
-//             existing =
+//         final CartNotificationItem existing =
 //             updated[index];
 
 //         final int newQuantity =
-//             existing.quantity -
-//                 quantity;
+//             existing.quantity - quantity;
 
 //         if (newQuantity <= 0) {
 //           updated.removeAt(
@@ -578,13 +496,14 @@
 //         } else {
 //           updated[index] =
 //               existing.copyWith(
-//             quantity:
-//                 newQuantity,
+//             quantity: newQuantity,
 //           );
 //         }
 
 //         items.value =
-//             updated;
+//             List<CartNotificationItem>.from(
+//           updated,
+//         );
 
 //         count.value =
 //             _calculateTotalQuantity(
@@ -592,17 +511,12 @@
 //         );
 //       }
 //     } else {
-//       // Product ID na thakle old
-//       // compatibility behavior.
-
+//       // Old compatibility behavior.
 //       final int newCount =
-//           count.value -
-//               quantity;
+//           count.value - quantity;
 
 //       count.value =
-//           newCount < 0
-//               ? 0
-//               : newCount;
+//           newCount < 0 ? 0 : newCount;
 //     }
 
 //     await _saveToLocal();
@@ -620,9 +534,7 @@
 //     await _ensureInitialized();
 
 //     count.value =
-//         value < 0
-//             ? 0
-//             : value;
+//         value < 0 ? 0 : value;
 
 //     await _saveToLocal();
 //   }
@@ -630,20 +542,11 @@
 //   // ===========================================================================
 //   // CLEAR CART
 //   // ===========================================================================
-//   //
-//   // Eta call korlei:
-//   //
-//   // count = 0
-//   // products = empty
-//   // local saved cart-o delete
-//   //
-//   // Logout-er somoy eta call korbe na
-//   // jodi logout-er por cart preserve
-//   // korte chao.
-//   // ===========================================================================
 
-//   static Future<void>
-//       clearCart() async {
+//   /// Sudhu ei function call korle cart completely delete hobe.
+//   ///
+//   /// App close/open korle eta automatically call kora jabe na.
+//   static Future<void> clearCart() async {
 //     await _ensureInitialized();
 
 //     items.value =
@@ -652,29 +555,26 @@
 //     count.value = 0;
 
 //     final SharedPreferences prefs =
-//         await SharedPreferences
-//             .getInstance();
+//         await SharedPreferences.getInstance();
+
+//     await prefs.remove(
+//       _cartItemsKey,
+//     );
 
 //     await prefs.remove(
 //       _cartCountKey,
 //     );
 
-//     await prefs.remove(
-//       _cartItemsKey,
+//     debugPrint(
+//       'Cart completely cleared',
 //     );
 //   }
 
 //   // ===========================================================================
 //   // FORCE RELOAD FROM LOCAL
 //   // ===========================================================================
-//   //
-//   // Normally lagbe na.
-//   //
-//   // Debug/test-er jonno use kora jabe.
-//   // ===========================================================================
 
-//   static Future<void>
-//       reloadFromLocal() async {
+//   static Future<void> reloadFromLocal() async {
 //     _isInitialized = false;
 
 //     _initializingFuture = null;
@@ -698,7 +598,6 @@ class CartService {
   // ===========================================================================
 
   static const String _cartCountKey = 'lalbaba_cart_count';
-
   static const String _cartItemsKey = 'lalbaba_cart_items';
 
   // ===========================================================================
@@ -706,13 +605,8 @@ class CartService {
   // ===========================================================================
 
   static bool _isInitialized = false;
-
   static Future<void>? _initializingFuture;
 
-  /// App start হওয়ার সময় main.dart থেকে call করবে।
-  ///
-  /// এতে runApp() হওয়ার আগেই previously saved cart
-  /// SharedPreferences থেকে load হয়ে যাবে।
   static Future<void> initialize() async {
     await _ensureInitialized();
   }
@@ -721,7 +615,8 @@ class CartService {
   // GLOBAL CART COUNT
   // ===========================================================================
 
-  static final ValueNotifier<int> count = ValueNotifier<int>(0);
+  static final ValueNotifier<int> count =
+      ValueNotifier<int>(0);
 
   static int get currentCount => count.value;
 
@@ -762,10 +657,6 @@ class CartService {
       final SharedPreferences prefs =
           await SharedPreferences.getInstance();
 
-      // Disk-er latest value force kore reload korbe.
-      //
-      // App completely close kore abar open korleo
-      // latest saved cart data read korbe.
       await prefs.reload();
 
       // -----------------------------------------------------------------------
@@ -788,9 +679,8 @@ class CartService {
 
       for (final String rawItem in savedItems) {
         try {
-          final dynamic decoded = jsonDecode(
-            rawItem,
-          );
+          final dynamic decoded =
+              jsonDecode(rawItem);
 
           if (decoded is Map<String, dynamic>) {
             loadedItems.add(
@@ -814,7 +704,10 @@ class CartService {
         }
       }
 
-      // Loaded items globally set.
+      // -----------------------------------------------------------------------
+      // SET LOADED ITEMS
+      // -----------------------------------------------------------------------
+
       items.value =
           List<CartNotificationItem>.from(
         loadedItems,
@@ -829,17 +722,16 @@ class CartService {
         loadedItems,
       );
 
-      // Product thakle product quantity-i source of truth.
-      //
-      // Product na thakle old saved count fallback hisebe nibe.
       if (loadedItems.isNotEmpty) {
         count.value = calculatedCount;
       } else {
         count.value =
-            savedCount < 0 ? 0 : savedCount;
+            savedCount < 0
+                ? 0
+                : savedCount;
       }
 
-      // Saved count mismatch hole correct kore save kore dibe.
+      // Saved count mismatch hole correct kore save korbe.
       if (loadedItems.isNotEmpty &&
           savedCount != calculatedCount) {
         await prefs.setInt(
@@ -860,7 +752,6 @@ class CartService {
         'Cart local load error: $error',
       );
 
-      // App jeno crash/loop na kore.
       _isInitialized = true;
     }
   }
@@ -875,7 +766,7 @@ class CartService {
           await SharedPreferences.getInstance();
 
       // -----------------------------------------------------------------------
-      // ENCODE ALL ITEMS
+      // ENCODE ALL CART ITEMS
       // -----------------------------------------------------------------------
 
       final List<String> encodedItems =
@@ -889,7 +780,7 @@ class CartService {
               .toList();
 
       // -----------------------------------------------------------------------
-      // SAVE ITEMS FIRST
+      // SAVE ITEMS
       // -----------------------------------------------------------------------
 
       final bool itemsSaved =
@@ -1006,11 +897,16 @@ class CartService {
         CartNotificationItem(
       productId: safeProductId,
       name: safeName,
-      imageUrl: imageUrl?.trim() ?? '',
-      price: price?.trim() ?? '',
-      originalPrice: safeOriginalPrice,
-      weight: safeWeight,
-      quantity: quantity,
+      imageUrl:
+          imageUrl?.trim() ?? '',
+      price:
+          price?.trim() ?? '',
+      originalPrice:
+          safeOriginalPrice,
+      weight:
+          safeWeight,
+      quantity:
+          quantity,
     );
 
     final List<CartNotificationItem> updated =
@@ -1030,24 +926,23 @@ class CartService {
     );
 
     if (existingIndex >= 0) {
-      // Same item already cart-e ache.
-      // New card create korbe na.
-      // Quantity increase korbe.
-
       final CartNotificationItem existing =
           updated[existingIndex];
 
       updated[existingIndex] =
           existing.copyWith(
-        name: incoming.name,
+        name:
+            incoming.name,
 
-        imageUrl: incoming.imageUrl.isNotEmpty
-            ? incoming.imageUrl
-            : existing.imageUrl,
+        imageUrl:
+            incoming.imageUrl.isNotEmpty
+                ? incoming.imageUrl
+                : existing.imageUrl,
 
-        price: incoming.price.isNotEmpty
-            ? incoming.price
-            : existing.price,
+        price:
+            incoming.price.isNotEmpty
+                ? incoming.price
+                : existing.price,
 
         originalPrice:
             incoming.originalPrice ??
@@ -1058,12 +953,11 @@ class CartService {
                 existing.weight,
 
         quantity:
-            existing.quantity + quantity,
+            existing.quantity +
+                quantity,
       );
     } else {
-      // New product.
-      // Latest product list-er top-e thakbe.
-
+      // New product top-e add hobe.
       updated.insert(
         0,
         incoming,
@@ -1085,8 +979,7 @@ class CartService {
     );
 
     // -------------------------------------------------------------------------
-    // IMPORTANT:
-    // Every add-er por immediately local storage-e save.
+    // SAVE LOCALLY
     // -------------------------------------------------------------------------
 
     await _saveToLocal();
@@ -1133,12 +1026,119 @@ class CartService {
       updated,
     );
 
-    // Delete-er por immediately save.
+    await _saveToLocal();
+  }
+
+  // ===========================================================================
+  // INCREASE ITEM QUANTITY
+  // ===========================================================================
+
+  static Future<void> increaseItemQuantity(
+    CartNotificationItem item,
+  ) async {
+    await _ensureInitialized();
+
+    final List<CartNotificationItem> updated =
+        List<CartNotificationItem>.from(
+      items.value,
+    );
+
+    final int index =
+        updated.indexWhere(
+      (CartNotificationItem element) =>
+          element.uniqueKey ==
+          item.uniqueKey,
+    );
+
+    if (index < 0) {
+      return;
+    }
+
+    final CartNotificationItem existing =
+        updated[index];
+
+    updated[index] =
+        existing.copyWith(
+      quantity:
+          existing.quantity + 1,
+    );
+
+    items.value =
+        List<CartNotificationItem>.from(
+      updated,
+    );
+
+    count.value =
+        _calculateTotalQuantity(
+      updated,
+    );
+
+    await _saveToLocal();
+  }
+
+  // ===========================================================================
+  // DECREASE ITEM QUANTITY
+  // ===========================================================================
+
+  static Future<void> decreaseItemQuantity(
+    CartNotificationItem item,
+  ) async {
+    await _ensureInitialized();
+
+    final List<CartNotificationItem> updated =
+        List<CartNotificationItem>.from(
+      items.value,
+    );
+
+    final int index =
+        updated.indexWhere(
+      (CartNotificationItem element) =>
+          element.uniqueKey ==
+          item.uniqueKey,
+    );
+
+    if (index < 0) {
+      return;
+    }
+
+    final CartNotificationItem existing =
+        updated[index];
+
+    // Quantity 1 hole minus korle item cart theke remove.
+    if (existing.quantity <= 1) {
+      updated.removeAt(
+        index,
+      );
+    } else {
+      updated[index] =
+          existing.copyWith(
+        quantity:
+            existing.quantity - 1,
+      );
+    }
+
+    items.value =
+        List<CartNotificationItem>.from(
+      updated,
+    );
+
+    count.value =
+        _calculateTotalQuantity(
+      updated,
+    );
+
     await _saveToLocal();
   }
 
   // ===========================================================================
   // REMOVE QUANTITY FROM CART
+  // ===========================================================================
+  //
+  // Existing compatibility function.
+  //
+  // New CartPage-er +/- button-er jonno
+  // increaseItemQuantity() / decreaseItemQuantity()
+  // use korben.
   // ===========================================================================
 
   static Future<int> removeFromCart({
@@ -1173,7 +1173,8 @@ class CartService {
             updated[index];
 
         final int newQuantity =
-            existing.quantity - quantity;
+            existing.quantity -
+                quantity;
 
         if (newQuantity <= 0) {
           updated.removeAt(
@@ -1182,7 +1183,8 @@ class CartService {
         } else {
           updated[index] =
               existing.copyWith(
-            quantity: newQuantity,
+            quantity:
+                newQuantity,
           );
         }
 
@@ -1197,12 +1199,14 @@ class CartService {
         );
       }
     } else {
-      // Old compatibility behavior.
       final int newCount =
-          count.value - quantity;
+          count.value -
+              quantity;
 
       count.value =
-          newCount < 0 ? 0 : newCount;
+          newCount < 0
+              ? 0
+              : newCount;
     }
 
     await _saveToLocal();
@@ -1220,7 +1224,9 @@ class CartService {
     await _ensureInitialized();
 
     count.value =
-        value < 0 ? 0 : value;
+        value < 0
+            ? 0
+            : value;
 
     await _saveToLocal();
   }
@@ -1229,9 +1235,6 @@ class CartService {
   // CLEAR CART
   // ===========================================================================
 
-  /// Sudhu ei function call korle cart completely delete hobe.
-  ///
-  /// App close/open korle eta automatically call kora jabe na.
   static Future<void> clearCart() async {
     await _ensureInitialized();
 
@@ -1262,7 +1265,6 @@ class CartService {
 
   static Future<void> reloadFromLocal() async {
     _isInitialized = false;
-
     _initializingFuture = null;
 
     await _ensureInitialized();

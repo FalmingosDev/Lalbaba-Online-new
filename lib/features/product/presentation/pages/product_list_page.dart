@@ -9,6 +9,7 @@ import '../widgets/fliter_drawer_widget.dart';
 import '../widgets/product_name_image.dart';
 import '../widgets/product_price_deliver_weight.dart';
 import '../widgets/qty_add_button_widget.dart';
+import '../../../../core/helpers/snackbar_helper.dart';
 
 class ProductListPage
     extends StatefulWidget {
@@ -356,22 +357,20 @@ class _ProductListPageState
   // ADD TO CART
   // ===========================================================================
 
-  Future<void> _addToCart(
-    ProductItem product,
-    int quantity,
-  ) async {
-    if (quantity <= 0) {
-      return;
-    }
+Future<void> _addToCart(
+  ProductItem product,
+  int quantity,
+) async {
+  if (quantity <= 0) {
+    return;
+  }
 
-    // Current selected variant.
-    final ProductVariant
-        selectedVariant =
+  try {
+    final ProductVariant selectedVariant =
         product.variants[
-            product.selectedVariant];
+          product.selectedVariant
+        ];
 
-    // Same centralized function.
-    // Count + product data duita update hobe.
     await CartService.postAddToCart(
       productId:
           product.id,
@@ -396,25 +395,21 @@ class _ProductListPageState
       return;
     }
 
-    ScaffoldMessenger.of(
+    FeedbackHelper.showSuccess(
       context,
-    ).hideCurrentSnackBar();
+      '${product.name} added to cart',
+    );
+  } catch (error) {
+    if (!mounted) {
+      return;
+    }
 
-    ScaffoldMessenger.of(
+    FeedbackHelper.showError(
       context,
-    ).showSnackBar(
-      SnackBar(
-        content: Text(
-          '${product.name} added to cart',
-        ),
-        duration:
-            const Duration(
-          milliseconds: 900,
-        ),
-      ),
+      'Unable to add product to cart',
     );
   }
-
+}
   // ===========================================================================
   // BUILD
   // ===========================================================================
