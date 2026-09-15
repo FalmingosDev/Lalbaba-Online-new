@@ -1,110 +1,126 @@
-// // Cart page. Why: Contains the shopping cart user interface.
 // import 'package:flutter/material.dart';
-
-// import '../../../../core/widgets/app_app_bar.dart';
-// import '../../../home/presentation/widgets/app_string.dart';
-
-// class CartPage extends StatelessWidget {
-//   const CartPage({super.key});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       // backgroundColor: Colors.grey.shade100,
-//       appBar: AppAppBar(title: AppStrings.cart, centerTitle: true),
-//       body: const Center(
-//         child: Text(
-//           'Cart Page',
-//           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-//         ),
-//       ),
-//     );
-//   }
-// }
-
-// import 'package:flutter/material.dart';
-
+// import '../../../../core/services/cart_notification_item.dart';
+// import '../../../../core/services/cart_service.dart';
 // import '../../../../core/widgets/app_app_bar.dart';
 // import '../../../account/presentation/widgets/app_string.dart';
 
-// class CartPage extends StatelessWidget {
+// class CartPage extends StatefulWidget {
 //   const CartPage({super.key});
+
+//   @override
+//   State<CartPage> createState() => _CartPageState();
+// }
+
+// class _CartPageState extends State<CartPage> {
+//   late final Future<void> _cartInitializeFuture;
+
+//   @override
+//   void initState() {
+//     super.initState();
+
+//     _cartInitializeFuture = CartService.initialize();
+//   }
 
 //   @override
 //   Widget build(BuildContext context) {
 //     return Scaffold(
 //       appBar: AppAppBar(
 //         title: AppStrings.cart,
-//         automaticallyImplyLeading: true,
+//         // automaticallyImplyLeading: true,
 //         centerTitle: true,
 //       ),
-//       body: SafeArea(
-//         child: Column(
-//           children: [
-//             Expanded(
-//               child: ListView(
-//                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
-//                 children: [
-//                   _CartItemCard(
-//                     productName: 'Premium Rice',
-//                     weight: '5 kg',
-//                     price: 420,
-//                     quantity: 1,
-//                     image: Icons.rice_bowl_outlined,
-//                   ),
-//                   const SizedBox(height: 12),
-//                   _CartItemCard(
-//                     productName: 'Premium Pulses',
-//                     weight: '1 kg',
-//                     price: 140,
-//                     quantity: 2,
-//                     image: Icons.grain,
-//                   ),
-//                   const SizedBox(height: 12),
-//                   _CartItemCard(
-//                     productName: 'Mustard Oil',
-//                     weight: '1 L',
-//                     price: 180,
-//                     quantity: 1,
-//                     image: Icons.water_drop_outlined,
-//                   ),
-//                 ],
-//               ),
-//             ),
 
-//             _CartSummary(),
-//           ],
+//       body: SafeArea(
+//         child: FutureBuilder<void>(
+//           future: _cartInitializeFuture,
+
+//           builder: (context, snapshot) {
+//             if (snapshot.connectionState == ConnectionState.waiting) {
+//               return const Center(child: CircularProgressIndicator());
+//             }
+
+//             return ValueListenableBuilder<List<CartNotificationItem>>(
+//               valueListenable: CartService.items,
+
+//               builder: (context, cartItems, child) {
+//                 if (cartItems.isEmpty) {
+//                   return const _EmptyCart();
+//                 }
+
+//                 final double subtotal = cartItems.fold<double>(0, (
+//                   double total,
+//                   CartNotificationItem item,
+//                 ) {
+//                   final double price = _parsePrice(item.price);
+
+//                   return total + (price * item.quantity);
+//                 });
+
+//                 final double delivery = cartItems.isEmpty ? 0 : 40;
+
+//                 final double total = subtotal + delivery;
+
+//                 return Column(
+//                   children: [
+//                     Expanded(
+//                       child: ListView.separated(
+//                         padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
+
+//                         itemCount: cartItems.length,
+
+//                         separatorBuilder: (context, index) {
+//                           return const SizedBox(height: 12);
+//                         },
+
+//                         itemBuilder: (context, index) {
+//                           final CartNotificationItem item = cartItems[index];
+
+//                           return _CartItemCard(item: item);
+//                         },
+//                       ),
+//                     ),
+
+//                     _CartSummary(
+//                       subtotal: subtotal,
+//                       delivery: delivery,
+//                       total: total,
+//                     ),
+//                   ],
+//                 );
+//               },
+//             );
+//           },
 //         ),
 //       ),
 //     );
 //   }
 // }
 
-// class _CartItemCard extends StatelessWidget {
-//   final String productName;
-//   final String weight;
-//   final double price;
-//   final int quantity;
-//   final IconData image;
+// // ===========================================================================
+// // CART ITEM CARD
+// // ===========================================================================
 
-//   const _CartItemCard({
-//     required this.productName,
-//     required this.weight,
-//     required this.price,
-//     required this.quantity,
-//     required this.image,
-//   });
+// class _CartItemCard extends StatelessWidget {
+//   final CartNotificationItem item;
+
+//   const _CartItemCard({required this.item});
 
 //   @override
 //   Widget build(BuildContext context) {
-//     final totalPrice = price * quantity;
+//     final double price = _parsePrice(item.price);
+
+//     final double totalPrice = price * item.quantity;
 
 //     return Container(
 //       padding: const EdgeInsets.all(12),
+
 //       decoration: BoxDecoration(
 //         color: Theme.of(context).cardColor,
+
 //         borderRadius: BorderRadius.circular(16),
+
 //         border: Border.all(color: Colors.grey.shade200),
+
 //         boxShadow: [
 //           BoxShadow(
 //             color: Colors.black.withValues(alpha: 0.04),
@@ -113,56 +129,112 @@
 //           ),
 //         ],
 //       ),
+
 //       child: Row(
 //         children: [
+//           // ================================================================
+//           // PRODUCT IMAGE
+//           // ================================================================
 //           Container(
 //             height: 78,
 //             width: 78,
+
+//             clipBehavior: Clip.antiAlias,
+
 //             decoration: BoxDecoration(
 //               color: Theme.of(
 //                 context,
 //               ).colorScheme.primary.withValues(alpha: 0.08),
+
 //               borderRadius: BorderRadius.circular(14),
 //             ),
-//             child: Icon(
-//               image,
-//               size: 38,
-//               color: Theme.of(context).colorScheme.primary,
-//             ),
+
+//             child: item.imageUrl.trim().isNotEmpty
+//                 ? Image.network(
+//                     item.imageUrl,
+
+//                     fit: BoxFit.cover,
+
+//                     errorBuilder: (context, error, stackTrace) {
+//                       return Icon(
+//                         Icons.shopping_bag_outlined,
+//                         size: 36,
+//                         color: Theme.of(context).colorScheme.primary,
+//                       );
+//                     },
+//                   )
+//                 : Icon(
+//                     Icons.shopping_bag_outlined,
+//                     size: 36,
+//                     color: Theme.of(context).colorScheme.primary,
+//                   ),
 //           ),
 
 //           const SizedBox(width: 12),
 
+//           // ================================================================
+//           // PRODUCT DETAILS
+//           // ================================================================
 //           Expanded(
 //             child: Column(
 //               crossAxisAlignment: CrossAxisAlignment.start,
+
 //               children: [
 //                 Text(
-//                   productName,
-//                   maxLines: 1,
+//                   item.name,
+
+//                   maxLines: 2,
+
 //                   overflow: TextOverflow.ellipsis,
+
 //                   style: const TextStyle(
 //                     fontSize: 15,
 //                     fontWeight: FontWeight.w600,
 //                   ),
 //                 ),
 
-//                 const SizedBox(height: 5),
+//                 if (item.weight != null && item.weight!.trim().isNotEmpty) ...[
+//                   const SizedBox(height: 5),
 
-//                 Text(
-//                   weight,
-//                   style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
-//                 ),
+//                   Text(
+//                     item.weight!,
+
+//                     style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+//                   ),
+//                 ],
 
 //                 const SizedBox(height: 8),
 
-//                 Text(
-//                   '₹${totalPrice.toStringAsFixed(0)}',
-//                   style: TextStyle(
-//                     fontSize: 16,
-//                     fontWeight: FontWeight.w700,
-//                     color: Theme.of(context).colorScheme.primary,
-//                   ),
+//                 Row(
+//                   children: [
+//                     Text(
+//                       '₹${totalPrice.toStringAsFixed(0)}',
+
+//                       style: TextStyle(
+//                         fontSize: 16,
+//                         fontWeight: FontWeight.w700,
+
+//                         color: Theme.of(context).colorScheme.primary,
+//                       ),
+//                     ),
+
+//                     if (item.originalPrice != null &&
+//                         item.originalPrice!.trim().isNotEmpty) ...[
+//                       const SizedBox(width: 8),
+
+//                       Text(
+//                         '₹${item.originalPrice}',
+
+//                         style: TextStyle(
+//                           fontSize: 12,
+
+//                           color: Colors.grey.shade500,
+
+//                           decoration: TextDecoration.lineThrough,
+//                         ),
+//                       ),
+//                     ],
+//                   ],
 //                 ),
 //               ],
 //             ),
@@ -170,50 +242,70 @@
 
 //           const SizedBox(width: 8),
 
+//           // ================================================================
+//           // DELETE + QUANTITY
+//           // ================================================================
 //           Column(
 //             children: [
 //               IconButton(
-//                 onPressed: () {
-//                   // TODO: Remove the product from the cart.
+//                 onPressed: () async {
+//                   await CartService.removeItem(item);
 //                 },
+
 //                 icon: const Icon(Icons.delete_outline, size: 21),
+
 //                 visualDensity: VisualDensity.compact,
 //               ),
 
 //               Container(
 //                 decoration: BoxDecoration(
 //                   border: Border.all(color: Colors.grey.shade300),
+
 //                   borderRadius: BorderRadius.circular(8),
 //                 ),
+
 //                 child: Row(
 //                   children: [
+//                     // ------------------------------------------------------
+//                     // MINUS
+//                     // ------------------------------------------------------
 //                     InkWell(
-//                       onTap: () {
-//                         // TODO: Decrease the product quantity.
+//                       onTap: () async {
+//                         await CartService.decreaseItemQuantity(item);
 //                       },
+
 //                       child: const Padding(
 //                         padding: EdgeInsets.all(5),
+
 //                         child: Icon(Icons.remove, size: 16),
 //                       ),
 //                     ),
 
 //                     Padding(
 //                       padding: const EdgeInsets.symmetric(horizontal: 7),
+
 //                       child: Text(
-//                         '$quantity',
+//                         '${item.quantity}',
+
 //                         style: const TextStyle(
 //                           fontSize: 13,
+
 //                           fontWeight: FontWeight.w600,
 //                         ),
 //                       ),
 //                     ),
 
+//                     // ------------------------------------------------------
+//                     // PLUS
+//                     // ------------------------------------------------------
 //                     InkWell(
-//                       onTap: () {
-//                         // TODO: Increase the product quantity.
+//                       onTap: () async {
+//                         await CartService.increaseItemQuantity(item);
 //                       },
+
 //                       child: const Padding(
 //                         padding: EdgeInsets.all(5),
+
 //                         child: Icon(Icons.add, size: 16),
 //                       ),
 //                     ),
@@ -228,42 +320,83 @@
 //   }
 // }
 
+// // ===========================================================================
+// // CART SUMMARY
+// // ===========================================================================
+
 // class _CartSummary extends StatelessWidget {
-//   const _CartSummary();
+//   final double subtotal;
+//   final double delivery;
+//   final double total;
+
+//   const _CartSummary({
+//     required this.subtotal,
+//     required this.delivery,
+//     required this.total,
+//   });
 
 //   @override
 //   Widget build(BuildContext context) {
 //     return Container(
 //       padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
+
 //       decoration: BoxDecoration(
 //         color: Theme.of(context).cardColor,
+
 //         border: Border(top: BorderSide(color: Colors.grey.shade200)),
 //       ),
+
 //       child: Column(
 //         children: [
-//           _SummaryRow(title: 'Subtotal', value: '₹880'),
+//           _SummaryRow(
+//             title: 'Subtotal',
+//             value: '₹${subtotal.toStringAsFixed(0)}',
+//           ),
+
 //           const SizedBox(height: 8),
-//           _SummaryRow(title: 'Delivery', value: '₹40'),
+
+//           _SummaryRow(
+//             title: 'Delivery',
+//             value: '₹${delivery.toStringAsFixed(0)}',
+//           ),
+
 //           const SizedBox(height: 12),
+
 //           Divider(color: Colors.grey.shade200),
+
 //           const SizedBox(height: 10),
-//           const _SummaryRow(title: 'Total', value: '₹920', isTotal: true),
+
+//           _SummaryRow(
+//             title: 'Total',
+//             value: '₹${total.toStringAsFixed(0)}',
+//             isTotal: true,
+//           ),
+
 //           const SizedBox(height: 16),
+
 //           SizedBox(
 //             width: double.infinity,
+
 //             height: 52,
+
 //             child: ElevatedButton(
 //               onPressed: () {
-//                 // TODO: Navigate to the checkout page.
+//                 // TODO:
+//                 // Checkout route
 //               },
+
 //               style: ElevatedButton.styleFrom(
 //                 shape: RoundedRectangleBorder(
 //                   borderRadius: BorderRadius.circular(14),
 //                 ),
 //               ),
-//               child: const Text(
-//                 'Proceed to Checkout',
-//                 style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+
+//               child: Text(
+//                 AppStrings.proceedToCheckout,
+//                 style: const TextStyle(
+//                   fontSize: 15,
+//                   fontWeight: FontWeight.w600,
+//                 ),
 //               ),
 //             ),
 //           ),
@@ -272,6 +405,10 @@
 //     );
 //   }
 // }
+
+// // ===========================================================================
+// // SUMMARY ROW
+// // ===========================================================================
 
 // class _SummaryRow extends StatelessWidget {
 //   final String title;
@@ -288,18 +425,24 @@
 //   Widget build(BuildContext context) {
 //     return Row(
 //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
 //       children: [
 //         Text(
 //           title,
+
 //           style: TextStyle(
 //             fontSize: isTotal ? 17 : 14,
+
 //             fontWeight: isTotal ? FontWeight.w700 : FontWeight.w500,
 //           ),
 //         ),
+
 //         Text(
 //           value,
+
 //           style: TextStyle(
 //             fontSize: isTotal ? 18 : 14,
+
 //             fontWeight: FontWeight.w700,
 //           ),
 //         ),
@@ -308,28 +451,89 @@
 //   }
 // }
 
+// // ===========================================================================
+// // EMPTY CART
+// // ===========================================================================
+
+// class _EmptyCart extends StatelessWidget {
+//   const _EmptyCart();
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Center(
+//       child: Padding(
+//         padding: const EdgeInsets.all(24),
+
+//         child: Column(
+//           mainAxisAlignment: MainAxisAlignment.center,
+
+//           children: [
+//             Icon(
+//               Icons.shopping_cart_outlined,
+
+//               size: 80,
+
+//               color: Colors.grey.shade400,
+//             ),
+
+//             const SizedBox(height: 18),
+
+//             const Text(
+//               'Your cart is empty',
+
+//               style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+//             ),
+
+//             const SizedBox(height: 8),
+
+//             Text(
+//               'Add products to your cart to continue.',
+
+//               textAlign: TextAlign.center,
+
+//               style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }
+
+// // ===========================================================================
+// // PRICE PARSER
+// // ===========================================================================
+
+// double _parsePrice(String value) {
+//   final String cleaned = value
+//       .replaceAll(',', '')
+//       .replaceAll(RegExp(r'[^0-9.]'), '');
+
+//   return double.tryParse(cleaned) ?? 0;
+// }
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/services/cart_notification_item.dart';
 import '../../../../core/services/cart_service.dart';
 import '../../../../core/widgets/app_app_bar.dart';
+
 import '../../../account/presentation/widgets/app_string.dart';
+import '../../../account/presentation/widgets/languange_constant.dart';
 
-// আপনার project structure অনুযায়ী path check করবেন
-
-
-
-class CartPage extends StatefulWidget {
+class CartPage extends ConsumerStatefulWidget {
   const CartPage({super.key});
 
   @override
-  State<CartPage> createState() =>
+  ConsumerState<CartPage> createState() =>
       _CartPageState();
 }
 
-
-class _CartPageState extends State<CartPage> {
-  late final Future<void> _cartInitializeFuture;
+class _CartPageState
+    extends ConsumerState<CartPage> {
+  late final Future<void>
+      _cartInitializeFuture;
 
   @override
   void initState() {
@@ -340,128 +544,167 @@ class _CartPageState extends State<CartPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppAppBar(
-        title: AppStrings.cart,
-        automaticallyImplyLeading: true,
-        centerTitle: true,
-      ),
+  Widget build(
+    BuildContext context,
+  ) {
+    return AnimatedBuilder(
+      animation:
+          AppLanguageConstants.instance,
+      builder: (
+        context,
+        child,
+      ) {
+        return Scaffold(
+          appBar: AppAppBar(
+            title:
+                AppStrings.cart,
+            // automaticallyImplyLeading: true,
+            centerTitle: true,
+          ),
 
-      body: SafeArea(
-        child: FutureBuilder<void>(
-          future: _cartInitializeFuture,
-
-          builder: (context, snapshot) {
-            if (snapshot.connectionState ==
-                ConnectionState.waiting) {
-              return const Center(
-                child: CircularProgressIndicator(),
-              );
-            }
-
-            return ValueListenableBuilder<
-                List<CartNotificationItem>>(
-              valueListenable:
-                  CartService.items,
+          body: SafeArea(
+            child:
+                FutureBuilder<void>(
+              future:
+                  _cartInitializeFuture,
 
               builder: (
                 context,
-                cartItems,
-                child,
+                snapshot,
               ) {
-                if (cartItems.isEmpty) {
-                  return const _EmptyCart();
+                if (snapshot
+                        .connectionState ==
+                    ConnectionState
+                        .waiting) {
+                  return const Center(
+                    child:
+                        CircularProgressIndicator(),
+                  );
                 }
 
-                final double subtotal =
-                    cartItems.fold<double>(
-                  0,
-                  (
-                    double total,
-                    CartNotificationItem item,
+                return ValueListenableBuilder<
+                    List<
+                        CartNotificationItem>>(
+                  valueListenable:
+                      CartService.items,
+
+                  builder: (
+                    context,
+                    cartItems,
+                    child,
                   ) {
-                    final double price =
-                        _parsePrice(
-                      item.price,
+                    if (cartItems
+                        .isEmpty) {
+                      return const _EmptyCart();
+                    }
+
+                    final double
+                        subtotal =
+                        cartItems.fold<
+                            double>(
+                      0,
+                      (
+                        double total,
+                        CartNotificationItem
+                            item,
+                      ) {
+                        final double
+                            price =
+                            _parsePrice(
+                          item.price,
+                        );
+
+                        return total +
+                            (price *
+                                item.quantity);
+                      },
                     );
 
-                    return total +
-                        (price * item.quantity);
-                  },
-                );
+                    final double
+                        delivery =
+                        cartItems
+                                .isEmpty
+                            ? 0
+                            : 40;
 
-                final double delivery =
-                    cartItems.isEmpty
-                        ? 0
-                        : 40;
+                    final double
+                        total =
+                        subtotal +
+                            delivery;
 
-                final double total =
-                    subtotal + delivery;
+                    return Column(
+                      children: [
+                        Expanded(
+                          child:
+                              ListView.separated(
+                            padding:
+                                const EdgeInsets
+                                    .fromLTRB(
+                              16,
+                              16,
+                              16,
+                              10,
+                            ),
 
-                return Column(
-                  children: [
-                    Expanded(
-                      child: ListView.separated(
-                        padding:
-                            const EdgeInsets.fromLTRB(
-                          16,
-                          16,
-                          16,
-                          10,
+                            itemCount:
+                                cartItems
+                                    .length,
+
+                            separatorBuilder:
+                                (
+                              context,
+                              index,
+                            ) {
+                              return const SizedBox(
+                                height: 12,
+                              );
+                            },
+
+                            itemBuilder:
+                                (
+                              context,
+                              index,
+                            ) {
+                              final CartNotificationItem
+                                  item =
+                                  cartItems[
+                                      index];
+
+                              return _CartItemCard(
+                                item:
+                                    item,
+                              );
+                            },
+                          ),
                         ),
 
-                        itemCount:
-                            cartItems.length,
-
-                        separatorBuilder:
-                            (
-                          context,
-                          index,
-                        ) {
-                          return const SizedBox(
-                            height: 12,
-                          );
-                        },
-
-                        itemBuilder:
-                            (
-                          context,
-                          index,
-                        ) {
-                          final CartNotificationItem
-                              item =
-                              cartItems[index];
-
-                          return _CartItemCard(
-                            item: item,
-                          );
-                        },
-                      ),
-                    ),
-
-                    _CartSummary(
-                      subtotal: subtotal,
-                      delivery: delivery,
-                      total: total,
-                    ),
-                  ],
+                        _CartSummary(
+                          subtotal:
+                              subtotal,
+                          delivery:
+                              delivery,
+                          total:
+                              total,
+                        ),
+                      ],
+                    );
+                  },
                 );
               },
-            );
-          },
-        ),
-      ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
-
 
 // ===========================================================================
 // CART ITEM CARD
 // ===========================================================================
 
-class _CartItemCard extends StatelessWidget {
+class _CartItemCard
+    extends StatelessWidget {
   final CartNotificationItem item;
 
   const _CartItemCard({
@@ -469,7 +712,9 @@ class _CartItemCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(
+    BuildContext context,
+  ) {
     final double price =
         _parsePrice(
       item.price,
@@ -479,35 +724,46 @@ class _CartItemCard extends StatelessWidget {
         price * item.quantity;
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding:
+          const EdgeInsets.all(
+        12,
+      ),
 
-      decoration: BoxDecoration(
+      decoration:
+          BoxDecoration(
         color:
-            Theme.of(context).cardColor,
+            Theme.of(context)
+                .cardColor,
 
         borderRadius:
-            BorderRadius.circular(16),
+            BorderRadius.circular(
+          16,
+        ),
 
-        border: Border.all(
+        border:
+            Border.all(
           color:
               Colors.grey.shade200,
         ),
 
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(
+            color: Colors.black
+                .withValues(
               alpha: 0.04,
             ),
             blurRadius: 10,
             offset:
-                const Offset(0, 4),
+                const Offset(
+              0,
+              4,
+            ),
           ),
         ],
       ),
 
       child: Row(
         children: [
-
           // ================================================================
           // PRODUCT IMAGE
           // ================================================================
@@ -519,57 +775,61 @@ class _CartItemCard extends StatelessWidget {
             clipBehavior:
                 Clip.antiAlias,
 
-            decoration: BoxDecoration(
-              color: Theme.of(context)
-                  .colorScheme
-                  .primary
-                  .withValues(
+            decoration:
+                BoxDecoration(
+              color:
+                  Theme.of(context)
+                      .colorScheme
+                      .primary
+                      .withValues(
                     alpha: 0.08,
                   ),
 
               borderRadius:
-                  BorderRadius.circular(
+                  BorderRadius
+                      .circular(
                 14,
               ),
             ),
 
-            child:
-                item.imageUrl.trim().isNotEmpty
-                    ? Image.network(
-                        item.imageUrl,
+            child: item.imageUrl
+                    .trim()
+                    .isNotEmpty
+                ? Image.network(
+                    item.imageUrl,
 
-                        fit: BoxFit.cover,
+                    fit:
+                        BoxFit.cover,
 
-                        errorBuilder:
-                            (
-                          context,
-                          error,
-                          stackTrace,
-                        ) {
-                          return Icon(
-                            Icons
-                                .shopping_bag_outlined,
-                            size: 36,
-                            color:
-                                Theme.of(
-                              context,
-                            )
-                                    .colorScheme
-                                    .primary,
-                          );
-                        },
-                      )
-                    : Icon(
+                    errorBuilder:
+                        (
+                      context,
+                      error,
+                      stackTrace,
+                    ) {
+                      return Icon(
                         Icons
                             .shopping_bag_outlined,
                         size: 36,
-                        color:
-                            Theme.of(
+                        color: Theme.of(
                           context,
                         )
-                                .colorScheme
-                                .primary,
-                      ),
+                            .colorScheme
+                            .primary,
+                      );
+                    },
+                  )
+                : Icon(
+                    Icons
+                        .shopping_bag_outlined,
+                    size: 36,
+                    color:
+                        Theme.of(
+                      context,
+                    )
+                            .colorScheme
+                            .primary,
+                  ),
           ),
 
           const SizedBox(
@@ -583,27 +843,30 @@ class _CartItemCard extends StatelessWidget {
           Expanded(
             child: Column(
               crossAxisAlignment:
-                  CrossAxisAlignment.start,
+                  CrossAxisAlignment
+                      .start,
 
               children: [
-
                 Text(
                   item.name,
 
                   maxLines: 2,
 
                   overflow:
-                      TextOverflow.ellipsis,
+                      TextOverflow
+                          .ellipsis,
 
                   style:
                       const TextStyle(
                     fontSize: 15,
                     fontWeight:
-                        FontWeight.w600,
+                        FontWeight
+                            .w600,
                   ),
                 ),
 
-                if (item.weight != null &&
+                if (item.weight !=
+                        null &&
                     item.weight!
                         .trim()
                         .isNotEmpty) ...[
@@ -614,10 +877,12 @@ class _CartItemCard extends StatelessWidget {
                   Text(
                     item.weight!,
 
-                    style: TextStyle(
+                    style:
+                        TextStyle(
                       fontSize: 13,
                       color: Colors
-                          .grey.shade600,
+                          .grey
+                          .shade600,
                     ),
                   ),
                 ],
@@ -628,26 +893,29 @@ class _CartItemCard extends StatelessWidget {
 
                 Row(
                   children: [
-
                     Text(
                       '₹${totalPrice.toStringAsFixed(0)}',
 
-                      style: TextStyle(
+                      style:
+                          TextStyle(
                         fontSize: 16,
                         fontWeight:
-                            FontWeight.w700,
+                            FontWeight
+                                .w700,
 
-                        color: Theme.of(
+                        color:
+                            Theme.of(
                           context,
                         )
-                            .colorScheme
-                            .primary,
+                                .colorScheme
+                                .primary,
                       ),
                     ),
 
                     if (item.originalPrice !=
                             null &&
-                        item.originalPrice!
+                        item
+                            .originalPrice!
                             .trim()
                             .isNotEmpty) ...[
                       const SizedBox(
@@ -657,11 +925,13 @@ class _CartItemCard extends StatelessWidget {
                       Text(
                         '₹${item.originalPrice}',
 
-                        style: TextStyle(
+                        style:
+                            TextStyle(
                           fontSize: 12,
 
                           color: Colors
-                              .grey.shade500,
+                              .grey
+                              .shade500,
 
                           decoration:
                               TextDecoration
@@ -685,47 +955,53 @@ class _CartItemCard extends StatelessWidget {
 
           Column(
             children: [
-
               IconButton(
-                onPressed: () async {
+                onPressed:
+                    () async {
                   await CartService
                       .removeItem(
                     item,
                   );
                 },
 
-                icon: const Icon(
-                  Icons.delete_outline,
+                icon:
+                    const Icon(
+                  Icons
+                      .delete_outline,
                   size: 21,
                 ),
 
                 visualDensity:
-                    VisualDensity.compact,
+                    VisualDensity
+                        .compact,
               ),
 
               Container(
                 decoration:
                     BoxDecoration(
-                  border: Border.all(
+                  border:
+                      Border.all(
                     color: Colors
-                        .grey.shade300,
+                        .grey
+                        .shade300,
                   ),
 
                   borderRadius:
-                      BorderRadius.circular(
+                      BorderRadius
+                          .circular(
                     8,
                   ),
                 ),
 
                 child: Row(
                   children: [
-
                     // ------------------------------------------------------
                     // MINUS
                     // ------------------------------------------------------
 
                     InkWell(
-                      onTap: () async {
+                      onTap:
+                          () async {
                         await CartService
                             .decreaseItemQuantity(
                           item,
@@ -735,7 +1011,8 @@ class _CartItemCard extends StatelessWidget {
                       child:
                           const Padding(
                         padding:
-                            EdgeInsets.all(
+                            EdgeInsets
+                                .all(
                           5,
                         ),
 
@@ -750,18 +1027,22 @@ class _CartItemCard extends StatelessWidget {
                       padding:
                           const EdgeInsets
                               .symmetric(
-                        horizontal: 7,
+                        horizontal:
+                            7,
                       ),
 
-                      child: Text(
+                      child:
+                          Text(
                         '${item.quantity}',
 
                         style:
                             const TextStyle(
-                          fontSize: 13,
+                          fontSize:
+                              13,
 
                           fontWeight:
-                              FontWeight.w600,
+                              FontWeight
+                                  .w600,
                         ),
                       ),
                     ),
@@ -771,7 +1052,8 @@ class _CartItemCard extends StatelessWidget {
                     // ------------------------------------------------------
 
                     InkWell(
-                      onTap: () async {
+                      onTap:
+                          () async {
                         await CartService
                             .increaseItemQuantity(
                           item,
@@ -781,7 +1063,8 @@ class _CartItemCard extends StatelessWidget {
                       child:
                           const Padding(
                         padding:
-                            EdgeInsets.all(
+                            EdgeInsets
+                                .all(
                           5,
                         ),
 
@@ -802,12 +1085,12 @@ class _CartItemCard extends StatelessWidget {
   }
 }
 
-
 // ===========================================================================
 // CART SUMMARY
 // ===========================================================================
 
-class _CartSummary extends StatelessWidget {
+class _CartSummary
+    extends StatelessWidget {
   final double subtotal;
   final double delivery;
   final double total;
@@ -819,7 +1102,9 @@ class _CartSummary extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(
+    BuildContext context,
+  ) {
     return Container(
       padding:
           const EdgeInsets.fromLTRB(
@@ -829,23 +1114,28 @@ class _CartSummary extends StatelessWidget {
         20,
       ),
 
-      decoration: BoxDecoration(
+      decoration:
+          BoxDecoration(
         color:
-            Theme.of(context).cardColor,
+            Theme.of(context)
+                .cardColor,
 
-        border: Border(
-          top: BorderSide(
+        border:
+            Border(
+          top:
+              BorderSide(
             color:
-                Colors.grey.shade200,
+                Colors.grey
+                    .shade200,
           ),
         ),
       ),
 
       child: Column(
         children: [
-
           _SummaryRow(
-            title: 'Subtotal',
+            title:
+                'Subtotal',
             value:
                 '₹${subtotal.toStringAsFixed(0)}',
           ),
@@ -855,7 +1145,8 @@ class _CartSummary extends StatelessWidget {
           ),
 
           _SummaryRow(
-            title: 'Delivery',
+            title:
+                'Delivery',
             value:
                 '₹${delivery.toStringAsFixed(0)}',
           ),
@@ -866,7 +1157,8 @@ class _CartSummary extends StatelessWidget {
 
           Divider(
             color:
-                Colors.grey.shade200,
+                Colors.grey
+                    .shade200,
           ),
 
           const SizedBox(
@@ -874,10 +1166,12 @@ class _CartSummary extends StatelessWidget {
           ),
 
           _SummaryRow(
-            title: 'Total',
+            title:
+                'Total',
             value:
                 '₹${total.toStringAsFixed(0)}',
-            isTotal: true,
+            isTotal:
+                true,
           ),
 
           const SizedBox(
@@ -898,25 +1192,29 @@ class _CartSummary extends StatelessWidget {
               },
 
               style:
-                  ElevatedButton.styleFrom(
+                  ElevatedButton
+                      .styleFrom(
                 shape:
                     RoundedRectangleBorder(
                   borderRadius:
-                      BorderRadius.circular(
+                      BorderRadius
+                          .circular(
                     14,
                   ),
                 ),
               ),
 
-              child:
-                  const Text(
-                'Proceed to Checkout',
+              child: Text(
+                AppStrings
+                    .proceedToCheckout,
 
                 style:
-                    TextStyle(
+                    const TextStyle(
                   fontSize: 15,
+
                   fontWeight:
-                      FontWeight.w600,
+                      FontWeight
+                          .w600,
                 ),
               ),
             ),
@@ -927,12 +1225,12 @@ class _CartSummary extends StatelessWidget {
   }
 }
 
-
 // ===========================================================================
 // SUMMARY ROW
 // ===========================================================================
 
-class _SummaryRow extends StatelessWidget {
+class _SummaryRow
+    extends StatelessWidget {
   final String title;
   final String value;
   final bool isTotal;
@@ -944,33 +1242,43 @@ class _SummaryRow extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(
+    BuildContext context,
+  ) {
     return Row(
       mainAxisAlignment:
-          MainAxisAlignment.spaceBetween,
+          MainAxisAlignment
+              .spaceBetween,
 
       children: [
-
         Text(
           title,
 
-          style: TextStyle(
+          style:
+              TextStyle(
             fontSize:
-                isTotal ? 17 : 14,
+                isTotal
+                    ? 17
+                    : 14,
 
             fontWeight:
                 isTotal
-                    ? FontWeight.w700
-                    : FontWeight.w500,
+                    ? FontWeight
+                        .w700
+                    : FontWeight
+                        .w500,
           ),
         ),
 
         Text(
           value,
 
-          style: TextStyle(
+          style:
+              TextStyle(
             fontSize:
-                isTotal ? 18 : 14,
+                isTotal
+                    ? 18
+                    : 14,
 
             fontWeight:
                 FontWeight.w700,
@@ -981,16 +1289,18 @@ class _SummaryRow extends StatelessWidget {
   }
 }
 
-
 // ===========================================================================
 // EMPTY CART
 // ===========================================================================
 
-class _EmptyCart extends StatelessWidget {
+class _EmptyCart
+    extends StatelessWidget {
   const _EmptyCart();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(
+    BuildContext context,
+  ) {
     return Center(
       child: Padding(
         padding:
@@ -1000,10 +1310,10 @@ class _EmptyCart extends StatelessWidget {
 
         child: Column(
           mainAxisAlignment:
-              MainAxisAlignment.center,
+              MainAxisAlignment
+                  .center,
 
           children: [
-
             Icon(
               Icons
                   .shopping_cart_outlined,
@@ -1011,7 +1321,8 @@ class _EmptyCart extends StatelessWidget {
               size: 80,
 
               color:
-                  Colors.grey.shade400,
+                  Colors.grey
+                      .shade400,
             ),
 
             const SizedBox(
@@ -1021,10 +1332,13 @@ class _EmptyCart extends StatelessWidget {
             const Text(
               'Your cart is empty',
 
-              style: TextStyle(
+              style:
+                  TextStyle(
                 fontSize: 20,
+
                 fontWeight:
-                    FontWeight.w700,
+                    FontWeight
+                        .w700,
               ),
             ),
 
@@ -1038,10 +1352,13 @@ class _EmptyCart extends StatelessWidget {
               textAlign:
                   TextAlign.center,
 
-              style: TextStyle(
+              style:
+                  TextStyle(
                 fontSize: 14,
+
                 color:
-                    Colors.grey.shade600,
+                    Colors.grey
+                        .shade600,
               ),
             ),
           ],
@@ -1050,7 +1367,6 @@ class _EmptyCart extends StatelessWidget {
     );
   }
 }
-
 
 // ===========================================================================
 // PRICE PARSER
@@ -1061,7 +1377,10 @@ double _parsePrice(
 ) {
   final String cleaned =
       value
-          .replaceAll(',', '')
+          .replaceAll(
+            ',',
+            '',
+          )
           .replaceAll(
             RegExp(
               r'[^0-9.]',

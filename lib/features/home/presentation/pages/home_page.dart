@@ -1,18 +1,14 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/constants/asset_constants.dart';
 import '../../../../core/services/cart_service.dart';
 import '../../../../core/widgets/app_shimmer.dart';
-
 import '../../../account/presentation/widgets/app_string.dart';
 import '../../../account/presentation/widgets/languange_constant.dart';
 import '../../../product/presentation/pages/product_list_page.dart';
-
 import 'cart_notification_page.dart';
-
 import '../widgets/appbar_widget.dart';
 import '../widgets/banner_widget.dart';
 import '../widgets/bestseller_widget.dart';
@@ -218,26 +214,59 @@ class _HomePageState
   // ===========================================================================
   // PRODUCT LIST
   // ===========================================================================
+Future<void> _openProductListPage({
+  String? sectionType,
+  String title = 'Products',
+}) async {
+  // -------------------------------------------------------------
+  // HOME CATEGORY NAVIGATION BLOCK
+  // For You / Rice / Spices click korle ProductListPage open hobe na
+  // -------------------------------------------------------------
 
-  Future<void>
-      _openProductListPage({
-    String? sectionType,
-    String title = 'Products',
-  }) async {
-    // await Navigator.push(
-    //   context,
-    //   MaterialPageRoute(
-    //     builder: (
-    //       context,
-    //     ) =>
-    //         ProductListPage(
-    //       sectionType:
-    //           sectionType,
-    //       pageTitle: title,
-    //     ),
-    //   ),
-    // );
+  if (title == 'For You' ||
+      title == 'Rice' ||
+      title == 'Spices') {
+    debugPrint(
+      'Category navigation blocked: $title',
+    );
+
+    return;
   }
+
+  // -------------------------------------------------------------
+  // OTHER NAVIGATION
+  // Trending / Best Seller / View All etc. normal bhabe open hobe
+  // -------------------------------------------------------------
+
+  await Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => ProductListPage(
+        sectionType: sectionType,
+        pageTitle: title,
+      ),
+    ),
+  );
+}
+  // Future<void>
+  //     _openProductListPage({
+  //   String? sectionType,
+  //   String title = 'Products',
+  // }) async {
+  //   await Navigator.push(
+  //     context,
+  //     MaterialPageRoute(
+  //       builder: (
+  //         context,
+  //       ) =>
+  //           ProductListPage(
+  //         sectionType:
+  //             sectionType,
+  //         pageTitle: title,
+  //       ),
+  //     ),
+  //   );
+  // }
 
   // ===========================================================================
   // ADD TO CART

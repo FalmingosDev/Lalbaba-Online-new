@@ -435,7 +435,7 @@ class SectionCardWidget extends StatelessWidget {
 
                   separatorBuilder:
                       (
-                    context,
+                    contextutt,
                     index,
                   ) {
                     return const SizedBox(

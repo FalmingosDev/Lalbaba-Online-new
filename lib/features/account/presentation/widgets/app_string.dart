@@ -632,4 +632,30 @@ class AppStrings {
     'Are you sure you want to log out?',
     'আপনি কি নিশ্চিত যে আপনি লগ আউট করতে চান?',
   );
+  static String get trackOrder =>
+    AppLanguageConstants.t('Track Order', 'অর্ডার ট্র্যাক করুন');
+    static String get shopByCategory =>
+    AppLanguageConstants.t(
+      'Shop by Category',
+      'ক্যাটাগরি অনুযায়ী কেনাকাটা করুন',
+    );
+
+static String get exploreOurWideRangeOfProducts =>
+    AppLanguageConstants.t(
+      'Explore our wide range of products',
+      'আমাদের বিভিন্ন ধরনের পণ্য দেখুন',
+    );
+    static String get proceedToCheckout =>
+    AppLanguageConstants.t(
+      'Proceed to Checkout',
+      'চেকআউটে এগিয়ে যান',
+    );
+
+    static String get email =>
+    AppLanguageConstants.t(
+      'Email',
+      'ইমেইল',
+    );
+   
+   
 }
