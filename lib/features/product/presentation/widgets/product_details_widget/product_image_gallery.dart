@@ -3,20 +3,22 @@ import 'package:flutter/material.dart';
 import '../../../../../app/theme/app_colors.dart';
 import '../../../../../core/widgets/app_shimmer.dart';
 
+import 'product_image_zoom_viewer.dart';
 
 // ==============================================================================
 // PRODUCT IMAGE GALLERY
 // ------------------------------------------------------------------------------
 // Shows a large main (network) image with a strip of tappable thumbnails for
-// the remaining images.
+// the remaining images (front / back / all angles). Tapping the main image
+// opens a fullscreen pinch-to-zoom viewer (see product_image_zoom_viewer.dart)
+// so the user can zoom right in on the packet.
 //
 // Layout auto-switches:
 //   - wide screens / tablets -> thumbnails as a VERTICAL strip on the side
 //   - regular phones         -> thumbnails as a HORIZONTAL strip underneath
 //
 // If the product only has one image, the thumbnail strip is hidden entirely
-// and just the main image is shown - so this widget is a drop-in upgrade for
-// products that don't have multiple images yet.
+// and just the main image is shown - tapping it still opens the zoom viewer.
 // ==============================================================================
 
 class ProductImageGallery extends StatelessWidget {
@@ -40,7 +42,10 @@ class ProductImageGallery extends StatelessWidget {
       builder: (context, constraints) {
         final bool wideLayout = constraints.maxWidth >= 420;
 
-        final Widget mainImage = _MainImage(url: safeImages[safeIndex]);
+        final Widget mainImage = _MainImage(
+          images: safeImages,
+          index: safeIndex,
+        );
 
         if (safeImages.length <= 1) {
           return mainImage;
@@ -83,45 +88,77 @@ class ProductImageGallery extends StatelessWidget {
 }
 
 // ==============================================================================
-// MAIN IMAGE
+// MAIN IMAGE - tap to open the fullscreen pinch-zoom viewer
 // ==============================================================================
 
 class _MainImage extends StatelessWidget {
-  final String url;
+  final List<String> images;
+  final int index;
 
-  const _MainImage({required this.url});
+  const _MainImage({required this.images, required this.index});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 280,
-      width: double.infinity,
-      color: AppColors.surface,
-      child: url.isEmpty
-          ? const Center(
-              child: Icon(
-                Icons.image_not_supported,
-                color: AppColors.grey,
-              ),
-            )
-          : Image.network(
-              url,
-              fit: BoxFit.contain,
-              loadingBuilder: (context, child, loadingProgress) {
-                if (loadingProgress == null) return child;
+    final String url = images[index];
 
-                return const AppShimmer(
-                  width: double.infinity,
-                  height: 280,
-                  radius: 0,
-                );
-              },
-              errorBuilder: (context, error, stackTrace) {
-                return const Center(
-                  child: Icon(Icons.broken_image, color: AppColors.grey),
-                );
-              },
+    return GestureDetector(
+      onTap: () => showProductImageZoomViewer(
+        context,
+        images: images,
+        initialIndex: index,
+      ),
+      child: Container(
+        height: 280,
+        width: double.infinity,
+        color: AppColors.surface,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: url.isEmpty
+                  ? const Center(
+                      child: Icon(
+                        Icons.image_not_supported,
+                        color: AppColors.grey,
+                      ),
+                    )
+                  : Image.network(
+                      url,
+                      fit: BoxFit.contain,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+
+                        return const AppShimmer(
+                          width: double.infinity,
+                          height: 280,
+                          radius: 0,
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Center(
+                          child: Icon(Icons.broken_image, color: AppColors.grey),
+                        );
+                      },
+                    ),
             ),
+
+            // ---------------------------------------------------------------
+            // ZOOM HINT BADGE - makes it obvious the packet can be zoomed in on
+            // ---------------------------------------------------------------
+            Positioned(
+              right: 10,
+              bottom: 10,
+              child: Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.45),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.zoom_in, size: 18, color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

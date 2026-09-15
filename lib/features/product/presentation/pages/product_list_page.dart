@@ -9,7 +9,7 @@ import '../../../../core/helpers/snackbar_helper.dart';
 
 import '../model/product_models.dart';
 import '../widgets/fliter_drawer_widget.dart';
-import '../widgets/product_details_widget/demo_product_content.dart';
+import '../widgets/product_details_widget/product_repository.dart';
 import '../widgets/product_name_image.dart';
 import '../widgets/product_price_deliver_weight.dart';
 import '../widgets/qty_add_button_widget.dart';
@@ -56,169 +56,11 @@ class _ProductListPageState extends State<ProductListPage> {
   // PRODUCTS
   // ===========================================================================
 
-  late final List<ProductItem> products = [
-    ProductItem(
-      id: 'lalbaba-superior-banskathi',
-      name: 'Lalbaba Superior Banskathi',
-      imageUrl:
-          'https://lalbabaonline.com/public/uploads/all/oAHc705alFhNrcljUs2QjIaemF95khJs5nisUpma.webp',
-      rating: 5,
-      reviewCount: 12,
-      deliveryDays: 3,
-      processedAt: genericProcessedAt,
-      description: genericDescription('Lalbaba Superior Banskathi'),
-      specifications: genericSpecifications('Banskathi Rice'),
-      reviews: genericReviews,
-      faqs: genericFaqs('Lalbaba Superior Banskathi'),
-      variants: const [
-        ProductVariant(weight: '1 Kg', price: 139),
-        ProductVariant(weight: '5 Kg', price: 669),
-        ProductVariant(weight: '10 Kg', price: 1329),
-      ],
-    ),
-
-    ProductItem(
-      id: 'lalbaba-gobindo-bhog',
-      name: 'Lalbaba Gobindo Bhog',
-      imageUrl:
-          'https://lalbabaonline.com/public/uploads/all/BKEcfif3FQ8gsCt9q8Z93emvxfe0b33WSMoWs5oB.webp',
-      rating: 4.5,
-      reviewCount: 8,
-      deliveryDays: 7,
-      processedAt: genericProcessedAt,
-      description: genericDescription('Lalbaba Gobindo Bhog'),
-      specifications: genericSpecifications('Gobindo Bhog Rice'),
-      reviews: genericReviews,
-      faqs: genericFaqs('Lalbaba Gobindo Bhog'),
-      variants: const [
-        ProductVariant(weight: '1 Kg', price: 269),
-        ProductVariant(weight: '5 Kg', price: 1299),
-        ProductVariant(weight: '10 Kg', price: 2499),
-      ],
-    ),
-
-    ProductItem(
-      id: 'lalbaba-exclusive-basmati',
-      name: 'Lalbaba Exclusive Basmati',
-      imageUrl:
-          'https://lalbabaonline.com/public/uploads/all/H9vrMOozhHWyosbPSZ8v3mzqod7JL54ItJVqSLWZ.jpg',
-      rating: 5,
-      reviewCount: 20,
-      deliveryDays: 4,
-      processedAt: genericProcessedAt,
-      description: genericDescription('Lalbaba Exclusive Basmati'),
-      specifications: genericSpecifications('Basmati Rice'),
-      reviews: genericReviews,
-      faqs: genericFaqs('Lalbaba Exclusive Basmati'),
-      variants: const [
-        ProductVariant(weight: '1 Kg', price: 119),
-        ProductVariant(weight: '5 Kg', price: 569),
-        ProductVariant(weight: '10 Kg', price: 1129),
-      ],
-    ),
-
-    ProductItem(
-      id: 'lalbaba-traditional-basmati',
-      name: 'Lalbaba Traditional Basmati Rice',
-      imageUrl:
-          'https://lalbabaonline.com/public/uploads/all/jfCxsG3mPdSQSo4clKBd2dFNqTFr4af2fEZx2wkW.webp',
-      rating: 4.5,
-      reviewCount: 15,
-      deliveryDays: 5,
-      processedAt: genericProcessedAt,
-      description: genericDescription('Lalbaba Traditional Basmati Rice'),
-      specifications: genericSpecifications('Basmati Rice'),
-      reviews: genericReviews,
-      faqs: genericFaqs('Lalbaba Traditional Basmati Rice'),
-      variants: const [
-        ProductVariant(weight: '1 Kg', price: 199),
-        ProductVariant(weight: '5 Kg', price: 949),
-        ProductVariant(weight: '10 Kg', price: 1849),
-      ],
-    ),
-
-    ProductItem(
-      id: 'lalbaba-ratna-rice',
-      name: 'Lalbaba Ratna Rice',
-      imageUrl:
-          'https://lalbabaonline.com/public/uploads/all/jfCxsG3mPdSQSo4clKBd2dFNqTFr4af2fEZx2wkW.webp',
-      rating: 4.5,
-      reviewCount: 10,
-      deliveryDays: 4,
-      processedAt: genericProcessedAt,
-      description: genericDescription('Lalbaba Ratna Rice'),
-      specifications: genericSpecifications('Ratna Rice'),
-      reviews: genericReviews,
-      faqs: genericFaqs('Lalbaba Ratna Rice'),
-      variants: const [
-        ProductVariant(weight: '1 Kg', price: 129),
-        ProductVariant(weight: '5 Kg', price: 619),
-        ProductVariant(weight: '10 Kg', price: 1219),
-      ],
-    ),
-
-    // Matches the "Lalbaba Jeera Kathi" product detail screenshots exactly.
-    ProductItem(
-      id: 'lalbaba-jeera-kathi',
-      name: 'Lalbaba Jeera Kathi',
-      imageUrl:
-          'https://lalbabaonline.com/public/uploads/all/T2Abcc1fAfCuKLk4C8brHaK3qhdFIQA9yHZJy4xl.webp',
-      rating: 4.5,
-      reviewCount: jeeraKathiReviews.length,
-      deliveryDays: 6,
-      processedAt: jeeraKathiProcessedAt,
-      shortTagline: 'JEERA KATHI',
-      description: jeeraKathiDescription,
-      specifications: jeeraKathiSpecifications,
-      reviews: jeeraKathiReviews,
-      faqs: jeeraKathiFaqs,
-      variants: const [
-        ProductVariant(weight: '1 Kg', price: 159),
-        ProductVariant(weight: '5 Kg', price: 759),
-        ProductVariant(weight: '10 Kg', price: 1499),
-      ],
-    ),
-
-    ProductItem(
-      id: 'lalbaba-premium-rice',
-      name: 'Lalbaba Premium Rice',
-      imageUrl:
-          'https://lalbabaonline.com/public/uploads/all/wSzQEEq643gTAaVxi2KbaCLIBBevZDP5qgzTW8Nc.webp',
-      rating: 4.5,
-      reviewCount: 9,
-      deliveryDays: 4,
-      processedAt: genericProcessedAt,
-      description: genericDescription('Lalbaba Premium Rice'),
-      specifications: genericSpecifications('Premium Rice'),
-      reviews: genericReviews,
-      faqs: genericFaqs('Lalbaba Premium Rice'),
-      variants: const [
-        ProductVariant(weight: '1 Kg', price: 149),
-        ProductVariant(weight: '5 Kg', price: 699),
-        ProductVariant(weight: '10 Kg', price: 1379),
-      ],
-    ),
-
-    ProductItem(
-      id: 'lalbaba-special-rice',
-      name: 'Lalbaba Special Rice',
-      imageUrl:
-          'https://lalbabaonline.com/public/uploads/all/w1HSz6wWKrkS08AysfcGQ3l8uoBh6kRaK5k0PBhS.jpg',
-      rating: 4.5,
-      reviewCount: 11,
-      deliveryDays: 5,
-      processedAt: genericProcessedAt,
-      description: genericDescription('Lalbaba Special Rice'),
-      specifications: genericSpecifications('Special Rice'),
-      reviews: genericReviews,
-      faqs: genericFaqs('Lalbaba Special Rice'),
-      variants: const [
-        ProductVariant(weight: '1 Kg', price: 169),
-        ProductVariant(weight: '5 Kg', price: 799),
-        ProductVariant(weight: '10 Kg', price: 1549),
-      ],
-    ),
-  ];
+  // Sourced from the central repository - this is the single place the
+  // product catalogue is defined, and it's what every product-details
+  // page (and its "Trending this week" rail) reads from too, no matter
+  // how deep the navigation stack gets.
+  List<ProductItem> get products => ProductRepository.allProducts;
 
   // ===========================================================================
   // INIT STATE
@@ -291,15 +133,19 @@ class _ProductListPageState extends State<ProductListPage> {
     return result;
   }
 
-  /// Related-products list used on the details page ("You May Also like").
-  /// Simple heuristic: everything except the product being viewed, capped
-  /// at 4 items. Swap for a real "related products" API call later.
-  List<ProductItem> _relatedProductsFor(ProductItem product) {
-    return products.where((p) => p.id != product.id).take(4).toList();
-  }
-
   // ===========================================================================
   // NAVIGATE TO PRODUCT DETAILS
+  // ===========================================================================
+  //
+  // A unique `key` per product ensures each pushed details page is treated as
+  // its own distinct page in the navigation stack - so tapping product A,
+  // then product B from A's page, then product C from B's page, and pressing
+  // back three times lands you on C -> B -> A -> the list, in that order,
+  // exactly as you'd expect from a normal stack of pages.
+  //
+  // Note: ProductDetailPage looks up its own "related products" from
+  // ProductRepository internally, so nothing needs to be threaded through
+  // here for that to work correctly at any navigation depth.
   // ===========================================================================
 
   void _openProductDetails(ProductItem product) {
@@ -307,8 +153,8 @@ class _ProductListPageState extends State<ProductListPage> {
       context,
       MaterialPageRoute(
         builder: (_) => ProductDetailPage(
+          key: ValueKey(product.id ?? product.name),
           product: product,
-          relatedProducts: _relatedProductsFor(product),
         ),
       ),
     );
