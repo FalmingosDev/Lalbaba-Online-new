@@ -1016,9 +1016,9 @@ class _CurrentLocationCard extends StatelessWidget {
         width: double.infinity,
         padding: EdgeInsets.all(15.w),
         decoration: BoxDecoration(
-          color: AppColors.primary.withOpacity(0.07),
+          color: AppColors.primary.withValues(alpha: 0.07),
           borderRadius: BorderRadius.circular(16.r),
-          border: Border.all(color: AppColors.primary.withOpacity(0.18)),
+          border: Border.all(color: AppColors.primary.withValues(alpha: 0.18)),
         ),
         child: Row(
           children: [

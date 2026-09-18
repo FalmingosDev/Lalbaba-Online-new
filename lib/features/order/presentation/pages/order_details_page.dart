@@ -60,7 +60,7 @@ class _OrderDetailsPageState extends ConsumerState<OrderDetailsPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      OrderDetailSummaryCard(order: order!),
+                      OrderDetailSummaryCard(order: order),
                       SizedBox(height: AppSizes.spacingSmall),
                       OrderTrackBanner(order: order),
                       SizedBox(height: AppSizes.spacingSmall),

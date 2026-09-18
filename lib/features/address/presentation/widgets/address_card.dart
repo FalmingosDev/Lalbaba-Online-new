@@ -42,7 +42,7 @@ class AddressCard extends StatelessWidget {
         border: Border.all(color: Colors.grey.shade200),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -62,7 +62,7 @@ class AddressCard extends StatelessWidget {
                   width: 42.w,
                   height: 42.w,
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.09),
+                    color: AppColors.primary.withValues(alpha: 0.09),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -96,7 +96,7 @@ class AddressCard extends StatelessWidget {
                                 vertical: 3.h,
                               ),
                               decoration: BoxDecoration(
-                                color: AppColors.primary.withOpacity(0.09),
+                                color: AppColors.primary.withValues(alpha: 0.09),
                                 borderRadius: BorderRadius.circular(6.r),
                               ),
                               child: Text(

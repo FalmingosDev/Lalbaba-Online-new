@@ -1,7 +1,7 @@
 // Asset path constants.
 // Why: Avoid repeating image, icon, font, and other asset paths throughout the codebase.
 class AssetConstants {
-  static const logo = 'lib/assets/logo-icon.png';
+  static const logo = 'lib/assets/logo.png';
   static const miniket =
       'https://lalbabaonline.com/public/uploads/all/m3sLbfF3e8oUcP7zmBDHqJF4XWjCdSpFTl0Htmbh.jpg';
   static const ratna =

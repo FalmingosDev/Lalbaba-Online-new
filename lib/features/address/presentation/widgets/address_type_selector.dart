@@ -37,7 +37,7 @@ class AddressTypeSelector extends StatelessWidget {
                 padding: EdgeInsets.symmetric(vertical: 13.h),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? AppColors.primary.withOpacity(0.08)
+                      ? AppColors.primary.withValues(alpha: 0.08)
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(14.r),
                   border: Border.all(

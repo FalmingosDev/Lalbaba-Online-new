@@ -242,8 +242,8 @@ class _ProfilePageState
                         BoxDecoration(
                       color: AppColors
                           .primary
-                          .withOpacity(
-                        0.08,
+                          .withValues(
+                        alpha: 0.08,
                       ),
                       borderRadius:
                           BorderRadius
@@ -299,8 +299,8 @@ class _ProfilePageState
                         BoxDecoration(
                       color: AppColors
                           .primary
-                          .withOpacity(
-                        0.08,
+                          .withValues(
+                        alpha: 0.08,
                       ),
                       borderRadius:
                           BorderRadius
@@ -655,13 +655,13 @@ class _ProfilePageState
                                 BoxDecoration(
                               color: _isEditing
                                   ? Colors.red
-                                      .withOpacity(
-                                      0.08,
+                                      .withValues(
+                                      alpha: 0.08,
                                     )
                                   : AppColors
                                       .primary
-                                      .withOpacity(
-                                      0.10,
+                                      .withValues(
+                                      alpha: 0.10,
                                     ),
 
                               shape:
@@ -740,8 +740,8 @@ class _ProfilePageState
                           BoxShadow(
                             color: Colors
                                 .black
-                                .withOpacity(
-                              0.04,
+                                .withValues(
+                              alpha: 0.04,
                             ),
 
                             blurRadius:
@@ -928,8 +928,8 @@ class _ProfilePageState
                   BoxShadow(
                     color: Colors
                         .black
-                        .withOpacity(
-                      0.12,
+                        .withValues(
+                      alpha: 0.12,
                     ),
 
                     blurRadius:
@@ -1542,8 +1542,8 @@ class _ProfileInfoRow
               BoxDecoration(
             color:
                 AppColors.primary
-                    .withOpacity(
-              0.08,
+                    .withValues(
+              alpha: 0.08,
             ),
 
             borderRadius:

@@ -28,7 +28,7 @@ class _AppDropdownState extends State<AppDropdown> {
   @override
   Widget build(BuildContext context) {
     return DropdownButtonFormField<String>(
-      value: widget.value,
+      initialValue: widget.value,
       isExpanded: true,
       icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 20),
       style: const TextStyle(fontSize: 13, color: Color(0xFF202124)),

@@ -167,7 +167,7 @@ class _AddressListPageState extends State<AddressListPage> {
               width: 85.w,
               height: 85.w,
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.08),
+                color: AppColors.primary.withValues(alpha: 0.08),
                 shape: BoxShape.circle,
               ),
               child: Icon(
