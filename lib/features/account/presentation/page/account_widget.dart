@@ -312,7 +312,11 @@ class _AccountPageState
                           Icons.call_outlined,
                       label:
                           AppStrings.contactUs,
-                      onTap: () {},
+                      onTap: () {
+                         context.push(
+                          RouteNames.contact,
+                        );
+                      },
                     ),
 
                     _MenuTile(

@@ -290,6 +290,8 @@ class AppStrings {
 
   static String get factoryLocator =>
       AppLanguageConstants.t('Factory Locator', 'ফ্যাক্টরি লোকেটর');
+  static String get checkout =>
+      AppLanguageConstants.t('Checkout', 'চেকআউট');
 
   static String get logOut => AppLanguageConstants.t('Log Out', 'লগ আউট');
 
@@ -649,6 +651,11 @@ static String get exploreOurWideRangeOfProducts =>
     AppLanguageConstants.t(
       'Proceed to Checkout',
       'চেকআউটে এগিয়ে যান',
+    );
+    static String get continueShipping =>
+    AppLanguageConstants.t(
+      'Continue to Shipping',
+      'শিপিং চালিয়ে যান',
     );
 
     static String get email =>

@@ -7,6 +7,8 @@ import '../../features/address/presentation/page/address.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/cart/presentation/pages/cart_page.dart';
 import '../../features/categories/presentation/pages/categories_page.dart';
+import '../../features/checkout/presentation/pages/checkout_page.dart';
+import '../../features/contact/presentation/pages/contact_us_screen.dart';
 import '../../features/dashboard/pages/bottom_nav_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/account/presentation/page/account_widget.dart';
@@ -92,6 +94,14 @@ final appRouter = GoRouter(
     GoRoute(
       path: RouteNames.address,
       builder: (_, __) => const AddressListPage(),
+    ),
+    GoRoute(
+      path: RouteNames.contact,
+      builder: (_, __) => const ContactUsScreen(),
+    ),
+    GoRoute(
+      path: RouteNames.checkout,
+      builder: (_, __) => const CheckoutPage(),
     ),
   ],
 );

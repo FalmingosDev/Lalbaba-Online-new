@@ -1,6 +1,8 @@
-
-
 import 'package:flutter/material.dart';
+
+import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/app_sizes.dart';
+
 
 /// ============================================================================
 /// CHECKOUT STEP
@@ -21,6 +23,9 @@ enum CheckoutStep {
   complete,
 }
 
+/// ============================================================================
+/// TEST / PREVIEW PAGE FOR THE STEPPER
+/// ============================================================================
 class CheckoutConstantPage extends StatelessWidget {
   const CheckoutConstantPage({
     super.key,
@@ -29,11 +34,11 @@ class CheckoutConstantPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.surface,
 
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.white,
+        backgroundColor: AppColors.surface,
+        surfaceTintColor: AppColors.surface,
         elevation: 0,
         centerTitle: true,
 
@@ -42,58 +47,52 @@ class CheckoutConstantPage extends StatelessWidget {
             Navigator.pop(context);
           },
           icon: const Icon(
-            Icons.arrow_back,
-            color: Colors.black,
+            Icons.arrow_back,  
+            color: AppColors.black,
           ),
         ),
 
         title: const Text(
           'Checkout',
           style: TextStyle(
-            color: Colors.black,
+            color: AppColors.black,
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
         ),
       ),
 
-      body: const SafeArea(
+      body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(16),
+          padding: EdgeInsets.all(AppSizes.screenPadding),
           child: Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               /// ==============================================================
               /// CHECKOUT COMMON WIDGET
               /// ==============================================================
-              CheckoutConstantWidget(
-                currentStep:
-                    CheckoutStep.address,
+              const CheckoutConstantWidget(
+                currentStep: CheckoutStep.address,
               ),
 
-              SizedBox(
-                height: 30,
-              ),
+              SizedBox(height: AppSizes.spacingSection - 2),
 
-              Text(
+              const Text(
                 'Shipping Address',
                 style: TextStyle(
                   fontSize: 22,
-                  fontWeight:
-                      FontWeight.w700,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
                 ),
               ),
 
-              SizedBox(
-                height: 8,
-              ),
+              SizedBox(height: AppSizes.spacingSmall),
 
-              Text(
+              const Text(
                 'Checkout testing page',
                 style: TextStyle(
                   fontSize: 14,
-                  color: Colors.grey,
+                  color: AppColors.textSecondary,
                 ),
               ),
             ],
@@ -104,8 +103,10 @@ class CheckoutConstantPage extends StatelessWidget {
   }
 }
 
-class CheckoutConstantWidget
-    extends StatelessWidget {
+/// ============================================================================
+/// CHECKOUT CONSTANT WIDGET (stepper)
+/// ============================================================================
+class CheckoutConstantWidget extends StatelessWidget {
   final CheckoutStep currentStep;
 
   const CheckoutConstantWidget({
@@ -114,20 +115,16 @@ class CheckoutConstantWidget
   });
 
   /// Completed page
-  static const Color completedColor =
-      Color(0xFF00C389);
+  static const Color completedColor = AppColors.success;
 
   /// Current page
-  static const Color currentColor =
-      Color(0xFF171722);
+  static const Color currentColor = AppColors.primary;
 
   /// Future page
-  static const Color pendingColor =
-      Color(0xFFB9B9BD);
+  static const Color pendingColor = AppColors.disabled;
 
   /// Arrow
-  static const Color arrowColor =
-      Color(0xFFE1E1E1);
+  static const Color arrowColor = AppColors.border;
 
   @override
   Widget build(BuildContext context) {
@@ -137,40 +134,26 @@ class CheckoutConstantWidget
       child: Container(
         width: double.infinity,
 
-        padding:
-            const EdgeInsets.symmetric(
-          horizontal: 10,
-          vertical: 13,
+        padding: EdgeInsets.symmetric(
+          horizontal: AppSizes.spacingSmall + 2,
+          vertical: AppSizes.spacingMedium + 1,
         ),
 
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.surface,
 
-          borderRadius:
-              BorderRadius.circular(
-            8,
-          ),
+          borderRadius: BorderRadius.circular(AppSizes.radiusSmall + 2),
 
           border: Border.all(
-            color:
-                const Color(
-              0xFFC5C5C5,
-            ),
+            color: AppColors.border,
             width: 1,
           ),
 
           boxShadow: [
             BoxShadow(
-              color: Colors.black
-                  .withValues(
-                alpha: 0.08,
-              ),
+              color: AppColors.black.withValues(alpha: 0.08),
               blurRadius: 7,
-              offset:
-                  const Offset(
-                2,
-                3,
-              ),
+              offset: const Offset(2, 3),
             ),
           ],
         ),
@@ -182,10 +165,8 @@ class CheckoutConstantWidget
             /// ================================================================
             Expanded(
               child: _buildStep(
-                step:
-                    CheckoutStep.cart,
-                icon: Icons
-                    .shopping_cart_outlined,
+                step: CheckoutStep.cart,
+                icon: Icons.shopping_cart_outlined,
               ),
             ),
 
@@ -196,10 +177,8 @@ class CheckoutConstantWidget
             /// ================================================================
             Expanded(
               child: _buildStep(
-                step:
-                    CheckoutStep.address,
-                icon:
-                    Icons.map_outlined,
+                step: CheckoutStep.address,
+                icon: Icons.map_outlined,
               ),
             ),
 
@@ -210,10 +189,8 @@ class CheckoutConstantWidget
             /// ================================================================
             Expanded(
               child: _buildStep(
-                step:
-                    CheckoutStep.delivery,
-                icon: Icons
-                    .local_shipping_outlined,
+                step: CheckoutStep.delivery,
+                icon: Icons.local_shipping_outlined,
               ),
             ),
 
@@ -224,10 +201,8 @@ class CheckoutConstantWidget
             /// ================================================================
             Expanded(
               child: _buildStep(
-                step:
-                    CheckoutStep.payment,
-                icon: Icons
-                    .credit_card_outlined,
+                step: CheckoutStep.payment,
+                icon: Icons.credit_card_outlined,
               ),
             ),
 
@@ -238,10 +213,8 @@ class CheckoutConstantWidget
             /// ================================================================
             Expanded(
               child: _buildStep(
-                step:
-                    CheckoutStep.complete,
-                icon: Icons
-                    .check_circle_outline,
+                step: CheckoutStep.complete,
+                icon: Icons.check_circle_outline,
               ),
             ),
           ],
@@ -268,10 +241,7 @@ class CheckoutConstantWidget
         /// completed -> green
         /// current   -> black
         /// future    -> grey
-        color:
-            _getStepColor(
-          step,
-        ),
+        color: _getStepColor(step),
       ),
     );
   }
@@ -281,8 +251,7 @@ class CheckoutConstantWidget
   /// ==========================================================================
   Widget _buildArrow() {
     return const Padding(
-      padding:
-          EdgeInsets.symmetric(
+      padding: EdgeInsets.symmetric(
         horizontal: 1,
       ),
       child: Icon(
@@ -302,11 +271,9 @@ class CheckoutConstantWidget
   Color _getStepColor(
     CheckoutStep step,
   ) {
-    final int currentStepIndex =
-        currentStep.index;
+    final int currentStepIndex = currentStep.index;
 
-    final int thisStepIndex =
-        step.index;
+    final int thisStepIndex = step.index;
 
     /// ------------------------------------------------------------------------
     /// STEP ALREADY COMPLETED
@@ -314,8 +281,7 @@ class CheckoutConstantWidget
     ///
     /// Current step-এর আগের সমস্ত step GREEN হবে.
     ///
-    if (thisStepIndex <
-        currentStepIndex) {
+    if (thisStepIndex < currentStepIndex) {
       return completedColor;
     }
 
@@ -325,8 +291,7 @@ class CheckoutConstantWidget
     ///
     /// যে page-এ user বর্তমানে আছে সেটা BLACK হবে.
     ///
-    if (thisStepIndex ==
-        currentStepIndex) {
+    if (thisStepIndex == currentStepIndex) {
       return currentColor;
     }
 

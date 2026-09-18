@@ -297,7 +297,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
 
                   const SizedBox(height: 8),
 
-                  const ContactSupportWidget(),
+                 // const ContactSupportWidget(),
                 ],
               ),
             ),

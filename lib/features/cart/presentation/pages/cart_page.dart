@@ -3,14 +3,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../app/theme/app_colors.dart';
 import '../../../../core/services/cart_notification_item.dart';
 import '../../../../core/services/cart_service.dart';
 import '../../../../core/widgets/app_app_bar.dart';
 
 import '../../../account/presentation/widgets/app_string.dart';
 import '../../../account/presentation/widgets/languange_constant.dart';
-import '../../../checkout/presentation/pages/checkout_constant_widget.dart';
-import '../../../checkout/presentation/pages/checkout_product_page.dart';
+
+import '../../../checkout/presentation/pages/checkout_page.dart';
+import '../../../checkout/presentation/widgets/checkout_product_page.dart';
 
 class CartPage extends ConsumerStatefulWidget {
   const CartPage({super.key});
@@ -171,8 +173,8 @@ class _CartPageState
                         _CartSummary(
                           subtotal:
                               subtotal,
-                          delivery:
-                              delivery,
+                          // delivery:
+                          //     delivery,
                           total:
                               total,
                         ),
@@ -587,7 +589,7 @@ class _CartSummary
 
   const _CartSummary({
     required this.subtotal,
-    required this.delivery,
+    this.delivery=0,
     required this.total,
   });
 
@@ -634,12 +636,12 @@ class _CartSummary
             height: 8,
           ),
 
-          _SummaryRow(
-            title:
-                'Delivery',
-            value:
-                '₹${delivery.toStringAsFixed(0)}',
-          ),
+          // _SummaryRow(
+          //   title:
+          //       'Delivery',
+          //   value:
+          //       '₹${delivery.toStringAsFixed(0)}',
+          // ),
 
           const SizedBox(
             height: 12,
@@ -677,7 +679,7 @@ SizedBox(
         context,
         MaterialPageRoute(
           builder: (context) =>
-              const CheckoutProductWidget(
+              const CheckoutPage(
           //  currentStep: CheckoutStep.address,
           ),
         ),
@@ -685,18 +687,21 @@ SizedBox(
     },
 
     style: ElevatedButton.styleFrom(
+       backgroundColor: AppColors.secondary,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(
           14,
+         
         ),
       ),
     ),
 
     child: Text(
-      AppStrings.proceedToCheckout,
+      AppStrings.continueShipping,
       style: const TextStyle(
         fontSize: 15,
         fontWeight: FontWeight.w600,
+        color: AppColors.white,
       ),
     ),
   ),

@@ -101,7 +101,7 @@ class FaqSectionWidget extends StatelessWidget {
                                 ? AppColors.primary
                                 : AppColors.primaryLight,
                             child: Icon(
-                              expanded ? Icons.close : Icons.add,
+                              expanded ? Icons.close : Icons.arrow_drop_down,
                               size: 15,
                               color:
                                   expanded ? Colors.white : AppColors.primary,

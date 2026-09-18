@@ -25,6 +25,8 @@ class RouteNames {
   static const orders = '/orders';
 
   static const orderDetails = '/orders/:id';
+  static const contact = '/contact';
+ 
 
   static const profile = '/profile';
   static const account = '/account';

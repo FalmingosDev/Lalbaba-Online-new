@@ -35,8 +35,8 @@ class _MyOrdersPageState extends ConsumerState<MyOrdersPage> {
           backgroundColor: AppColors.background,
           appBar: AppAppBar(
             title: AppStrings.myOrders,
-            automaticallyImplyLeading: true,
-          ),
+            automaticallyImplyLeading: false,
+            ),
           body: ordersAsync.when(
             loading: () => const OrderListShimmer(),
             error: (error, stackTrace) {
