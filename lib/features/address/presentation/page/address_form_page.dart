@@ -883,7 +883,7 @@ class _AddressFormPageState extends State<AddressFormPage> {
                   _textField(
                     label: AppStrings.address,
                     hint: AppStrings.enterAddress,
-                    icon: Icons.home_outlined,
+                    icon: Icons.apartment_outlined,
                     controller: addressController,
                     maxLines: 3,
                     validator: (value) {
