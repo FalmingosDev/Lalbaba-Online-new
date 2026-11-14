@@ -20,15 +20,14 @@ class AddressCard extends StatelessWidget {
 
   IconData get _addressIcon {
     switch (address.addressType.toLowerCase()) {
-      case 'work':
+      case 'office':
         return Icons.work_outline;
 
-      case 'other':
-        return Icons.location_on_outlined;
-
       case 'home':
-      default:
         return Icons.home_outlined;
+      // case 'other':
+      default:
+        return Icons.location_on_outlined;
     }
   }
 
@@ -96,7 +95,9 @@ class AddressCard extends StatelessWidget {
                                 vertical: 3.h,
                               ),
                               decoration: BoxDecoration(
-                                color: AppColors.primary.withValues(alpha: 0.09),
+                                color: AppColors.primary.withValues(
+                                  alpha: 0.09,
+                                ),
                                 borderRadius: BorderRadius.circular(6.r),
                               ),
                               child: Text(

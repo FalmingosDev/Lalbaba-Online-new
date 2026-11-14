@@ -22,7 +22,7 @@ import 'route_guards.dart';
 import 'route_names.dart';
 
 final appRouter = GoRouter(
-  initialLocation: RouteNames.splash,
+  initialLocation: RouteNames.web_splash,
   routes: <RouteBase>[
     GoRoute(
       path: RouteNames.web_splash,
