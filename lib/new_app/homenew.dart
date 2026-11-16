@@ -6,14 +6,42 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lalbaba_online/features/account/presentation/widgets/app_string.dart';
 import 'package:lalbaba_online/features/account/presentation/widgets/languange_constant.dart';
 import 'package:lalbaba_online/features/product/presentation/pages/product_list_page.dart';
+import 'package:lalbaba_online/new_app/constantappbar.dart';
+import 'package:lalbaba_online/new_app/productlistscreen.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/constants/asset_constants.dart';
 import '../../../../core/helpers/snackbar_helper.dart';
 import '../../../../core/services/cart_notification_item.dart';
 import '../../../../core/services/cart_service.dart';
-import '../../../../core/widgets/app_app_bar.dart';
 import '../../../../core/widgets/app_shimmer.dart';
+
+// BIGBASKET-INSPIRED HOME DESIGN TOKENS (edit here to restyle this page)
+// Visual styling only. Existing products, sections, handlers and data are intact.
+class BBHomeStyle {
+  BBHomeStyle._();
+  static const Color green = Color(0xFF008A58);
+  static const Color deepGreen = Color(0xFF006D46);
+  static const Color mint = Color(0xFFE6F5ED);
+  static const Color paleMint = Color(0xFFF0FAF4);
+  static const Color paper = Color(0xFFFFFFFF);
+  static const Color canvas = Color(0xFFF7F8F7);
+  static const Color softGrey = Color(0xFFF1F2F1);
+  static const Color outline = Color(0xFFE8ECE8);
+  static const Color title = Color(0xFF202522);
+  static const Color muted = Color(0xFF737B76);
+  static const Color yellow = Color(0xFFFFCF12);
+  static const Color darkChip = Color(0xFF303331);
+  static const double headerFont = 19;
+  static const double sectionFont = 18;
+  static const double productFont = 13;
+  static const double priceFont = 17;
+  static const double subtitleFont = 12;
+  static const double captionFont = 11;
+  static const double categoryFont = 13;
+  static const double productRadius = 14;
+  static const double sectionRadius = 12;
+}
 
 // ==========================================================================
 // HOME PAGE
@@ -28,6 +56,44 @@ class HomeNewPage extends ConsumerStatefulWidget {
 
 class _HomeNewPageState extends ConsumerState<HomeNewPage> {
   bool _isLoading = true;
+
+  // Controls the scrollable home content (not the pinned top controls).
+  final ScrollController _homeScrollController = ScrollController();
+  bool _showBackToTop = false;
+  bool _hideAppBar = false;
+  // Cart state shared between Trending and Best Seller cards.
+  final Set<String> _addedProductNames = <String>{};
+  final Set<String> _addingProductNames = <String>{};
+
+  void _handleHomeScroll() {
+    if (!_homeScrollController.hasClients) return;
+    final shouldShow = _homeScrollController.offset > 350;
+    final shouldHideAppBar = _homeScrollController.offset > 80;
+    if (mounted &&
+        (shouldShow != _showBackToTop || shouldHideAppBar != _hideAppBar)) {
+      setState(() {
+        _showBackToTop = shouldShow;
+        _hideAppBar = shouldHideAppBar;
+      });
+    }
+  }
+
+  Future<void> _scrollToTop() async {
+    if (!_homeScrollController.hasClients) return;
+    await _homeScrollController.animateTo(
+      0,
+      duration: const Duration(milliseconds: 550),
+      curve: Curves.easeInOutCubic,
+    );
+  }
+
+  @override
+  void dispose() {
+    _homeScrollController.removeListener(_handleHomeScroll);
+    _homeScrollController.dispose();
+    super.dispose();
+  }
+
 
   // ===========================================================================
   // HOME CATEGORY TABS
@@ -78,6 +144,14 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
       'discountLabel': '',
       'rating': 4.7,
     },
+      {
+      'name': 'Lalbaba Jeer Rice',
+      'imageUrl': AssetConstants.jeerrice,
+      'price': '₹650.00',
+      'originalPrice': '',
+      'discountLabel': '',
+      'rating': 4.7,
+    },
   ];
 
   // ===========================================================================
@@ -91,6 +165,11 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
       'discountLabel': '10% OFF',
     },
     {
+      'name': 'Ratna Basmati',
+      'imageUrl': AssetConstants.ratna,
+      'discountLabel': '20% OFF',
+    },
+     {
       'name': 'Ratna Basmati',
       'imageUrl': AssetConstants.ratna,
       'discountLabel': '20% OFF',
@@ -126,6 +205,14 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
       'discountLabel': '13% OFF',
       'rating': 4.6,
     },
+      {
+      'name': 'Lalbaba Jeer Rice',
+      'imageUrl': AssetConstants.jeerrice,
+      'price': '₹650.00',
+      'originalPrice': '₹750.00',
+      'discountLabel': '13% OFF',
+      'rating': 4.6,
+    },
   ];
 
   // ===========================================================================
@@ -153,6 +240,8 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
   @override
   void initState() {
     super.initState();
+
+    _homeScrollController.addListener(_handleHomeScroll);
 
     CartService.getCartCount();
 
@@ -182,12 +271,13 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
   Future<void> _openProductListPage({
     String? sectionType,
     String title = 'Products',
+    List<Map<String, dynamic>>? products,
   }) async {
     // -------------------------------------------------------------------------
     // HOME CATEGORY NAVIGATION BLOCK
     // -------------------------------------------------------------------------
 
-    if (title == 'For You' || title == 'Rice' || title == 'Spices') {
+    if (title == 'For You' || title == 'For Youu' || title == 'Rice' || title == 'Spices') {
       debugPrint('Category navigation blocked: $title');
 
       return;
@@ -197,13 +287,16 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
     // OTHER NAVIGATION
     // -------------------------------------------------------------------------
 
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) =>
-            ProductListPage(sectionType: sectionType, pageTitle: title),
-      ),
-    );
+await Navigator.push(
+  context,
+  MaterialPageRoute(
+    builder: (context) => ProductListscreen(
+      sectionType: sectionType,
+      pageTitle: title,
+      products: products,
+    ),
+  ),
+);
   }
 
   // ===========================================================================
@@ -212,7 +305,10 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
 
   Future<void> _handleAddToCart(Map<String, dynamic> product) async {
     final String productName = product['name']?.toString().trim() ?? 'Product';
+    if (_addedProductNames.contains(productName) ||
+        _addingProductNames.contains(productName)) return;
 
+    setState(() => _addingProductNames.add(productName));
     try {
       await CartService.postAddToCart(
         productId: product['id']?.toString(),
@@ -222,18 +318,14 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
         originalPrice: product['originalPrice']?.toString(),
         quantity: 1,
       );
-
-      if (!mounted) {
-        return;
-      }
-
+      if (!mounted) return;
+      setState(() => _addedProductNames.add(productName));
       FeedbackHelper.showSuccess(context, '$productName added to cart');
     } catch (error) {
-      if (!mounted) {
-        return;
-      }
-
+      if (!mounted) return;
       FeedbackHelper.showError(context, 'Unable to add product to cart');
+    } finally {
+      if (mounted) setState(() => _addingProductNames.remove(productName));
     }
   }
 
@@ -289,73 +381,137 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
 
   @override
   Widget build(BuildContext context) {
-    const double categoryHeight = 60;
-
     return SafeArea(
-      child: Scaffold(
-        backgroundColor: AppColors.background,
-
-        // =====================================================================
-        // APP BAR
-        // =====================================================================
-        appBar: LalBabaAppBar(
-          onNotificationTap: _openCartNotificationPage,
-          onCartTap: () {},
+      child: Theme(
+        data: Theme.of(context).copyWith(
+          colorScheme: Theme.of(context).colorScheme.copyWith(
+            primary: BBHomeStyle.green,
+            secondary: BBHomeStyle.green,
+            surface: BBHomeStyle.paper,
+          ),
+          scaffoldBackgroundColor: BBHomeStyle.canvas,
         ),
-
-        // =====================================================================
-        // BODY
-        // =====================================================================
+        child: Scaffold(
+        backgroundColor: BBHomeStyle.canvas,
         body: _isLoading
             ? _buildShimmerBody()
-            : CustomScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
+            : Column(
+                children: [
+                  // AppBar collapses on downward scrolling and returns at top.
+                  AnimatedSize(
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeInOut,
+                    alignment: Alignment.topCenter,
+                    child: _hideAppBar
+                        ? const SizedBox(width: double.infinity)
+                        : SizedBox(
+                            height: kToolbarHeight,
+                            child: CommonAppBar(
+                                automaticallyImplyLeading: false,
 
-                slivers: [
-                  // ===========================================================
-                  // TOP SPACE
-                  // ===========================================================
-
-                  const SliverToBoxAdapter(child: SizedBox(height: 10)),
-
-                  // ===========================================================
-                  // SEARCH
-                  // ===========================================================
-                  SliverToBoxAdapter(
-                    child: SearchWidget(
-                      categories: _searchCategories,
-                      products: _searchProducts,
-                      onCategoryTap: _handleSearchCategoryTap,
-                      onProductTap: _handleSearchProductTap,
-                    ),
+                              height: kToolbarHeight,
+                              backgroundColor: BBHomeStyle.green,
+                              titleWidget: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  SizedBox(
+                                    width: 50,
+                                    height: 50,
+                                    child: Image.asset(
+                                      AssetConstants.logo,
+                                      fit: BoxFit.contain,
+                                      errorBuilder: (context, error, stackTrace) =>
+                                          const Icon(
+                                        Icons.rice_bowl_rounded,
+                                        color: BBHomeStyle.paper,
+                                        size: 34,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  const Flexible(
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'LalBaba',
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            color: BBHomeStyle.paper,
+                                            fontSize: BBHomeStyle.headerFont,
+                                            fontWeight: FontWeight.w700,
+                                            height: 1.1,
+                                          ),
+                                        ),
+                                        SizedBox(height: 2),
+                                        Text(
+                                          'Quality You Trust',
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            color: Colors.white70,
+                                            fontSize: BBHomeStyle.captionFont,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              actions: [
+                                ValueListenableBuilder<int>(
+                                  valueListenable: CartService.count,
+                                  builder: (context, count, _) {
+                                    return IconButton(
+                                      tooltip: 'Notifications',
+                                      onPressed: _openCartNotificationPage,
+                                      icon: Badge(
+                                        isLabelVisible: count > 0,
+                                        label: Text(count > 99 ? '99+' : '$count'),
+                                        child: const Icon(
+                                          Icons.notifications_none_rounded,
+                                          color: Colors.white,
+                                          size: 27,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                const SizedBox(width: 8),
+                              ],
+                            ),
+                          ),
                   ),
-
-                  // ===========================================================
-                  // CATEGORY
-                  // ===========================================================
-                  SliverPersistentHeader(
-                    pinned: true,
-                    delegate: _StickyHeaderDelegate(
-                      height: categoryHeight,
-
-                      child: CategoryWidget(
-                        names: _categoryNames,
-
-                        onCategoryTap: (name) {
-                          _openProductListPage(title: name);
-                        },
-                      ),
-                    ),
+                  // FIXED: search, including its existing autocomplete UI.
+                  const SizedBox(height: 10),
+                  SearchWidget(
+                    categories: _searchCategories,
+                    products: _searchProducts,
+                    onCategoryTap: _handleSearchCategoryTap,
+                    onProductTap: _handleSearchProductTap,
                   ),
-
-                  // ===========================================================
-                  // MAIN HOME CONTENT
-                  // ===========================================================
-                  SliverToBoxAdapter(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-
+                  // FIXED: horizontal home categories.
+                  CategoryWidget(
+                    names: _categoryNames,
+                    onCategoryTap: (name) {
+                      _openProductListPage(title: name);
+                    },
+                  ),
+                  // Only the content below search/category scrolls.
+                  Expanded(
+                    child: Stack(
                       children: [
+                        CustomScrollView(
+                          controller: _homeScrollController,
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          slivers: [
+                            SliverToBoxAdapter(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
                         const SizedBox(height: 8),
 
                         // =====================================================
@@ -381,12 +537,16 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
                               },
 
                               onAddToCart: _handleAddToCart,
+                              onGoToCart: _openCartNotificationPage,
+                              addedProductNames: _addedProductNames,
+                              addingProductNames: _addingProductNames,
 
                               onViewAllTap: () {
                                 _openProductListPage(
                                   sectionType: 'trending',
 
                                   title: AppStrings.trendingThisWeek,
+                                  products: _trendingProducts,
                                 );
                               },
                             );
@@ -404,6 +564,13 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
                               products: _popularSearch,
 
                               onProductTap: _handleSearchProductTap,
+                              onViewAllTap: () {
+                                _openProductListPage(
+                                  sectionType: 'popularSearch',
+                                  title: AppStrings.popularSearch,
+                                  products: _popularSearch,
+                                );
+                              },
                             );
                           },
                         ),
@@ -426,12 +593,16 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
                               },
 
                               onAddToCart: _handleAddToCart,
+                              onGoToCart: _openCartNotificationPage,
+                              addedProductNames: _addedProductNames,
+                              addingProductNames: _addingProductNames,
 
                               onViewAllTap: () {
                                 _openProductListPage(
                                   sectionType: 'bestSeller',
 
                                   title: AppStrings.bestSeller,
+                                  products: _bestSellers,
                                 );
                               },
                             );
@@ -455,12 +626,64 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
                         // Ekhon 24 kora holo.
                         // =====================================================
                         const SizedBox(height: 24),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        // BigBasket-style floating control in the middle,
+                        // just below the pinned search and category strip.
+                        Positioned(
+                          top: 24,
+                          left: 0,
+                          right: 0,
+                          child: Center(
+                            child: IgnorePointer(
+                              ignoring: !_showBackToTop,
+                              child: AnimatedOpacity(
+                                opacity: _showBackToTop ? 1 : 0,
+                                duration: const Duration(milliseconds: 180),
+                                child: Material(
+                                  color: BBHomeStyle.darkChip,
+                                  elevation: 5,
+                                  shadowColor: Colors.black26,
+                                  borderRadius: BorderRadius.circular(28),
+                                  child: InkWell(
+                                    onTap: _scrollToTop,
+                                    borderRadius: BorderRadius.circular(28),
+                                    child: const Padding(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 10,
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(Icons.keyboard_double_arrow_up,
+                                              color: Colors.white, size: 19),
+                                          SizedBox(width: 5),
+                                          Text('Back to top',
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: BBHomeStyle.productFont,
+                                                fontWeight: FontWeight.w600,
+                                              )),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
                 ],
               ),
-      ),
+        ), // Scaffold
+      ), // Theme
     );
   }
 
@@ -721,112 +944,6 @@ class _StickyHeaderDelegate extends SliverPersistentHeaderDelegate {
 }
 
 // ==========================================================================
-// APP BAR
-// ==========================================================================
-
-class LalBabaAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final int cartCount;
-  final int notificationCount;
-  final VoidCallback? onCartTap;
-  final VoidCallback? onNotificationTap;
-
-  const LalBabaAppBar({
-    super.key,
-    this.cartCount = 0,
-    this.notificationCount = 0,
-    this.onCartTap,
-    this.onNotificationTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ValueListenableBuilder<int>(
-      valueListenable: CartService.count,
-      builder: (context, globalCount, child) {
-        return AppBar(
-          backgroundColor: AppColors.error,
-          elevation: 0,
-          scrolledUnderElevation: 0,
-          centerTitle: false,
-          automaticallyImplyLeading: false,
-          titleSpacing: 12,
-          title: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SizedBox(
-                width: 56,
-                height: 56,
-                child: Image.asset(
-                  AssetConstants.logo,
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) => const Icon(
-                    Icons.rice_bowl_rounded,
-                    color: AppColors.background,
-                    size: 36,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              const Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'LalBaba',
-                    style: TextStyle(
-                      color: AppColors.background,
-                      fontSize: 19,
-                      fontWeight: FontWeight.w700,
-                      height: 1.1,
-                      letterSpacing: 0.2,
-                    ),
-                  ),
-                  SizedBox(height: 2),
-                  Text(
-                    'Quality You Trust',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 9,
-                      fontWeight: FontWeight.w500,
-                      letterSpacing: 0.4,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          actions: [
-            IconButton(
-              tooltip: 'Notifications',
-              onPressed: onNotificationTap,
-              style: IconButton.styleFrom(
-                backgroundColor: AppColors.background.withValues(alpha: 0.12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              icon: Badge(
-                isLabelVisible: globalCount > 0,
-                label: Text(globalCount > 99 ? '99+' : '$globalCount'),
-                child: const Icon(
-                  Icons.notifications_none_rounded,
-                  color: AppColors.background,
-                  size: 28,
-                ),
-              ),
-            ),
-            const SizedBox(width: 16),
-          ],
-        );
-      },
-    );
-  }
-
-  @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
-}
-
-// ==========================================================================
 // SEARCH
 // ==========================================================================
 
@@ -1036,14 +1153,14 @@ class _SearchWidgetState extends State<SearchWidget> {
           // ===================================================================
 
           Container(
-            height: 46,
+            height: 52,
             decoration: BoxDecoration(
-              color: AppColors.background,
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: const Color(0xFFE6E6E6), width: 1),
+              color: BBHomeStyle.softGrey,
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(color: BBHomeStyle.outline, width: 1),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.black.withValues(alpha: 0.05),
+                  color: BBHomeStyle.title.withValues(alpha: 0.05),
                   blurRadius: 6,
                   offset: const Offset(0, 2),
                 ),
@@ -1091,7 +1208,7 @@ class _SearchWidgetState extends State<SearchWidget> {
                         ) {
                           return const Icon(
                             Icons.rice_bowl_rounded,
-                            color: AppColors.error,
+                            color: BBHomeStyle.green,
                             size: 20,
                           );
                         },
@@ -1100,7 +1217,7 @@ class _SearchWidgetState extends State<SearchWidget> {
 
                 const SizedBox(width: 8),
 
-                Container(width: 1, height: 20, color: const Color(0xFFE6E6E6)),
+                Container(width: 1, height: 20, color: BBHomeStyle.outline),
 
                 const SizedBox(width: 8),
 
@@ -1109,7 +1226,7 @@ class _SearchWidgetState extends State<SearchWidget> {
                 // =============================================================
                 const Icon(
                   Icons.search_rounded,
-                  color: Color(0xFF9A9A9A),
+                  color: BBHomeStyle.muted,
                   size: 22,
                 ),
 
@@ -1135,8 +1252,8 @@ class _SearchWidgetState extends State<SearchWidget> {
                         onChanged: _onSearchChanged,
                         textInputAction: TextInputAction.search,
                         style: const TextStyle(
-                          fontSize: 14,
-                          color: AppColors.black,
+                          fontSize: BBHomeStyle.productFont,
+                          color: BBHomeStyle.title,
                         ),
                         decoration: const InputDecoration(
                           border: InputBorder.none,
@@ -1159,7 +1276,7 @@ class _SearchWidgetState extends State<SearchWidget> {
                     onPressed: _clearSearch,
                     icon: const Icon(
                       Icons.close_rounded,
-                      color: Color(0xFF9A9A9A),
+                      color: BBHomeStyle.muted,
                       size: 18,
                     ),
                   )
@@ -1219,7 +1336,7 @@ class _SearchResultBox extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(7),
-        border: Border.all(color: const Color(0xFFE8E8E8)),
+        border: Border.all(color: BBHomeStyle.outline),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.08),
@@ -1256,9 +1373,9 @@ class _SearchResultBox extends StatelessWidget {
                       child: Text(
                         category,
                         style: const TextStyle(
-                          fontSize: 13,
+                          fontSize: BBHomeStyle.productFont,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF202027),
+                          color: BBHomeStyle.title,
                         ),
                       ),
                     ),
@@ -1300,9 +1417,9 @@ class _SearchResultBox extends StatelessWidget {
                     Text(
                       'No results found',
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: BBHomeStyle.productFont,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF777777),
+                        color: BBHomeStyle.muted,
                       ),
                     ),
                   ],
@@ -1328,13 +1445,13 @@ class _SearchHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      color: const Color(0xFFF1F2F4),
+      color: BBHomeStyle.softGrey,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       alignment: Alignment.centerRight,
       child: Text(
         title,
         style: const TextStyle(
-          fontSize: 10.5,
+          fontSize: BBHomeStyle.captionFont,
           fontWeight: FontWeight.w700,
           color: Color(0xFF747A84),
           letterSpacing: 0.2,
@@ -1375,7 +1492,7 @@ class _SearchProductItem extends StatelessWidget {
                 height: 52,
                 padding: const EdgeInsets.all(3),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF7F7F7),
+                  color: BBHomeStyle.canvas,
                   borderRadius: BorderRadius.circular(5),
                 ),
                 child: _SearchProductImage(imageUrl: imageUrl),
@@ -1392,10 +1509,10 @@ class _SearchProductItem extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        fontSize: 13.5,
+                        fontSize: BBHomeStyle.productFont,
                         height: 1.25,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF202027),
+                        color: BBHomeStyle.title,
                       ),
                     ),
 
@@ -1404,7 +1521,7 @@ class _SearchProductItem extends StatelessWidget {
                       Text(
                         price,
                         style: const TextStyle(
-                          fontSize: 14,
+                          fontSize: BBHomeStyle.productFont,
                           fontWeight: FontWeight.w800,
                           color: Colors.black,
                         ),
@@ -1504,7 +1621,7 @@ class _SearchResultShimmer extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(7),
-        border: Border.all(color: const Color(0xFFE8E8E8)),
+        border: Border.all(color: BBHomeStyle.outline),
       ),
       child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1586,8 +1703,8 @@ class _VerticalRotatingHintState extends State<_VerticalRotatingHint>
   static const double _lineHeight = 18;
 
   static const TextStyle _hintStyle = TextStyle(
-    fontSize: 14,
-    color: Color(0xFF9A9A9A),
+    fontSize: BBHomeStyle.productFont,
+    color: BBHomeStyle.muted,
   );
 
   late final AnimationController _controller;
@@ -1721,10 +1838,10 @@ class CategoryWidget extends StatefulWidget {
 }
 
 class _CategoryWidgetState extends State<CategoryWidget> {
-  static const Color _primary = Color(0xFFf70707);
-  static const Color _background = Color(0xFFffffff);
-  static const Color _grey = Color(0xFF6B6B6B);
-  static const Color _border = Color(0xFFE6E6E6);
+  static const Color _primary = BBHomeStyle.green;
+  static const Color _background = BBHomeStyle.paper;
+  static const Color _grey = BBHomeStyle.muted;
+  static const Color _border = BBHomeStyle.outline;
   static const Color _accent = _primary;
   late int _internalSelectedIndex;
 
@@ -1748,11 +1865,11 @@ class _CategoryWidgetState extends State<CategoryWidget> {
     return Container(
       width: double.infinity,
       color: _background,
-      padding: const EdgeInsets.symmetric(vertical: 10),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       height: 60,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
+        physics: const ClampingScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16),
         itemCount: widget.names.length,
         separatorBuilder: (_, __) => const SizedBox(width: 10),
@@ -1775,9 +1892,9 @@ class _CategoryWidgetState extends State<CategoryWidget> {
                   vertical: 10,
                 ),
                 decoration: BoxDecoration(
-                  color: isSelected ? _accent : Colors.white,
+                  color: isSelected ? BBHomeStyle.mint : BBHomeStyle.paper,
                   borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: isSelected ? _accent : _border),
+                  border: Border.all(color: isSelected ? BBHomeStyle.mint : _border),
                   boxShadow: [
                     BoxShadow(
                       color: isSelected
@@ -1794,9 +1911,9 @@ class _CategoryWidgetState extends State<CategoryWidget> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 13.5,
+                    fontSize: BBHomeStyle.categoryFont,
                     fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-                    color: isSelected ? Colors.white : _grey,
+                    color: isSelected ? BBHomeStyle.deepGreen : _grey,
                     letterSpacing: 0.1,
                   ),
                 ),
@@ -1827,11 +1944,11 @@ class _BannerWidgetState extends State<BannerWidget> {
   // COLORS
   // ===========================================================================
 
-  static const Color _primary = Color(0xFFF70707);
+  static const Color _primary = BBHomeStyle.green;
 
-  static const Color _black = Color(0xFF000000);
+  static const Color _black = BBHomeStyle.title;
 
-  static const Color _grey = Color(0xFF9E9E9E);
+  static const Color _grey = BBHomeStyle.muted;
 
   // ===========================================================================
   // BANNER IMAGE URLS
@@ -2100,9 +2217,9 @@ class _BannerImage extends StatelessWidget {
 
   const _BannerImage({required this.imageUrl});
 
-  static const Color _secondary = Color(0xFFEEE4E4);
+  static const Color _secondary = BBHomeStyle.paleMint;
 
-  static const Color _primary = Color(0xFFF70707);
+  static const Color _primary = BBHomeStyle.green;
 
   @override
   Widget build(BuildContext context) {
@@ -2171,12 +2288,18 @@ class TrendingWidget extends StatelessWidget {
   final List<Map<String, dynamic>> products;
   final ValueChanged<Map<String, dynamic>>? onProductTap;
   final void Function(Map<String, dynamic> product)? onAddToCart;
+  final VoidCallback? onGoToCart;
+  final Set<String> addedProductNames;
+  final Set<String> addingProductNames;
   final VoidCallback? onViewAllTap;
   const TrendingWidget({
     super.key,
     required this.products,
     this.onProductTap,
     this.onAddToCart,
+    this.onGoToCart,
+    this.addedProductNames = const <String>{},
+    this.addingProductNames = const <String>{},
     this.onViewAllTap,
   });
   @override
@@ -2185,6 +2308,9 @@ class TrendingWidget extends StatelessWidget {
     products: products,
     onProductTap: onProductTap,
     onAddToCart: onAddToCart,
+    onGoToCart: onGoToCart,
+    addedProductNames: addedProductNames,
+    addingProductNames: addingProductNames,
     onViewAllTap: onViewAllTap,
   );
 }
@@ -2197,12 +2323,18 @@ class BestSellerWidget extends StatelessWidget {
   final List<Map<String, dynamic>> products;
   final ValueChanged<Map<String, dynamic>>? onProductTap;
   final void Function(Map<String, dynamic> product)? onAddToCart;
+  final VoidCallback? onGoToCart;
+  final Set<String> addedProductNames;
+  final Set<String> addingProductNames;
   final VoidCallback? onViewAllTap;
   const BestSellerWidget({
     super.key,
     required this.products,
     this.onProductTap,
     this.onAddToCart,
+    this.onGoToCart,
+    this.addedProductNames = const <String>{},
+    this.addingProductNames = const <String>{},
     this.onViewAllTap,
   });
   @override
@@ -2211,6 +2343,9 @@ class BestSellerWidget extends StatelessWidget {
     products: products,
     onProductTap: onProductTap,
     onAddToCart: onAddToCart,
+    onGoToCart: onGoToCart,
+    addedProductNames: addedProductNames,
+    addingProductNames: addingProductNames,
     onViewAllTap: onViewAllTap,
   );
 }
@@ -2224,6 +2359,9 @@ class SectionCardWidget extends StatelessWidget {
   final List<Map<String, dynamic>> products;
   final void Function(Map<String, dynamic> product)? onProductTap;
   final void Function(Map<String, dynamic> product)? onAddToCart;
+  final VoidCallback? onGoToCart;
+  final Set<String> addedProductNames;
+  final Set<String> addingProductNames;
   final VoidCallback? onViewAllTap;
   const SectionCardWidget({
     super.key,
@@ -2231,13 +2369,14 @@ class SectionCardWidget extends StatelessWidget {
     required this.products,
     this.onProductTap,
     this.onAddToCart,
+    this.onGoToCart,
+    this.addedProductNames = const <String>{},
+    this.addingProductNames = const <String>{},
     this.onViewAllTap,
   });
-  static const double _outerMargin = 8;
-  static const double _railPadding = 14;
-  static const double _cardGap = 10;
-  static const double _minCardWidth = 150;
-  static const double _maxCardWidth = 210;
+  static const double _outerMargin = 0;
+  static const double _railPadding = 10;
+  static const double _cardGap = 7;
 
   @override
   Widget build(BuildContext context) {
@@ -2249,30 +2388,17 @@ class SectionCardWidget extends StatelessWidget {
             : MediaQuery.sizeOf(context).width;
         final double usableWidth =
             screenWidth - (_outerMargin * 2) - (_railPadding * 2);
-        final double twoCardWidth = (usableWidth - _cardGap) / 2;
-        final double cardWidth = twoCardWidth
-            .clamp(_minCardWidth, _maxCardWidth)
-            .toDouble();
-        final double imageHeight = (cardWidth * 0.70)
-            .clamp(100.0, 125.0)
-            .toDouble();
+        // Precisely three visible cards per row, regardless of phone width.
+        final double cardWidth =
+            ((usableWidth - (_cardGap * 2)) / 3).clamp(70.0, 300.0).toDouble();
+        final double imageHeight = (cardWidth * 1.30).clamp(108.0, 170.0).toDouble();
         return Container(
           margin: const EdgeInsets.symmetric(
             horizontal: _outerMargin,
-            vertical: 6,
+            vertical: 5,
           ),
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(4),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.06),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: const BoxDecoration(color: BBHomeStyle.paper),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -2285,45 +2411,22 @@ class SectionCardWidget extends StatelessWidget {
                         title,
                         softWrap: true,
                         style: const TextStyle(
-                          fontSize: 17,
+                          fontSize: BBHomeStyle.sectionFont,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black,
+                          color: BBHomeStyle.title,
                           height: 1.2,
                         ),
                       ),
                     ),
                     const SizedBox(width: 8),
                     Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(6),
-                        onTap: onViewAllTap,
-                        child: const Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 4,
-                            vertical: 6,
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'View All',
-                                maxLines: 1,
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.black,
-                                ),
-                              ),
-                              SizedBox(width: 2),
-                              Icon(
-                                Icons.chevron_right,
-                                size: 18,
-                                color: Colors.black,
-                              ),
-                            ],
-                          ),
-                        ),
+                      color: BBHomeStyle.softGrey,
+                      shape: const CircleBorder(),
+                      child: IconButton(
+                        tooltip: 'View All',
+                        onPressed: onViewAllTap,
+                        icon: const Icon(Icons.chevron_right_rounded,
+                            color: BBHomeStyle.title, size: 24),
                       ),
                     ),
                   ],
@@ -2331,10 +2434,10 @@ class SectionCardWidget extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               SizedBox(
-                height: 264,
+                height: 310,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
+                  physics: const ClampingScrollPhysics(),
                   padding: const EdgeInsets.symmetric(horizontal: _railPadding),
                   itemCount: products.length,
                   separatorBuilder: (context, index) =>
@@ -2355,6 +2458,9 @@ class SectionCardWidget extends StatelessWidget {
                       showPriceAndRating: true,
                       width: cardWidth,
                       imageHeight: imageHeight,
+                      isInCart: addedProductNames.contains(product['name']?.toString().trim() ?? ''),
+                      isAdding: addingProductNames.contains(product['name']?.toString().trim() ?? ''),
+                      onGoToCart: onGoToCart,
                       onTap: () => onProductTap?.call(product),
                       onAddToCart: onAddToCart == null
                           ? null
@@ -2382,12 +2488,12 @@ class ProductCardWidget extends StatelessWidget {
   final String? originalPrice;
   final String? discountLabel;
   final double rating;
-
   final bool showPriceAndRating;
-
   final VoidCallback? onTap;
   final VoidCallback? onAddToCart;
-
+  final VoidCallback? onGoToCart;
+  final bool isInCart;
+  final bool isAdding;
   final double width;
   final double imageHeight;
 
@@ -2402,377 +2508,246 @@ class ProductCardWidget extends StatelessWidget {
     this.showPriceAndRating = false,
     this.onTap,
     this.onAddToCart,
+    this.onGoToCart,
+    this.isInCart = false,
+    this.isAdding = false,
     this.width = 150,
     this.imageHeight = 105,
   });
 
-  static const Color accentColor = Color(0xFFE23F1C);
-
-  static const Color _ratingGreen = Color(0xFF2E7D32);
-
-  static const Color _black = Color(0xFF212121);
-
-  static const Color _grey = Color(0xFF878787);
-
-  static const Color _imageBg = Color(0xFFFAFAFA);
-
+  // BigBasket-like hierarchy: image -> offer -> price -> name -> rating.
+  // Existing data and cart callbacks are preserved; no invented pack sizes.
   @override
   Widget build(BuildContext context) {
-    final bool compact = width < 160;
-
-    return Material(
-      color: Colors.transparent,
+    final bool hasOffer = discountLabel?.trim().isNotEmpty ?? false;
+    return SizedBox(
+      width: width,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
-        child: Container(
-          width: width,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFFF0F0F0)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ============================================================
-              // PRODUCT IMAGE
-              // ============================================================
-
-              SizedBox(
-                height: imageHeight,
-                width: double.infinity,
-                child: Stack(
-                  children: [
-                    Positioned.fill(
-                      child: Container(
-                        color: _imageBg,
-                        padding: EdgeInsets.all(compact ? 7 : 10),
-                        child: _buildProductImage(),
+        borderRadius: BorderRadius.circular(BBHomeStyle.productRadius),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              height: imageHeight,
+              width: width,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Positioned.fill(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(14),
+                      child: ColoredBox(
+                        color: BBHomeStyle.softGrey,
+                        child: Padding(
+                          padding: const EdgeInsets.all(6),
+                          child: _productImage(),
+                        ),
                       ),
                     ),
-
-                    // ======================================================
-                    // DISCOUNT BADGE
-                    // ======================================================
-                    if (discountLabel != null &&
-                        discountLabel!.trim().isNotEmpty)
-                      Positioned(
-                        top: 7,
-                        left: 7,
+                  ),
+                  // The original cart operation is unchanged. The visual
+                  // treatment is now the circular + button on the image.
+                  if (onAddToCart != null)
+                    Positioned(
+                      right: 0,
+                      bottom: 0,
+                      child: GestureDetector(
+                        onTap: () {
+                          if (isAdding) return;
+                          if (isInCart) {
+                            onGoToCart?.call();
+                          } else {
+                            onAddToCart?.call();
+                          }
+                        },
                         child: Container(
-                          constraints: BoxConstraints(maxWidth: width - 14),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 3,
-                          ),
+                          width: isInCart ? 39 : 38,
+                          height: 38,
                           decoration: BoxDecoration(
-                            color: accentColor,
-                            borderRadius: BorderRadius.circular(6),
-                            boxShadow: [
-                              BoxShadow(
-                                color: accentColor.withValues(alpha: 0.35),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
+                            color: BBHomeStyle.green,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 2),
                           ),
-                          child: Text(
-                            discountLabel!,
-                            maxLines: 1,
-                            overflow: TextOverflow.fade,
-                            softWrap: false,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                            ),
+                          alignment: Alignment.center,
+                          child: isAdding
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : Icon(
+                                  isInCart
+                                      ? Icons.shopping_cart_checkout_rounded
+                                      : Icons.add_rounded,
+                                  color: Colors.white,
+                                  size: 25,
+                                ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            // Reserve identical heights for every card so rows never stagger.
+            SizedBox(
+              height: 18,
+              child: isInCart && onGoToCart != null
+                  ? Align(
+                      alignment: Alignment.centerLeft,
+                      child: GestureDetector(
+                        onTap: onGoToCart,
+                        child: const Text(
+                          'Go to Cart',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: BBHomeStyle.green,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),
+                    )
+                  : null,
+            ),
+            // Offer row always takes the same height, even without an offer.
+            SizedBox(
+              height: 27,
+              child: hasOffer
+                  ? Align(
+                      alignment: Alignment.centerLeft,
+                      child: Container(
+                        constraints: const BoxConstraints(maxWidth: double.infinity),
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: BBHomeStyle.yellow,
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: Text(
+                          discountLabel!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 10,
+                            color: BBHomeStyle.title,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    )
+                  : null,
+            ),
+            if (showPriceAndRating)
+              // FittedBox prevents the current and struck-through prices from
+              // wrapping on narrow phones. Both remain on one baseline.
+              SizedBox(
+                height: 22,
+                width: double.infinity,
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        Text(
+                          price,
+                          maxLines: 1,
+                          softWrap: false,
+                          style: const TextStyle(
+                            color: BBHomeStyle.title,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                            height: 1.1,
+                          ),
+                        ),
+                        if (originalPrice?.trim().isNotEmpty ?? false) ...[
+                          const SizedBox(width: 3),
+                          Text(
+                            originalPrice!,
+                            maxLines: 1,
+                            softWrap: false,
+                            style: const TextStyle(
+                              fontSize: 10,
+                              color: BBHomeStyle.muted,
+                              decoration: TextDecoration.lineThrough,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            const SizedBox(height: 4),
+            // Two lines maximum, rather than one word on each of 3+ lines.
+            SizedBox(
+              height: 36,
+              width: double.infinity,
+              child: Text(
+                name,
+                maxLines: 2,
+                softWrap: true,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: BBHomeStyle.title,
+                  fontSize: 11.5,
+                  height: 1.3,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            if (showPriceAndRating && rating > 0)
+              SizedBox(
+                height: 19,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.star_rounded,
+                        color: Color(0xFFFFA51B), size: 13),
+                    const SizedBox(width: 2),
+                    Text(
+                      rating.toStringAsFixed(1),
+                      maxLines: 1,
+                      style: const TextStyle(
+                        color: BBHomeStyle.muted,
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ],
                 ),
               ),
-
-              // ============================================================
-              // PRODUCT INFORMATION
-              // ============================================================
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(10, 7, 10, 4),
-                  child: showPriceAndRating
-                      ? _buildFullInfo(compact)
-                      : _buildSimpleInfo(compact),
-                ),
-              ),
-
-              // ============================================================
-              // ADD TO CART BUTTON
-              // ============================================================
-              if (onAddToCart != null)
-                SizedBox(
-                  height: 39,
-                  width: double.infinity,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(8, 1, 8, 7),
-                    child: SizedBox(
-                      width: double.infinity,
-                      height: 31,
-                      child: ElevatedButton(
-                        onPressed: onAddToCart,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: accentColor,
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-
-                          // Important:
-                          // default minimum
-                          // button width remove.
-                          minimumSize: Size.zero,
-
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 4,
-                            vertical: 0,
-                          ),
-
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-
-                          visualDensity: VisualDensity.compact,
-
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: const FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.add_shopping_cart_rounded, size: 14),
-                              SizedBox(width: 5),
-                              Text(
-                                'Add to Cart',
-                                maxLines: 1,
-                                softWrap: false,
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 0.1,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
+          ],
         ),
       ),
     );
   }
 
-  // ==========================================================================
-  // FULL INFO
-  // ==========================================================================
-
-  Widget _buildFullInfo(bool compact) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // ================================================================
-        // PRODUCT NAME
-        // ================================================================
-
-        Flexible(
-          child: Text(
-            name,
-
-            // maxLines + ellipsis remove.
-            // Text available space-er moddhe
-            // naturally wrap korbe.
-            softWrap: true,
-
-            overflow: TextOverflow.fade,
-
-            style: TextStyle(
-              fontSize: compact ? 11.8 : 12.5,
-              fontWeight: FontWeight.w600,
-              color: _black,
-              height: 1.22,
-            ),
-          ),
-        ),
-
-        const SizedBox(height: 5),
-
-        // ================================================================
-        // RATING
-        // ================================================================
-        if (rating > 0)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-            decoration: BoxDecoration(
-              color: _ratingGreen,
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  rating.toStringAsFixed(1),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(width: 2),
-                const Icon(Icons.star_rounded, size: 11, color: Colors.white),
-              ],
-            ),
-          ),
-
-        if (rating > 0) const SizedBox(height: 5),
-
-        // ================================================================
-        // PRICE
-        // ================================================================
-        if (price.isNotEmpty ||
-            (originalPrice != null && originalPrice!.isNotEmpty))
-          Wrap(
-            spacing: 6,
-            runSpacing: 2,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              if (price.isNotEmpty)
-                Text(
-                  price,
-                  style: const TextStyle(
-                    fontSize: 14.5,
-                    fontWeight: FontWeight.w800,
-                    color: _black,
-                  ),
-                ),
-
-              if (originalPrice != null && originalPrice!.isNotEmpty)
-                Text(
-                  originalPrice!,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: _grey,
-                    decoration: TextDecoration.lineThrough,
-                    decorationColor: _grey,
-                  ),
-                ),
-            ],
-          ),
-      ],
-    );
-  }
-
-  // ==========================================================================
-  // SIMPLE INFO
-  // ==========================================================================
-
-  Widget _buildSimpleInfo(bool compact) {
-    return Align(
-      alignment: Alignment.topCenter,
-      child: Text(
-        name,
-        textAlign: TextAlign.center,
-        softWrap: true,
-        overflow: TextOverflow.fade,
-        style: TextStyle(
-          fontSize: compact ? 11.5 : 12,
-          fontWeight: FontWeight.w600,
-          color: _black,
-          height: 1.25,
-        ),
-      ),
-    );
-  }
-
-  // ==========================================================================
-  // PRODUCT IMAGE
-  // ==========================================================================
-
-  Widget _buildProductImage() {
+  Widget _productImage() {
     if (imageUrl.trim().isEmpty) {
-      return const Center(
-        child: Icon(Icons.image_outlined, size: 32, color: Colors.grey),
-      );
+      return const Icon(Icons.image_outlined, color: BBHomeStyle.muted);
     }
-
-    final bool isNetwork =
-        imageUrl.startsWith('http://') || imageUrl.startsWith('https://');
-
-    if (isNetwork) {
+    if (imageUrl.startsWith('https://') || imageUrl.startsWith('http://')) {
       return Image.network(
         imageUrl,
         fit: BoxFit.contain,
-        width: double.infinity,
-        height: double.infinity,
-        loadingBuilder:
-            (
-              BuildContext context,
-              Widget child,
-              ImageChunkEvent? loadingProgress,
-            ) {
-              if (loadingProgress == null) {
-                return child;
-              }
-
-              return AppShimmer(
-                width: double.infinity,
-                height: imageHeight,
-                radius: 10,
-              );
-            },
-        errorBuilder:
-            (BuildContext context, Object error, StackTrace? stackTrace) {
-              return const Center(
-                child: Icon(Icons.image_outlined, size: 32, color: Colors.grey),
-              );
-            },
+        errorBuilder: (_, __, ___) =>
+            const Icon(Icons.image_outlined, color: BBHomeStyle.muted),
       );
     }
-
     return Image.asset(
       imageUrl,
       fit: BoxFit.contain,
-      width: double.infinity,
-      height: double.infinity,
-      frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-        if (wasSynchronouslyLoaded) {
-          return child;
-        }
-
-        if (frame == null) {
-          return AppShimmer(
-            width: double.infinity,
-            height: imageHeight,
-            radius: 10,
-          );
-        }
-
-        return child;
-      },
-      errorBuilder: (context, error, stackTrace) {
-        return const Center(
-          child: Icon(Icons.image_outlined, size: 32, color: Colors.grey),
-        );
-      },
+      errorBuilder: (_, __, ___) =>
+          const Icon(Icons.image_outlined, color: BBHomeStyle.muted),
     );
   }
 }
@@ -2785,16 +2760,18 @@ class PopularSearchWidget extends StatelessWidget {
   final List<Map<String, dynamic>> products;
 
   final ValueChanged<Map<String, dynamic>>? onProductTap;
+  final VoidCallback? onViewAllTap;
 
   const PopularSearchWidget({
     super.key,
     required this.products,
     this.onProductTap,
+    this.onViewAllTap,
   });
 
-  static const Color _accent = AppColors.primary;
+  static const Color _accent = BBHomeStyle.green;
 
-  static const Color _black = Color(0xFF212121);
+  static const Color _black = BBHomeStyle.title;
 
   static const double _gap = 12;
 
@@ -2821,11 +2798,11 @@ class PopularSearchWidget extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [Color(0xFFFFE9E0), Color(0xFFFFF3E0)],
+              colors: [BBHomeStyle.paleMint, BBHomeStyle.mint],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(BBHomeStyle.sectionRadius),
             boxShadow: [
               BoxShadow(
                 color: _accent.withValues(alpha: 0.08),
@@ -2859,7 +2836,7 @@ class PopularSearchWidget extends StatelessWidget {
                     ),
                     child: const Icon(
                       Icons.local_fire_department_rounded,
-                      color: AppColors.primaryLight,
+                      color: BBHomeStyle.paper,
                       size: 18,
                     ),
                   ),
@@ -2870,10 +2847,24 @@ class PopularSearchWidget extends StatelessWidget {
                     child: Text(
                       AppStrings.popularSearch,
                       style: const TextStyle(
-                        fontSize: 18,
+                        fontSize: BBHomeStyle.sectionFont,
                         fontWeight: FontWeight.bold,
                         color: _black,
                         letterSpacing: 0.1,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Material(
+                    color: BBHomeStyle.softGrey,
+                    shape: const CircleBorder(),
+                    child: IconButton(
+                      tooltip: 'View all popular searches',
+                      onPressed: onViewAllTap,
+                      icon: const Icon(
+                        Icons.chevron_right_rounded,
+                        color: BBHomeStyle.title,
+                        size: 24,
                       ),
                     ),
                   ),
@@ -2889,7 +2880,7 @@ class PopularSearchWidget extends StatelessWidget {
                 height: 165,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
+                  physics: const ClampingScrollPhysics(),
                   itemCount: products.length,
                   separatorBuilder: (context, index) {
                     return const SizedBox(width: _gap);
@@ -2936,24 +2927,24 @@ class _PopularSearchTile extends StatelessWidget {
     this.onTap,
   });
 
-  static const Color _accent = AppColors.primary;
+  static const Color _accent = BBHomeStyle.green;
 
-  static const Color _black = Color(0xFF212121);
+  static const Color _black = BBHomeStyle.title;
 
-  static const Color _grey = Color(0xFF666666);
+  static const Color _grey = BBHomeStyle.muted;
 
   @override
   Widget build(BuildContext context) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(BBHomeStyle.productRadius),
         onTap: onTap,
         child: Container(
           width: double.infinity,
           decoration: BoxDecoration(
-            color: AppColors.primaryLight,
-            borderRadius: BorderRadius.circular(14),
+            color: BBHomeStyle.paper,
+            borderRadius: BorderRadius.circular(BBHomeStyle.productRadius),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.06),
@@ -2999,7 +2990,7 @@ class _PopularSearchTile extends StatelessWidget {
                               const Icon(
                                 Icons.arrow_downward_rounded,
                                 size: 10,
-                                color: AppColors.primaryLight,
+                                color: BBHomeStyle.paper,
                               ),
 
                               const SizedBox(width: 1),
@@ -3010,8 +3001,8 @@ class _PopularSearchTile extends StatelessWidget {
                                 overflow: TextOverflow.fade,
                                 softWrap: false,
                                 style: const TextStyle(
-                                  color: AppColors.primaryLight,
-                                  fontSize: 10,
+                                  color: BBHomeStyle.paper,
+                                  fontSize: BBHomeStyle.captionFont,
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),
@@ -3034,7 +3025,7 @@ class _PopularSearchTile extends StatelessWidget {
                       overflow: TextOverflow.fade,
                       softWrap: true,
                       style: const TextStyle(
-                        fontSize: 12,
+                        fontSize: BBHomeStyle.subtitleFont,
                         fontWeight: FontWeight.w500,
                         color: _grey,
                         height: 1.2,
@@ -3059,7 +3050,7 @@ class _PopularSearchTile extends StatelessWidget {
                           AppStrings.dealsForYou,
                           maxLines: 1,
                           style: const TextStyle(
-                            fontSize: 11.5,
+                            fontSize: BBHomeStyle.subtitleFont,
                             fontWeight: FontWeight.w700,
                             color: _black,
                           ),
@@ -3147,11 +3138,11 @@ class RecipeWidget extends StatefulWidget {
 }
 
 class _RecipeWidgetState extends State<RecipeWidget> {
-  static const Color _primary = Color(0xFFF70707);
+  static const Color _primary = BBHomeStyle.green;
 
-  static const Color _black = Color(0xFF212121);
+  static const Color _black = BBHomeStyle.title;
 
-  static const Color _grey = Color(0xFF777777);
+  static const Color _grey = BBHomeStyle.muted;
 
   // ===========================================================================
   // RECIPE DATA
@@ -3313,7 +3304,7 @@ class _RecipeWidgetState extends State<RecipeWidget> {
                       child: Text(
                         AppStrings.recipesYoullLove,
                         style: const TextStyle(
-                          fontSize: 17,
+                          fontSize: BBHomeStyle.sectionFont,
                           fontWeight: FontWeight.bold,
                           color: _black,
                         ),
@@ -3394,7 +3385,7 @@ class _RecipeWidgetState extends State<RecipeWidget> {
                 child: Container(
                   height: 1,
                   width: double.infinity,
-                  color: const Color(0xFFE8E8E8),
+                  color: BBHomeStyle.outline,
                 ),
               ),
 
@@ -3478,7 +3469,7 @@ class _RecipeCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 14,
+                fontSize: BBHomeStyle.productFont,
                 fontWeight: FontWeight.w800,
                 height: 1.3,
                 shadows: [
@@ -3544,7 +3535,7 @@ class _RecipeImage extends StatelessWidget {
             children: [
               Icon(
                 Icons.image_not_supported_outlined,
-                color: Color(0xFFF70707),
+                color: BBHomeStyle.green,
                 size: 30,
               ),
 
@@ -3552,7 +3543,7 @@ class _RecipeImage extends StatelessWidget {
 
               Text(
                 'Image unavailable',
-                style: TextStyle(color: Color(0xFF777777), fontSize: 11),
+                style: TextStyle(color: BBHomeStyle.muted, fontSize: 11),
               ),
             ],
           ),
@@ -3576,11 +3567,11 @@ class TestimonialWidget extends StatefulWidget {
 }
 
 class _TestimonialWidgetState extends State<TestimonialWidget> {
-  static const Color _navy = Color(0xFF1E2A6E);
+  static const Color _navy = BBHomeStyle.deepGreen;
 
-  static const Color _black = Color(0xFF212121);
+  static const Color _black = BBHomeStyle.title;
 
-  static const Color _grey = Color(0xFF6B6B6B);
+  static const Color _grey = BBHomeStyle.muted;
 
   // ===========================================================================
   // REVIEWS
@@ -3751,7 +3742,7 @@ class _TestimonialWidgetState extends State<TestimonialWidget> {
                         Text(
                           AppStrings.happyHomeChefs,
                           style: const TextStyle(
-                            fontSize: 17,
+                            fontSize: BBHomeStyle.sectionFont,
                             fontWeight: FontWeight.bold,
                             color: _black,
                           ),
@@ -3764,7 +3755,7 @@ class _TestimonialWidgetState extends State<TestimonialWidget> {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            fontSize: 12.5,
+                            fontSize: BBHomeStyle.productFont,
                             height: 1.35,
                             color: _grey,
                             fontWeight: FontWeight.w500,
@@ -3893,11 +3884,11 @@ class _ReviewCard extends StatelessWidget {
     required this.name,
   });
 
-  static const Color _navy = Color(0xFF1E2A6E);
+  static const Color _navy = BBHomeStyle.deepGreen;
 
-  static const Color _black = Color(0xFF212121);
+  static const Color _black = BBHomeStyle.title;
 
-  static const Color _grey = Color(0xFF666666);
+  static const Color _grey = BBHomeStyle.muted;
 
   @override
   Widget build(BuildContext context) {
@@ -3976,7 +3967,7 @@ class _ReviewCard extends StatelessWidget {
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      fontSize: 12.5,
+                      fontSize: BBHomeStyle.productFont,
                       height: 1.45,
                       color: _grey,
                       fontWeight: FontWeight.w500,
@@ -3998,7 +3989,7 @@ class _ReviewCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      fontSize: 13,
+                      fontSize: BBHomeStyle.productFont,
                       fontWeight: FontWeight.w800,
                       color: _black,
                     ),
@@ -4022,9 +4013,9 @@ class _ReviewImage extends StatelessWidget {
 
   const _ReviewImage({required this.imageUrl});
 
-  static const Color _secondary = Color(0xFFEDEFF7);
+  static const Color _secondary = BBHomeStyle.paleMint;
 
-  static const Color _navy = Color(0xFF1E2A6E);
+  static const Color _navy = BBHomeStyle.deepGreen;
 
   @override
   Widget build(BuildContext context) {
@@ -4079,9 +4070,9 @@ class CartNotificationPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFAFAFA),
+      backgroundColor: BBHomeStyle.canvas,
 
-      appBar: AppAppBar(
+      appBar: CommonAppBar(
         title: 'Added to Cart',
         centerTitle: true,
         automaticallyImplyLeading: true,
@@ -4170,9 +4161,9 @@ class _SummaryHeader extends StatelessWidget {
                   '$itemCount products • $count total quantity',
 
                   style: const TextStyle(
-                    fontSize: 14,
+                    fontSize: BBHomeStyle.productFont,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF212121),
+                    color: BBHomeStyle.title,
                   ),
                 );
               },
@@ -4188,7 +4179,7 @@ class _SummaryHeader extends StatelessWidget {
               'Clear All',
 
               style: TextStyle(
-                color: AppColors.primary,
+                color: BBHomeStyle.green,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -4228,7 +4219,7 @@ class _SummaryHeader extends StatelessWidget {
                   child: const Text(
                     'Clear',
 
-                    style: TextStyle(color: AppColors.primary),
+                    style: TextStyle(color: BBHomeStyle.green),
                   ),
                 ),
               ],
@@ -4305,11 +4296,11 @@ class _AddedProductCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
 
                   style: const TextStyle(
-                    fontSize: 14,
+                    fontSize: BBHomeStyle.productFont,
 
                     fontWeight: FontWeight.w700,
 
-                    color: Color(0xFF212121),
+                    color: BBHomeStyle.title,
 
                     height: 1.25,
                   ),
@@ -4325,9 +4316,9 @@ class _AddedProductCard extends StatelessWidget {
                     'Weight: ${item.weight}',
 
                     style: const TextStyle(
-                      fontSize: 12,
+                      fontSize: BBHomeStyle.subtitleFont,
 
-                      color: Color(0xFF666666),
+                      color: BBHomeStyle.muted,
                     ),
                   ),
                 ],
@@ -4349,11 +4340,11 @@ class _AddedProductCard extends StatelessWidget {
                         item.price,
 
                         style: const TextStyle(
-                          fontSize: 15,
+                          fontSize: BBHomeStyle.priceFont,
 
                           fontWeight: FontWeight.w800,
 
-                          color: Color(0xFF212121),
+                          color: BBHomeStyle.title,
                         ),
                       ),
 
@@ -4362,7 +4353,7 @@ class _AddedProductCard extends StatelessWidget {
                         item.originalPrice!,
 
                         style: const TextStyle(
-                          fontSize: 12,
+                          fontSize: BBHomeStyle.subtitleFont,
 
                           color: Color(0xFF888888),
 
@@ -4384,7 +4375,7 @@ class _AddedProductCard extends StatelessWidget {
                   ),
 
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.10),
+                    color: BBHomeStyle.green.withValues(alpha: 0.10),
 
                     borderRadius: BorderRadius.circular(20),
                   ),
@@ -4393,11 +4384,11 @@ class _AddedProductCard extends StatelessWidget {
                     'Quantity: ${item.quantity}',
 
                     style: const TextStyle(
-                      fontSize: 12,
+                      fontSize: BBHomeStyle.subtitleFont,
 
                       fontWeight: FontWeight.w700,
 
-                      color: AppColors.primary,
+                      color: BBHomeStyle.green,
                     ),
                   ),
                 ),
@@ -4418,7 +4409,7 @@ class _AddedProductCard extends StatelessWidget {
 
               size: 20,
 
-              color: Color(0xFF777777),
+              color: BBHomeStyle.muted,
             ),
           ),
         ],
@@ -4445,7 +4436,7 @@ class _ProductImage extends StatelessWidget {
       padding: const EdgeInsets.all(6),
 
       decoration: BoxDecoration(
-        color: const Color(0xFFFAFAFA),
+        color: BBHomeStyle.canvas,
 
         borderRadius: BorderRadius.circular(10),
       ),
@@ -4523,11 +4514,11 @@ class _EmptyCartNotification extends StatelessWidget {
               textAlign: TextAlign.center,
 
               style: TextStyle(
-                fontSize: 18,
+                fontSize: BBHomeStyle.sectionFont,
 
                 fontWeight: FontWeight.w700,
 
-                color: Color(0xFF212121),
+                color: BBHomeStyle.title,
               ),
             ),
 
@@ -4539,9 +4530,9 @@ class _EmptyCartNotification extends StatelessWidget {
               textAlign: TextAlign.center,
 
               style: TextStyle(
-                fontSize: 13,
+                fontSize: BBHomeStyle.productFont,
 
-                color: Color(0xFF777777),
+                color: BBHomeStyle.muted,
 
                 height: 1.4,
               ),

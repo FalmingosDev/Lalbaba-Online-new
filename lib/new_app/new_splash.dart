@@ -1,12 +1,15 @@
-// Application splash screen.
-// Why: Handle the application startup sequence before entering the main app.
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lalbaba_online/features/dashboard/pages/bottom_nav_page.dart';
+import 'package:lalbaba_online/new_app/bottomnavigation.dart';
+
 import '../../../../app/router/route_names.dart';
 import '../../../../core/network/connectivity_service.dart';
 import '../../../../core/services/app_update_service.dart';
 import '../../../../core/services/auth_service.dart';
+
+// Bottom Navigation Page Import
 
 class NewSplashScreen extends StatefulWidget {
   const NewSplashScreen({super.key});
@@ -33,8 +36,13 @@ class _NewSplashScreenState extends State<NewSplashScreen> {
 
   Future<void> _initializeApp() async {
     try {
-      // Small delay to keep the splash screen visible.
-      await Future<void>.delayed(const Duration(milliseconds: 800));
+      // ----------------------------------------------------------
+      // SPLASH SCREEN DELAY
+      // ----------------------------------------------------------
+
+      await Future<void>.delayed(
+        const Duration(milliseconds: 800),
+      );
 
       if (!mounted) return;
 
@@ -42,11 +50,12 @@ class _NewSplashScreenState extends State<NewSplashScreen> {
       // 1. INTERNET CHECK
       // ----------------------------------------------------------
 
-      final hasInternet = await _connectivityService.hasInternetConnection();
+      final hasInternet =
+          await _connectivityService.hasInternetConnection();
+
+      if (!mounted) return;
 
       if (!hasInternet) {
-        if (!mounted) return;
-
         context.go(RouteNames.noInternet);
         return;
       }
@@ -55,14 +64,14 @@ class _NewSplashScreenState extends State<NewSplashScreen> {
       // 2. APP UPDATE CHECK
       // ----------------------------------------------------------
 
-      final updateAvailable = await _appUpdateService.isUpdateAvailable();
+      final updateAvailable =
+          await _appUpdateService.isUpdateAvailable();
 
-      // if (updateAvailable) {   
-      //   if (!mounted) return;
+      if (!mounted) return;
 
-      //   context.go(RouteNames.update);
-      //   return;
-      // }
+      debugPrint(
+        'Update available: $updateAvailable',
+      );
 
       // ----------------------------------------------------------
       // 3. TOKEN CHECK
@@ -72,28 +81,36 @@ class _NewSplashScreenState extends State<NewSplashScreen> {
 
       if (!mounted) return;
 
-      // if (hasToken) {
-      //   context.go(RouteNames.bottomnavigation);
-      // } else {
-      //   context.go(RouteNames.splash);
-      // }
-      context.go(RouteNames.bottomnavigation);
-    } catch (_) {
-      if (!mounted) return;
+      debugPrint(
+        'Has authentication token: $hasToken',
+      );
 
-      // If startup check fails unexpectedly,
-      // send the user to login rather than leaving them
-      // permanently stuck on the splash screen.
-      // context.go(RouteNames.splash);
+      // ----------------------------------------------------------
+      // 4. NAVIGATE TO BOTTOM NAVIGATION PAGE
+      // ----------------------------------------------------------
+
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute<void>(
+          builder: (context) => const BottomNavigationScreen(),
+        ),
+      );
+
+    } catch (e) {
+      debugPrint("Splash Screen Error: $e");
+
+      if (!mounted) return;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
+      backgroundColor: Colors.white,
       body: Center(
         child: CircleAvatar(
-          backgroundImage: AssetImage("lib/assets/logo-icon.png"),
+          backgroundImage: AssetImage(
+            "lib/assets/logo-icon.png",
+          ),
           radius: 75,
         ),
       ),
