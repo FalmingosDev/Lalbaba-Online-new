@@ -1,0 +1,1126 @@
+import 'package:flutter/material.dart';
+
+import '../core/services/cart_notification_item.dart';
+import '../core/services/cart_service.dart';
+import '../core/services/wishlist_service.dart';
+import '../features/checkout/presentation/pages/checkout_page.dart';
+import '../features/product/presentation/model/product_models.dart';
+import '../features/product/presentation/widgets/product_details_widget/product_repository.dart';
+import 'new_back_to_top_button.dart';
+import 'constantcolour.dart';
+import 'new_constant_text_styles.dart';
+import 'new_product_details.dart';
+import 'new_wishlist.dart';
+
+class NewCartPage extends StatefulWidget {
+  const NewCartPage({super.key});
+
+  @override
+  State<NewCartPage> createState() => _NewCartPageState();
+}
+
+class _NewCartPageState extends State<NewCartPage> {
+  static const double _backToTopThreshold = 500;
+
+  late final Future<void> _cartInitializeFuture;
+  late final ScrollController _scrollController;
+  bool _showBackToTop = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _cartInitializeFuture = CartService.initialize();
+    _scrollController = ScrollController()..addListener(_handleScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController
+      ..removeListener(_handleScroll)
+      ..dispose();
+    super.dispose();
+  }
+
+  void _handleScroll() {
+    final shouldShow =
+        _scrollController.hasClients &&
+        _scrollController.offset > _backToTopThreshold;
+    if (shouldShow != _showBackToTop) {
+      setState(() => _showBackToTop = shouldShow);
+    }
+  }
+
+  void _scrollToTop() {
+    if (!_scrollController.hasClients) return;
+    _scrollController.animateTo(
+      0,
+      duration: const Duration(milliseconds: 450),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: HomeColors.background,
+      appBar: AppBar(
+        backgroundColor: HomeColors.secondary,
+        foregroundColor: HomeColors.white,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        centerTitle: true,
+        title: const Text('Cart', style: HomeTextStyles.appBarTitle),
+        actions: [
+          IconButton(
+            tooltip: 'Wishlist',
+            onPressed: () => _openWishlist(context),
+            icon: const Icon(Icons.favorite_border),
+          ),
+        ],
+      ),
+      body: FutureBuilder<void>(
+        future: _cartInitializeFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(color: HomeColors.secondary),
+            );
+          }
+
+          if (snapshot.hasError) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(
+                  'Unable to load your cart: ${snapshot.error}',
+                  textAlign: TextAlign.center,
+                  style: HomeTextStyles.body.copyWith(
+                    color: HomeColors.textSecondary,
+                  ),
+                ),
+              ),
+            );
+          }
+
+          return ValueListenableBuilder<List<CartNotificationItem>>(
+            valueListenable: CartService.items,
+            builder: (context, cartItems, child) {
+              final subtotal = cartItems.fold<double>(
+                0,
+                (total, item) =>
+                    total + _parsePrice(item.price) * item.quantity,
+              );
+              const delivery = 40.0;
+
+              return Stack(
+                children: [
+                  Column(
+                    children: [
+                      Expanded(
+                        child: ListView(
+                          controller: _scrollController,
+                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
+                          children: [
+                            if (cartItems.isEmpty)
+                              const _EmptyCart()
+                            else ...[
+                              _CartSectionHeader(
+                                title: 'Your basket',
+                                trailing:
+                                    '${cartItems.length} ${cartItems.length == 1 ? 'product' : 'products'}',
+                              ),
+                              const SizedBox(height: 12),
+                              ...cartItems.map(
+                                (item) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 12),
+                                  child: _CartItemCard(item: item),
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              _OrderSummaryCard(
+                                subtotal: subtotal,
+                                delivery: delivery,
+                              ),
+                            ],
+                            _ProductRail(
+                              title: 'Trending',
+                              products: _trendingProducts(cartItems),
+                            ),
+                            _ProductRail(
+                              title: 'People also bought these',
+                              products: _peopleAlsoBought(cartItems),
+                            ),
+                            const _WishlistSection(),
+                          ],
+                        ),
+                      ),
+                      if (cartItems.isNotEmpty)
+                        _CartCheckoutBar(total: subtotal + delivery),
+                    ],
+                  ),
+                  if (_showBackToTop)
+                    Positioned(
+                      top: 12,
+                      left: 0,
+                      right: 0,
+                      child: Center(
+                        child: BackToTopButton(onPressed: _scrollToTop),
+                      ),
+                    ),
+                ],
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  List<ProductItem> _trendingProducts(List<CartNotificationItem> cartItems) {
+    final cartIds = cartItems
+        .map((item) => item.productId?.trim())
+        .whereType<String>()
+        .where((id) => id.isNotEmpty)
+        .toSet();
+    return ProductRepository.allProducts
+        .where((product) => !cartIds.contains(product.id))
+        .take(6)
+        .toList();
+  }
+
+  List<ProductItem> _peopleAlsoBought(List<CartNotificationItem> cartItems) {
+    ProductItem? anchor;
+    if (cartItems.isNotEmpty) {
+      for (final product in ProductRepository.allProducts) {
+        if (product.id == cartItems.first.productId) {
+          anchor = product;
+          break;
+        }
+      }
+    }
+
+    final baseProduct =
+        anchor ??
+        (ProductRepository.allProducts.isEmpty
+            ? null
+            : ProductRepository.allProducts.first);
+    if (baseProduct == null) return const [];
+
+    final cartIds = cartItems
+        .map((item) => item.productId?.trim())
+        .whereType<String>()
+        .where((id) => id.isNotEmpty)
+        .toSet();
+    return ProductRepository.relatedTo(
+      baseProduct,
+    ).where((product) => !cartIds.contains(product.id)).take(6).toList();
+  }
+}
+
+class _CartSectionHeader extends StatelessWidget {
+  const _CartSectionHeader({required this.title, required this.trailing});
+
+  final String title;
+  final String trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            title,
+            style: HomeTextStyles.sectionTitle.copyWith(
+              color: HomeColors.textPrimary,
+            ),
+          ),
+        ),
+        Text(
+          trailing,
+          style: HomeTextStyles.bodySmall.copyWith(
+            color: HomeColors.textSecondary,
+            fontWeight: HomeTextStyles.medium,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _CartItemCard extends StatelessWidget {
+  const _CartItemCard({required this.item});
+
+  final CartNotificationItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    final price = _parsePrice(item.price);
+    final lineTotal = price * item.quantity;
+    final originalPrice = item.originalPrice == null
+        ? 0
+        : _parsePrice(item.originalPrice!);
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: HomeColors.surface,
+        border: Border.all(color: HomeColors.border),
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x0A000000),
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: Container(
+              width: 82,
+              height: 82,
+              color: HomeColors.background,
+              alignment: Alignment.center,
+              child: item.imageUrl.trim().isEmpty
+                  ? const Icon(
+                      Icons.shopping_bag_outlined,
+                      color: HomeColors.textHint,
+                      size: 34,
+                    )
+                  : Image.network(
+                      item.imageUrl,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) => const Icon(
+                        Icons.shopping_bag_outlined,
+                        color: HomeColors.textHint,
+                        size: 34,
+                      ),
+                    ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.name,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: HomeTextStyles.productTitle.copyWith(
+                    color: HomeColors.textPrimary,
+                  ),
+                ),
+                if (item.weight?.trim().isNotEmpty == true) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    item.weight!,
+                    style: HomeTextStyles.bodySmall.copyWith(
+                      color: HomeColors.textSecondary,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 8),
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 8,
+                  children: [
+                    Text(
+                      '₹${lineTotal.toStringAsFixed(0)}',
+                      style: HomeTextStyles.price.copyWith(
+                        color: HomeColors.secondary,
+                      ),
+                    ),
+                    if (originalPrice > 0)
+                      Text(
+                        '₹${originalPrice.toStringAsFixed(0)}',
+                        style: HomeTextStyles.caption.copyWith(
+                          color: HomeColors.textHint,
+                          decoration: TextDecoration.lineThrough,
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                _QuantityControl(item: item),
+              ],
+            ),
+          ),
+          IconButton(
+            tooltip: 'Remove ${item.name}',
+            visualDensity: VisualDensity.compact,
+            onPressed: () => CartService.removeItem(item),
+            icon: const Icon(
+              Icons.delete_outline,
+              color: HomeColors.textSecondary,
+              size: 21,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _QuantityControl extends StatelessWidget {
+  const _QuantityControl({required this.item});
+
+  final CartNotificationItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 34,
+      decoration: BoxDecoration(
+        color: HomeColors.secondaryLight,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _QuantityButton(
+            icon: Icons.remove,
+            label: item.quantity == 1
+                ? 'Remove product from cart'
+                : 'Decrease quantity',
+            onTap: () async {
+              if (item.quantity <= 1) {
+                await CartService.removeItem(item);
+              } else {
+                await CartService.decreaseItemQuantity(item);
+              }
+            },
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            child: Text(
+              '${item.quantity}',
+              style: const TextStyle(
+                color: HomeColors.secondary,
+                fontSize: HomeTextStyles.sizeBody,
+                fontWeight: HomeTextStyles.semiBold,
+              ),
+            ),
+          ),
+          _QuantityButton(
+            icon: Icons.add,
+            label: 'Increase quantity',
+            onTap: () => CartService.increaseItemQuantity(item),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _QuantityButton extends StatelessWidget {
+  const _QuantityButton({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      tooltip: label,
+      onPressed: onTap,
+      visualDensity: VisualDensity.compact,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+      icon: Icon(icon, size: 17, color: HomeColors.secondary),
+    );
+  }
+}
+
+class _ProductRail extends StatelessWidget {
+  const _ProductRail({required this.title, required this.products});
+
+  final String title;
+  final List<ProductItem> products;
+
+  @override
+  Widget build(BuildContext context) {
+    if (products.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 22),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: HomeTextStyles.sectionTitle.copyWith(
+              color: HomeColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 252,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: products.length,
+              separatorBuilder: (context, index) => const SizedBox(width: 12),
+              itemBuilder: (context, index) {
+                final product = products[index];
+                final variant = product.variants.isEmpty
+                    ? null
+                    : product.variants[product.selectedVariant
+                          .clamp(0, product.variants.length - 1)
+                          .toInt()];
+
+                return SizedBox(
+                  width: 148,
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: HomeColors.surface,
+                      border: Border.all(color: HomeColors.border),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x08000000),
+                          blurRadius: 10,
+                          offset: Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: InkWell(
+                            onTap: () => Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) =>
+                                    NewProductDetailsPage(product: product),
+                              ),
+                            ),
+                            child: Center(
+                              child: product.imageUrl.isEmpty
+                                  ? const Icon(
+                                      Icons.image_not_supported_outlined,
+                                      color: HomeColors.textHint,
+                                      size: 42,
+                                    )
+                                  : Image.network(
+                                      product.imageUrl,
+                                      fit: BoxFit.contain,
+                                      errorBuilder:
+                                          (
+                                            context,
+                                            error,
+                                            stackTrace,
+                                          ) => const Icon(
+                                            Icons.image_not_supported_outlined,
+                                            color: HomeColors.textHint,
+                                            size: 42,
+                                          ),
+                                    ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          product.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: HomeTextStyles.productCardTitle.copyWith(
+                            color: HomeColors.textPrimary,
+                          ),
+                        ),
+                        if (variant != null)
+                          Text(
+                            '${variant.weight} · ₹${variant.price.toStringAsFixed(0)}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: HomeTextStyles.caption.copyWith(
+                              color: HomeColors.textSecondary,
+                            ),
+                          ),
+                        const SizedBox(height: 6),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 34,
+                          child: OutlinedButton(
+                            onPressed: variant == null
+                                ? null
+                                : () => _addProduct(context, product, variant),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: HomeColors.secondary,
+                              side: const BorderSide(
+                                color: HomeColors.secondary,
+                              ),
+                              padding: EdgeInsets.zero,
+                              textStyle: HomeTextStyles.compactButton,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(18),
+                              ),
+                            ),
+                            child: const Text('ADD'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _addProduct(
+    BuildContext context,
+    ProductItem product,
+    ProductVariant variant,
+  ) async {
+    try {
+      await CartService.postAddToCart(
+        productId: product.id,
+        productName: product.name,
+        imageUrl: product.imageUrl,
+        price: '₹${variant.price.toStringAsFixed(2)}',
+        originalPrice: variant.mrp == null
+            ? null
+            : '₹${variant.mrp!.toStringAsFixed(2)}',
+        weight: variant.weight,
+      );
+    } catch (error) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text('Unable to add product to cart')),
+        );
+    }
+  }
+}
+
+class _WishlistSection extends StatelessWidget {
+  const _WishlistSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<List<ProductItem>>(
+      valueListenable: WishlistService.productsNotifier,
+      builder: (context, products, child) {
+        return Padding(
+          padding: const EdgeInsets.only(top: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Wishlist',
+                      style: HomeTextStyles.sectionTitle.copyWith(
+                        color: HomeColors.textPrimary,
+                      ),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () => _openWishlist(context),
+                    child: const Text(
+                      'View all',
+                      style: HomeTextStyles.compactButton,
+                    ),
+                  ),
+                ],
+              ),
+              if (products.isEmpty)
+                _EmptyWishlistCard(onOpen: () => _openWishlist(context))
+              else ...[
+                const SizedBox(height: 8),
+                SizedBox(
+                  height: 142,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: products.length,
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(width: 12),
+                    itemBuilder: (context, index) =>
+                        _WishlistProductCard(product: products[index]),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _WishlistProductCard extends StatelessWidget {
+  const _WishlistProductCard({required this.product});
+
+  final ProductItem product;
+
+  @override
+  Widget build(BuildContext context) {
+    final variant = product.variants.isEmpty
+        ? null
+        : product.variants[product.selectedVariant
+              .clamp(0, product.variants.length - 1)
+              .toInt()];
+
+    return Container(
+      width: 270,
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: HomeColors.surface,
+        border: Border.all(color: HomeColors.border),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => NewProductDetailsPage(product: product),
+              ),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Container(
+                width: 78,
+                height: 110,
+                color: HomeColors.background,
+                alignment: Alignment.center,
+                child: product.imageUrl.isEmpty
+                    ? const Icon(
+                        Icons.image_not_supported_outlined,
+                        color: HomeColors.textHint,
+                      )
+                    : Image.network(
+                        product.imageUrl,
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Icon(
+                              Icons.image_not_supported_outlined,
+                              color: HomeColors.textHint,
+                            ),
+                      ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  product.name,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: HomeTextStyles.productCardTitle.copyWith(
+                    color: HomeColors.textPrimary,
+                  ),
+                ),
+                if (variant != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    variant.weight,
+                    style: HomeTextStyles.caption.copyWith(
+                      color: HomeColors.textSecondary,
+                    ),
+                  ),
+                  Text(
+                    '₹${variant.price.toStringAsFixed(0)}',
+                    style: HomeTextStyles.bodyEmphasis.copyWith(
+                      color: HomeColors.secondary,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    IconButton(
+                      tooltip: 'Remove from wishlist',
+                      onPressed: () => WishlistService.remove(product),
+                      visualDensity: VisualDensity.compact,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(
+                        minWidth: 36,
+                        minHeight: 36,
+                      ),
+                      icon: const Icon(
+                        Icons.favorite,
+                        color: HomeColors.error,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: SizedBox(
+                        height: 34,
+                        child: ElevatedButton(
+                          onPressed: variant == null
+                              ? null
+                              : () => _addWishlistProduct(
+                                  context,
+                                  product,
+                                  variant,
+                                ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: HomeColors.secondary,
+                            foregroundColor: HomeColors.white,
+                            elevation: 0,
+                            padding: EdgeInsets.zero,
+                            textStyle: HomeTextStyles.compactButton,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(18),
+                            ),
+                          ),
+                          child: const Text('ADD'),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _addWishlistProduct(
+    BuildContext context,
+    ProductItem product,
+    ProductVariant variant,
+  ) async {
+    try {
+      await CartService.postAddToCart(
+        productId: product.id,
+        productName: product.name,
+        imageUrl: product.imageUrl,
+        price: '₹${variant.price.toStringAsFixed(2)}',
+        originalPrice: variant.mrp == null
+            ? null
+            : '₹${variant.mrp!.toStringAsFixed(2)}',
+        weight: variant.weight,
+      );
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text('${product.name} added to cart')),
+        );
+    } catch (error) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text('Unable to add product to cart')),
+        );
+    }
+  }
+}
+
+class _EmptyWishlistCard extends StatelessWidget {
+  const _EmptyWishlistCard({required this.onOpen});
+
+  final VoidCallback onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: HomeColors.surface,
+        border: Border.all(color: HomeColors.border),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.favorite_border,
+            color: HomeColors.secondary,
+            size: 32,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Your wishlist is empty',
+                  style: HomeTextStyles.bodyEmphasis.copyWith(
+                    color: HomeColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  'Save products you would like to buy later.',
+                  style: HomeTextStyles.caption.copyWith(
+                    color: HomeColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            tooltip: 'Open wishlist',
+            onPressed: onOpen,
+            icon: const Icon(
+              Icons.chevron_right,
+              color: HomeColors.textSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+void _openWishlist(BuildContext context) {
+  Navigator.of(
+    context,
+  ).push(MaterialPageRoute<void>(builder: (_) => const NewWishlistPage()));
+}
+
+class _OrderSummaryCard extends StatelessWidget {
+  const _OrderSummaryCard({required this.subtotal, required this.delivery});
+
+  final double subtotal;
+  final double delivery;
+
+  @override
+  Widget build(BuildContext context) {
+    final total = subtotal + delivery;
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: HomeColors.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: HomeColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Order summary',
+            style: HomeTextStyles.sectionTitle.copyWith(
+              color: HomeColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 18),
+          _SummaryRow(
+            title: 'Basket value',
+            value: '₹${subtotal.toStringAsFixed(0)}',
+          ),
+          const SizedBox(height: 14),
+          _SummaryRow(
+            title: 'Delivery charge',
+            value: '₹${delivery.toStringAsFixed(0)}',
+          ),
+          const SizedBox(height: 14),
+          const _SummaryRow(
+            title: 'Get my order in a bag',
+            value: 'FREE',
+            valueColor: HomeColors.secondary,
+          ),
+          const SizedBox(height: 16),
+          const Divider(color: HomeColors.divider, height: 1),
+          const SizedBox(height: 16),
+          _SummaryRow(
+            title: 'To pay',
+            value: '₹${total.toStringAsFixed(0)}',
+            isTotal: true,
+          ),
+          const SizedBox(height: 5),
+          Padding(
+            padding: const EdgeInsets.only(left: 2),
+            child: Text(
+              'Inclusive of all taxes and charges',
+              style: HomeTextStyles.bodySmall.copyWith(
+                color: HomeColors.textSecondary,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CartCheckoutBar extends StatelessWidget {
+  const _CartCheckoutBar({required this.total});
+
+  final double total;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      decoration: const BoxDecoration(
+        color: HomeColors.surface,
+        border: Border(top: BorderSide(color: HomeColors.divider)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Total',
+                    style: HomeTextStyles.bodySmall.copyWith(
+                      color: HomeColors.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '₹${total.toStringAsFixed(0)}',
+                    style: HomeTextStyles.price.copyWith(
+                      color: HomeColors.textPrimary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              flex: 2,
+              child: SizedBox(
+                height: 52,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const CheckoutPage(),
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: HomeColors.secondary,
+                    foregroundColor: HomeColors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(28),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Flexible(
+                        child: Text(
+                          'Continue to Shipping',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: HomeTextStyles.button,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      const Icon(Icons.arrow_forward, size: 18),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SummaryRow extends StatelessWidget {
+  const _SummaryRow({
+    required this.title,
+    required this.value,
+    this.isTotal = false,
+    this.valueColor,
+  });
+
+  final String title;
+  final String value;
+  final bool isTotal;
+  final Color? valueColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final titleStyle = isTotal
+        ? HomeTextStyles.summaryTotalLabel
+        : HomeTextStyles.summaryLabel;
+    final valueStyle = isTotal
+        ? HomeTextStyles.summaryTotalValue
+        : HomeTextStyles.summaryValue;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(title, style: titleStyle.copyWith(color: HomeColors.textPrimary)),
+        Text(
+          value,
+          style: valueStyle.copyWith(
+            color: valueColor ?? HomeColors.textPrimary,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _EmptyCart extends StatelessWidget {
+  const _EmptyCart();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 26),
+      decoration: BoxDecoration(
+        color: HomeColors.surface,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        children: [
+          const Icon(
+            Icons.shopping_basket_outlined,
+            color: HomeColors.secondary,
+            size: 54,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Your cart is empty',
+            style: HomeTextStyles.sectionTitle.copyWith(
+              color: HomeColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            'Add products to your basket to continue.',
+            textAlign: TextAlign.center,
+            style: HomeTextStyles.bodySmall.copyWith(
+              color: HomeColors.textSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+double _parsePrice(String value) {
+  final cleaned = value.replaceAll(',', '').replaceAll(RegExp(r'[^0-9.]'), '');
+  return double.tryParse(cleaned) ?? 0;
+}

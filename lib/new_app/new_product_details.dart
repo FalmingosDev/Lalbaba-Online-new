@@ -4,8 +4,13 @@ import 'package:go_router/go_router.dart';
 import '../app/router/route_names.dart';
 import '../app/theme/app_colors.dart';
 import '../core/services/cart_service.dart';
+import '../core/services/wishlist_service.dart';
 import '../features/product/presentation/model/product_models.dart';
 import '../features/product/presentation/widgets/product_details_widget/product_repository.dart';
+import 'new_back_to_top_button.dart';
+import 'constantcolour.dart';
+import 'new_constant_text_styles.dart';
+import 'new_wishlist.dart';
 
 class NewProductDetailsPage extends StatefulWidget {
   final ProductItem product;
@@ -18,21 +23,23 @@ class NewProductDetailsPage extends StatefulWidget {
 
 class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
   late final PageController _imageController;
+  late final ScrollController _scrollController;
   late int _selectedImageIndex;
-  late int _selectedVariantIndex;
+  int? _selectedVariantIndex;
   int _quantity = 1;
   int _activeTab = 0;
   bool _isAddingToCart = false;
-  bool _isInCart = false;
+  bool _showBackToTop = false;
+
+  static const double _backToTopThreshold = 500;
 
   ProductItem get _product => widget.product;
   List<ProductVariant> get _variants => _product.variants;
 
   ProductVariant? get _selectedVariant {
-    if (_variants.isEmpty) return null;
-    return _variants[_selectedVariantIndex
-        .clamp(0, _variants.length - 1)
-        .toInt()];
+    final index = _selectedVariantIndex;
+    if (index == null || index < 0 || index >= _variants.length) return null;
+    return _variants[index];
   }
 
   List<String> get _images {
@@ -50,6 +57,55 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
               .clamp(0, _product.variants.length - 1)
               .toInt();
     _imageController = PageController();
+    _scrollController = ScrollController()..addListener(_handleScroll);
+    WishlistService.productsNotifier.addListener(_onWishlistChanged);
+    CartService.items.addListener(_onCartChanged);
+    CartService.initialize().then((_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  bool get _isWishlisted => WishlistService.contains(_product);
+
+  bool get _isInCart {
+    final variant = _selectedVariant;
+    if (variant == null) return false;
+
+    final productId = _product.id?.trim();
+    final weight = variant.weight.trim().toLowerCase();
+    return CartService.items.value.any((item) {
+      final sameProduct = productId != null && productId.isNotEmpty
+          ? item.productId?.trim() == productId
+          : item.name.trim().toLowerCase() ==
+                _product.name.trim().toLowerCase();
+      return sameProduct && (item.weight?.trim().toLowerCase() ?? '') == weight;
+    });
+  }
+
+  void _onWishlistChanged() {
+    if (mounted) setState(() {});
+  }
+
+  void _onCartChanged() {
+    if (mounted) setState(() {});
+  }
+
+  void _handleScroll() {
+    final shouldShow =
+        _scrollController.hasClients &&
+        _scrollController.offset > _backToTopThreshold;
+    if (shouldShow != _showBackToTop) {
+      setState(() => _showBackToTop = shouldShow);
+    }
+  }
+
+  void _scrollToTop() {
+    if (!_scrollController.hasClients) return;
+    _scrollController.animateTo(
+      0,
+      duration: const Duration(milliseconds: 450),
+      curve: Curves.easeOutCubic,
+    );
   }
 
   @override
@@ -64,15 +120,43 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
                 .toInt();
       _quantity = 1;
       _activeTab = 0;
-      _isInCart = false;
       _imageController.jumpToPage(0);
     }
   }
 
   @override
   void dispose() {
+    WishlistService.productsNotifier.removeListener(_onWishlistChanged);
+    CartService.items.removeListener(_onCartChanged);
     _imageController.dispose();
+    _scrollController
+      ..removeListener(_handleScroll)
+      ..dispose();
     super.dispose();
+  }
+
+  void _toggleWishlist() {
+    final added = WishlistService.toggle(_product);
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            added ? 'Saved to wishlist.' : 'Removed from wishlist.',
+          ),
+          action: added
+              ? SnackBarAction(label: 'VIEW ALL', onPressed: _openWishlist)
+              : null,
+        ),
+      );
+  }
+
+  void _openWishlist() {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute<void>(builder: (_) => const NewWishlistPage()));
   }
 
   Future<void> _addToCart({bool openCart = false}) async {
@@ -93,7 +177,6 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
       if (!mounted) return;
       setState(() {
         _isAddingToCart = false;
-        _isInCart = true;
       });
 
       if (openCart) {
@@ -141,10 +224,10 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
-        foregroundColor: AppColors.textPrimary,
+        backgroundColor: HomeColors.secondary,
+        foregroundColor: HomeColors.white,
         elevation: 0,
-        titleSpacing: 0,
+        titleSpacing: 16,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -152,36 +235,44 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
               _product.name,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w500,
-                color: AppColors.textPrimary,
+              style: HomeTextStyles.productAppBarTitle.copyWith(
+                color: HomeColors.white,
               ),
             ),
             if (variant != null)
               Text(
                 '₹${variant.price.toStringAsFixed(0)}  |  ${variant.weight}',
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
+                style: HomeTextStyles.appBarSubtitle.copyWith(
+                  color: HomeColors.white,
                 ),
               ),
           ],
         ),
       ),
-      body: ListView(
-        padding: EdgeInsets.zero,
+      body: Stack(
         children: [
-          _buildImageCarousel(),
-          _buildProductSummary(variant),
-          _buildPackSizes(),
-          _buildBrandBanner(),
-          _buildProductRail('People also bought'),
-          _buildProductRail('Similar Products'),
-          _buildDetailTabs(),
-          _buildRatingsAndReviews(),
-          const SizedBox(height: 18),
+          ListView(
+            controller: _scrollController,
+            padding: EdgeInsets.zero,
+            children: [
+              _buildImageCarousel(),
+              _buildProductSummary(variant),
+              _buildPackSizes(),
+              _buildBrandBanner(),
+              _buildProductRail('People also bought'),
+              _buildProductRail('Similar Products'),
+              _buildDetailTabs(),
+              _buildRatingsAndReviews(),
+              const SizedBox(height: 18),
+            ],
+          ),
+          if (_showBackToTop)
+            Positioned(
+              top: 12,
+              left: 0,
+              right: 0,
+              child: Center(child: BackToTopButton(onPressed: _scrollToTop)),
+            ),
         ],
       ),
       bottomNavigationBar: _buildStickyActions(),
@@ -271,36 +362,58 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
               const SizedBox(width: 3),
               Text(
                 '${_product.rating.toStringAsFixed(1)} | ${_product.reviewCount}',
-                style: const TextStyle(
-                  fontSize: 13,
+                style: HomeTextStyles.bodySmall.copyWith(
                   color: AppColors.textSecondary,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 12),
-          Text(
-            _product.name,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-            ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  _product.name,
+                  style: HomeTextStyles.pageTitle.copyWith(
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Material(
+                color: HomeColors.background,
+                shape: const CircleBorder(),
+                child: IconButton(
+                  tooltip: _isWishlisted
+                      ? 'Remove from wishlist'
+                      : 'Add to wishlist',
+                  onPressed: _toggleWishlist,
+                  icon: Icon(
+                    _isWishlisted ? Icons.favorite : Icons.favorite_border,
+                    color: _isWishlisted
+                        ? HomeColors.error
+                        : HomeColors.textSecondary,
+                    size: 22,
+                  ),
+                ),
+              ),
+            ],
           ),
           if (_product.shortTagline.isNotEmpty) ...[
             const SizedBox(height: 4),
             Text(
               _product.shortTagline,
-              style: const TextStyle(color: AppColors.textSecondary),
+              style: HomeTextStyles.body.copyWith(
+                color: AppColors.textSecondary,
+              ),
             ),
           ],
           if (variant != null) ...[
             const SizedBox(height: 12),
             Text(
               '₹${variant.price.toStringAsFixed(0)}',
-              style: const TextStyle(
-                fontSize: 23,
-                fontWeight: FontWeight.bold,
+              style: HomeTextStyles.largePrice.copyWith(
                 color: AppColors.textPrimary,
               ),
             ),
@@ -314,16 +427,12 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: AppColors.secondaryLight,
+        color: HomeColors.secondaryLight,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
         label,
-        style: const TextStyle(
-          color: AppColors.secondary,
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-        ),
+        style: HomeTextStyles.chip.copyWith(color: HomeColors.secondary),
       ),
     );
   }
@@ -331,6 +440,7 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
   Widget _buildPackSizes() {
     if (_variants.isEmpty) return const SizedBox.shrink();
 
+    final selectedVariant = _selectedVariant;
     return Container(
       color: AppColors.surface,
       padding: const EdgeInsets.fromLTRB(18, 0, 18, 16),
@@ -338,8 +448,12 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Pack sizes  -  ${_variants[_selectedVariantIndex].weight}',
-            style: const TextStyle(color: AppColors.textSecondary),
+            selectedVariant == null
+                ? 'Pack sizes'
+                : 'Pack sizes  -  ${selectedVariant.weight}',
+            style: HomeTextStyles.bodySmall.copyWith(
+              color: AppColors.textSecondary,
+            ),
           ),
           const SizedBox(height: 9),
           SingleChildScrollView(
@@ -351,7 +465,7 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
                 return GestureDetector(
                   onTap: () {
                     setState(() {
-                      _selectedVariantIndex = index;
+                      _selectedVariantIndex = selected ? null : index;
                       _quantity = 1;
                     });
                   },
@@ -365,7 +479,7 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
                           : AppColors.background,
                       border: Border.all(
                         color: selected
-                            ? AppColors.secondary
+                            ? HomeColors.secondary
                             : AppColors.border,
                         width: selected ? 1.5 : 1,
                       ),
@@ -376,18 +490,17 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
                       children: [
                         Text(
                           item.weight,
-                          style: TextStyle(
+                          style: HomeTextStyles.productCardTitle.copyWith(
                             color: selected
-                                ? AppColors.secondary
+                                ? HomeColors.secondary
                                 : AppColors.textPrimary,
-                            fontWeight: FontWeight.w600,
                           ),
                         ),
                         const SizedBox(height: 7),
                         Text(
                           '₹${item.price.toStringAsFixed(0)}',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
+                          style: HomeTextStyles.body.copyWith(
+                            fontWeight: HomeTextStyles.bold,
                             color: AppColors.textPrimary,
                           ),
                         ),
@@ -410,11 +523,9 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'More About This Product',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+            style: HomeTextStyles.sectionTitle.copyWith(
               color: AppColors.textPrimary,
             ),
           ),
@@ -447,18 +558,15 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
                           _product.name,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: HomeTextStyles.sectionTitle.copyWith(
                             color: AppColors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
                           ),
                         ),
                         const SizedBox(height: 7),
-                        const Text(
+                        Text(
                           'Quality rice for your everyday meals.',
-                          style: TextStyle(
+                          style: HomeTextStyles.bodySmall.copyWith(
                             color: AppColors.white,
-                            fontSize: 13,
                           ),
                         ),
                       ],
@@ -489,9 +597,7 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
                 Expanded(
                   child: Text(
                     title,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                    style: HomeTextStyles.sectionTitle.copyWith(
                       color: AppColors.textPrimary,
                     ),
                   ),
@@ -551,8 +657,7 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
                           product.name,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w600,
+                          style: HomeTextStyles.bodyEmphasis.copyWith(
                             color: AppColors.textPrimary,
                           ),
                         ),
@@ -562,8 +667,8 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
                             '₹${variant.price.toStringAsFixed(0)}  ·  ${variant.weight}',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
+                            style: HomeTextStyles.bodySmall.copyWith(
+                              fontWeight: HomeTextStyles.bold,
                               color: AppColors.textPrimary,
                             ),
                           ),
@@ -587,13 +692,11 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
+          Padding(
             padding: EdgeInsets.fromLTRB(18, 16, 18, 12),
             child: Text(
               'Product details',
-              style: TextStyle(
-                fontSize: 19,
-                fontWeight: FontWeight.bold,
+              style: HomeTextStyles.sectionTitleLarge.copyWith(
                 color: AppColors.textPrimary,
               ),
             ),
@@ -622,13 +725,13 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
                     ),
                     child: Text(
                       labels[index],
-                      style: TextStyle(
+                      style: HomeTextStyles.body.copyWith(
                         color: selected
                             ? AppColors.primary
                             : AppColors.textSecondary,
                         fontWeight: selected
-                            ? FontWeight.bold
-                            : FontWeight.w500,
+                            ? HomeTextStyles.bold
+                            : HomeTextStyles.medium,
                       ),
                     ),
                   ),
@@ -651,15 +754,20 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
         _product.description.isEmpty
             ? 'No description available for this product yet.'
             : _product.description,
-        style: const TextStyle(height: 1.5, color: AppColors.textSecondary),
+        style: HomeTextStyles.body.copyWith(
+          height: 1.5,
+          color: AppColors.textSecondary,
+        ),
       );
     }
 
     if (_activeTab == 1) {
       if (_product.specifications.isEmpty) {
-        return const Text(
+        return Text(
           'No additional information available.',
-          style: TextStyle(color: AppColors.textSecondary),
+          style: HomeTextStyles.bodySmall.copyWith(
+            color: AppColors.textSecondary,
+          ),
         );
       }
       return Column(
@@ -677,8 +785,7 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
                   flex: 2,
                   child: Text(
                     specification.label,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
+                    style: HomeTextStyles.bodyEmphasis.copyWith(
                       color: AppColors.textPrimary,
                     ),
                   ),
@@ -688,7 +795,9 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
                   flex: 3,
                   child: Text(
                     specification.value,
-                    style: const TextStyle(color: AppColors.textSecondary),
+                    style: HomeTextStyles.bodySmall.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                 ),
               ],
@@ -699,9 +808,11 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
     }
 
     if (_product.reviews.isEmpty) {
-      return const Text(
+      return Text(
         'No reviews yet. Be the first to review this product.',
-        style: TextStyle(color: AppColors.textSecondary),
+        style: HomeTextStyles.bodySmall.copyWith(
+          color: AppColors.textSecondary,
+        ),
       );
     }
 
@@ -721,8 +832,8 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
                   Expanded(
                     child: Text(
                       review.name,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
+                      style: HomeTextStyles.bodyEmphasis.copyWith(
+                        fontWeight: HomeTextStyles.bold,
                         color: AppColors.textPrimary,
                       ),
                     ),
@@ -741,15 +852,16 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
               const SizedBox(height: 3),
               Text(
                 review.date,
-                style: const TextStyle(
-                  fontSize: 12,
+                style: HomeTextStyles.caption.copyWith(
                   color: AppColors.textSecondary,
                 ),
               ),
               const SizedBox(height: 7),
               Text(
                 review.comment,
-                style: const TextStyle(color: AppColors.textPrimary),
+                style: HomeTextStyles.body.copyWith(
+                  color: AppColors.textPrimary,
+                ),
               ),
             ],
           ),
@@ -766,18 +878,18 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Ratings & Reviews',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+            style: HomeTextStyles.sectionTitle.copyWith(
               color: AppColors.textPrimary,
             ),
           ),
           const SizedBox(height: 6),
-          const Text(
+          Text(
             'Verified purchases only',
-            style: TextStyle(color: AppColors.textSecondary),
+            style: HomeTextStyles.bodySmall.copyWith(
+              color: AppColors.textSecondary,
+            ),
           ),
           const SizedBox(height: 10),
           Row(
@@ -785,17 +897,17 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
             children: [
               Text(
                 _product.rating.toStringAsFixed(1),
-                style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
+                style: HomeTextStyles.rating.copyWith(
                   color: AppColors.textPrimary,
                 ),
               ),
-              const Padding(
+              Padding(
                 padding: EdgeInsets.only(bottom: 4),
                 child: Text(
                   '/5',
-                  style: TextStyle(color: AppColors.textSecondary),
+                  style: HomeTextStyles.bodySmall.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
                 ),
               ),
             ],
@@ -813,8 +925,7 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
           const SizedBox(height: 4),
           Text(
             '${_product.reviewCount} ratings and ${_product.reviews.length} reviews',
-            style: const TextStyle(
-              fontSize: 12,
+            style: HomeTextStyles.caption.copyWith(
               color: AppColors.textSecondary,
             ),
           ),
@@ -844,12 +955,11 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
           children: [
             Row(
               children: [
-                const Expanded(
+                Expanded(
                   child: Text(
                     'Quantity',
-                    style: TextStyle(
+                    style: HomeTextStyles.bodySmall.copyWith(
                       color: AppColors.textSecondary,
-                      fontSize: 13,
                     ),
                   ),
                 ),
@@ -863,18 +973,17 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
                     children: [
                       IconButton(
                         visualDensity: VisualDensity.compact,
-                        onPressed: _quantity > 1
+                        onPressed: variant != null && _quantity > 1
                             ? () => setState(() => _quantity--)
                             : null,
                         icon: const Icon(Icons.remove, size: 18),
                       ),
-                      Text(
-                        '$_quantity',
-                        style: const TextStyle(fontWeight: FontWeight.w600),
-                      ),
+                      Text('$_quantity', style: HomeTextStyles.productTitle),
                       IconButton(
                         visualDensity: VisualDensity.compact,
-                        onPressed: () => setState(() => _quantity++),
+                        onPressed: variant == null
+                            ? null
+                            : () => setState(() => _quantity++),
                         icon: const Icon(Icons.add, size: 18),
                       ),
                     ],
@@ -891,12 +1000,14 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
                     child: OutlinedButton(
                       onPressed: _isAddingToCart
                           ? null
+                          : variant == null
+                          ? null
                           : _isInCart
                           ? () => context.push(RouteNames.cart)
                           : () => _addToCart(),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.secondary,
-                        side: const BorderSide(color: AppColors.secondary),
+                        foregroundColor: HomeColors.secondary,
+                        side: const BorderSide(color: HomeColors.secondary),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(24),
                         ),
@@ -912,7 +1023,7 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
-                                fontWeight: FontWeight.bold,
+                                fontWeight: HomeTextStyles.bold,
                               ),
                             ),
                     ),
@@ -925,9 +1036,11 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
                     child: ElevatedButton(
                       onPressed: variant == null || _isAddingToCart
                           ? null
+                          : _isInCart
+                          ? () => context.push(RouteNames.cart)
                           : () => _addToCart(openCart: true),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.secondary,
+                        backgroundColor: HomeColors.secondary,
                         foregroundColor: AppColors.white,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
@@ -938,7 +1051,7 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
                         'Buy Now',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                        style: HomeTextStyles.button,
                       ),
                     ),
                   ),
