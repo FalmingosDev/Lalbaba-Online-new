@@ -17,16 +17,21 @@ import '../../features/order/presentation/pages/order_details_page.dart';
 import '../../features/order/presentation/pages/orders_page.dart';
 import '../../features/splash/presentation/pages/splash_page.dart';
 import '../../features/update/presentation/pages/update_page.dart';
+import '../../new_app/new_splash.dart';
 import '../../webView/lalbabaWebView.dart';
 import 'route_guards.dart';
 import 'route_names.dart';
 
 final appRouter = GoRouter(
-  initialLocation: RouteNames.web_splash,
+  initialLocation: RouteNames.new_splash,
   routes: <RouteBase>[
     GoRoute(
       path: RouteNames.web_splash,
       builder: (_, __) => const SplashScreen(),
+    ),
+    GoRoute(
+      path: RouteNames.new_splash,
+      builder: (_, __) => const NewSplashScreen(),
     ),
     GoRoute(
       path: RouteNames.splash,

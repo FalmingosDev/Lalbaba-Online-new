@@ -27,7 +27,7 @@ class RouteNames {
   static const orderDetails = '/orders/:id';
   static const contact = '/contact';
  
-
+  static const new_splash = '/new_splash';
   static const profile = '/profile';
   static const account = '/account';
   static const address = '/address';
