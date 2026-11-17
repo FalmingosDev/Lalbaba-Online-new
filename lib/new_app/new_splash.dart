@@ -1,15 +1,10 @@
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lalbaba_online/features/dashboard/pages/bottom_nav_page.dart';
-import 'package:lalbaba_online/new_app/bottomnavigation.dart';
 
 import '../../../../app/router/route_names.dart';
 import '../../../../core/network/connectivity_service.dart';
 import '../../../../core/services/app_update_service.dart';
 import '../../../../core/services/auth_service.dart';
-
-// Bottom Navigation Page Import
 
 class NewSplashScreen extends StatefulWidget {
   const NewSplashScreen({super.key});
@@ -89,12 +84,7 @@ class _NewSplashScreenState extends State<NewSplashScreen> {
       // 4. NAVIGATE TO BOTTOM NAVIGATION PAGE
       // ----------------------------------------------------------
 
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute<void>(
-          builder: (context) => const BottomNavigationScreen(),
-        ),
-      );
-
+      context.go(RouteNames.bottomnavigation);
     } catch (e) {
       debugPrint("Splash Screen Error: $e");
 

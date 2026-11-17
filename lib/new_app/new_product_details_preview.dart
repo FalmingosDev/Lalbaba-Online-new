@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../app/theme/app_colors.dart';
 import '../core/services/cart_service.dart';
 import '../features/product/presentation/widgets/product_details_widget/product_repository.dart';
-import 'new_cart.dart';
+import 'bottomnavigation.dart';
 import 'new_product_details.dart';
 
 Future<void> main() async {
@@ -28,7 +28,13 @@ class _ProductDetailsPreviewApp extends StatelessWidget {
           ),
         ),
       ),
-      GoRoute(path: '/cart', builder: (context, state) => const NewCartPage()),
+      GoRoute(
+        path: '/cart',
+        builder: (context, state) => const BottomNavigationScreen(
+          initialIndex: 2,
+          showCartBackButton: true,
+        ),
+      ),
     ],
   );
 

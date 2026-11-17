@@ -21,6 +21,7 @@ class RouteNames {
 
   static const categories = '/categories';
   static const cart = '/cart';
+  static const newCart = '/new-cart';
 
   static const orders = '/orders';
 

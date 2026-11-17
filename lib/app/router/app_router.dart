@@ -9,14 +9,13 @@ import '../../features/cart/presentation/pages/cart_page.dart';
 import '../../features/categories/presentation/pages/categories_page.dart';
 import '../../features/checkout/presentation/pages/checkout_page.dart';
 import '../../features/contact/presentation/pages/contact_us_screen.dart';
-import '../../features/dashboard/pages/bottom_nav_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/account/presentation/page/account_widget.dart';
 import '../../features/network/presentation/pages/no_internet_page.dart';
-import '../../features/order/presentation/pages/order_details_page.dart';
-import '../../features/order/presentation/pages/orders_page.dart';
 import '../../features/splash/presentation/pages/splash_page.dart';
 import '../../features/update/presentation/pages/update_page.dart';
+import '../../new_app/bottomnavigation.dart';
+import '../../new_app/new_order.dart';
 import '../../new_app/new_splash.dart';
 import '../../webView/lalbabaWebView.dart';
 import 'route_guards.dart';
@@ -62,7 +61,7 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: RouteNames.bottomnavigation,
-      builder: (_, __) => const BottomNavigationPage(),
+      builder: (_, __) => const BottomNavigationScreen(),
     ),
     GoRoute(path: RouteNames.home, builder: (_, __) => const HomePage()),
     // GoRoute(path: RouteNames.cart, builder: (_, __) => const CartPage()),
@@ -71,7 +70,7 @@ final appRouter = GoRouter(
       builder: (_, __) => const CategoriesPage(),
     ),
     GoRoute(path: RouteNames.account, builder: (_, __) => const AccountPage()),
-    GoRoute(path: RouteNames.orders, builder: (_, __) => const MyOrdersPage()),
+    GoRoute(path: RouteNames.orders, builder: (_, __) => const NewOrdersPage()),
 
     // ==========================================================
     // CHECKOUT
@@ -93,6 +92,13 @@ final appRouter = GoRouter(
       builder: (context, state) {
         return const CartPage();
       },
+    ),
+    GoRoute(
+      path: RouteNames.newCart,
+      builder: (_, __) => const BottomNavigationScreen(
+        initialIndex: 2,
+        showCartBackButton: true,
+      ),
     ),
     //Address
     // =====================

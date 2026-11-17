@@ -13,7 +13,9 @@ import 'new_product_details.dart';
 import 'new_wishlist.dart';
 
 class NewCartPage extends StatefulWidget {
-  const NewCartPage({super.key});
+  final bool showBackButton;
+
+  const NewCartPage({super.key, this.showBackButton = false});
 
   @override
   State<NewCartPage> createState() => _NewCartPageState();
@@ -64,11 +66,19 @@ class _NewCartPageState extends State<NewCartPage> {
     return Scaffold(
       backgroundColor: HomeColors.background,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: HomeColors.secondary,
         foregroundColor: HomeColors.white,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: true,
+        leading: widget.showBackButton
+            ? IconButton(
+                tooltip: 'Back',
+                onPressed: () => Navigator.of(context).maybePop(),
+                icon: const Icon(Icons.arrow_back),
+              )
+            : null,
         title: const Text('Cart', style: HomeTextStyles.appBarTitle),
         actions: [
           IconButton(
@@ -105,12 +115,14 @@ class _NewCartPageState extends State<NewCartPage> {
           return ValueListenableBuilder<List<CartNotificationItem>>(
             valueListenable: CartService.items,
             builder: (context, cartItems, child) {
-              final subtotal = cartItems.fold<double>(
-                0,
-                (total, item) =>
-                    total + _parsePrice(item.price) * item.quantity,
-              );
               const delivery = 40.0;
+              final total =
+                  cartItems.fold<double>(
+                    0,
+                    (sum, item) =>
+                        sum + _parsePrice(item.price) * item.quantity,
+                  ) +
+                  delivery;
 
               return Stack(
                 children: [
@@ -136,11 +148,6 @@ class _NewCartPageState extends State<NewCartPage> {
                                   child: _CartItemCard(item: item),
                                 ),
                               ),
-                              const SizedBox(height: 4),
-                              _OrderSummaryCard(
-                                subtotal: subtotal,
-                                delivery: delivery,
-                              ),
                             ],
                             _ProductRail(
                               title: 'Trending',
@@ -154,8 +161,7 @@ class _NewCartPageState extends State<NewCartPage> {
                           ],
                         ),
                       ),
-                      if (cartItems.isNotEmpty)
-                        _CartCheckoutBar(total: subtotal + delivery),
+                      if (cartItems.isNotEmpty) _CartCheckoutBar(total: total),
                     ],
                   ),
                   if (_showBackToTop)
@@ -894,72 +900,6 @@ void _openWishlist(BuildContext context) {
   ).push(MaterialPageRoute<void>(builder: (_) => const NewWishlistPage()));
 }
 
-class _OrderSummaryCard extends StatelessWidget {
-  const _OrderSummaryCard({required this.subtotal, required this.delivery});
-
-  final double subtotal;
-  final double delivery;
-
-  @override
-  Widget build(BuildContext context) {
-    final total = subtotal + delivery;
-
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: HomeColors.surface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: HomeColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Order summary',
-            style: HomeTextStyles.sectionTitle.copyWith(
-              color: HomeColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 18),
-          _SummaryRow(
-            title: 'Basket value',
-            value: '₹${subtotal.toStringAsFixed(0)}',
-          ),
-          const SizedBox(height: 14),
-          _SummaryRow(
-            title: 'Delivery charge',
-            value: '₹${delivery.toStringAsFixed(0)}',
-          ),
-          const SizedBox(height: 14),
-          const _SummaryRow(
-            title: 'Get my order in a bag',
-            value: 'FREE',
-            valueColor: HomeColors.secondary,
-          ),
-          const SizedBox(height: 16),
-          const Divider(color: HomeColors.divider, height: 1),
-          const SizedBox(height: 16),
-          _SummaryRow(
-            title: 'To pay',
-            value: '₹${total.toStringAsFixed(0)}',
-            isTotal: true,
-          ),
-          const SizedBox(height: 5),
-          Padding(
-            padding: const EdgeInsets.only(left: 2),
-            child: Text(
-              'Inclusive of all taxes and charges',
-              style: HomeTextStyles.bodySmall.copyWith(
-                color: HomeColors.textSecondary,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _CartCheckoutBar extends StatelessWidget {
   const _CartCheckoutBar({required this.total});
 
@@ -1017,10 +957,10 @@ class _CartCheckoutBar extends StatelessWidget {
                       borderRadius: BorderRadius.circular(28),
                     ),
                   ),
-                  child: Row(
+                  child: const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Flexible(
+                      Flexible(
                         child: Text(
                           'Continue to Shipping',
                           maxLines: 1,
@@ -1028,8 +968,8 @@ class _CartCheckoutBar extends StatelessWidget {
                           style: HomeTextStyles.button,
                         ),
                       ),
-                      const SizedBox(width: 6),
-                      const Icon(Icons.arrow_forward, size: 18),
+                      SizedBox(width: 6),
+                      Icon(Icons.arrow_forward, size: 18),
                     ],
                   ),
                 ),
@@ -1038,43 +978,6 @@ class _CartCheckoutBar extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _SummaryRow extends StatelessWidget {
-  const _SummaryRow({
-    required this.title,
-    required this.value,
-    this.isTotal = false,
-    this.valueColor,
-  });
-
-  final String title;
-  final String value;
-  final bool isTotal;
-  final Color? valueColor;
-
-  @override
-  Widget build(BuildContext context) {
-    final titleStyle = isTotal
-        ? HomeTextStyles.summaryTotalLabel
-        : HomeTextStyles.summaryLabel;
-    final valueStyle = isTotal
-        ? HomeTextStyles.summaryTotalValue
-        : HomeTextStyles.summaryValue;
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(title, style: titleStyle.copyWith(color: HomeColors.textPrimary)),
-        Text(
-          value,
-          style: valueStyle.copyWith(
-            color: valueColor ?? HomeColors.textPrimary,
-          ),
-        ),
-      ],
     );
   }
 }

@@ -7,6 +7,7 @@ import '../core/services/cart_service.dart';
 import '../core/services/wishlist_service.dart';
 import '../features/product/presentation/model/product_models.dart';
 import '../features/product/presentation/widgets/product_details_widget/product_repository.dart';
+import 'constantappbar.dart';
 import 'new_back_to_top_button.dart';
 import 'constantcolour.dart';
 import 'new_constant_text_styles.dart';
@@ -27,6 +28,7 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
   late int _selectedImageIndex;
   int? _selectedVariantIndex;
   int _quantity = 1;
+  bool? _wasInCart;
   int _activeTab = 0;
   bool _isAddingToCart = false;
   bool _showBackToTop = false;
@@ -61,7 +63,8 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
     WishlistService.productsNotifier.addListener(_onWishlistChanged);
     CartService.items.addListener(_onCartChanged);
     CartService.initialize().then((_) {
-      if (mounted) setState(() {});
+      if (!mounted) return;
+      setState(() => _wasInCart = _isInCart);
     });
   }
 
@@ -87,7 +90,14 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
   }
 
   void _onCartChanged() {
-    if (mounted) setState(() {});
+    if (!mounted) return;
+    final bool isInCart = _isInCart;
+    setState(() {
+      if (_wasInCart == true && !isInCart) {
+        _quantity = 1;
+      }
+      _wasInCart = isInCart;
+    });
   }
 
   void _handleScroll() {
@@ -119,6 +129,7 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
                 .clamp(0, _product.variants.length - 1)
                 .toInt();
       _quantity = 1;
+      _wasInCart = _isInCart;
       _activeTab = 0;
       _imageController.jumpToPage(0);
     }
@@ -159,6 +170,10 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
     ).push(MaterialPageRoute<void>(builder: (_) => const NewWishlistPage()));
   }
 
+  void _openNewCart() {
+    context.push(RouteNames.newCart);
+  }
+
   Future<void> _addToCart({bool openCart = false}) async {
     final ProductVariant? variant = _selectedVariant;
     if (variant == null || _isAddingToCart) return;
@@ -177,10 +192,11 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
       if (!mounted) return;
       setState(() {
         _isAddingToCart = false;
+        _wasInCart = _isInCart;
       });
 
       if (openCart) {
-        context.push(RouteNames.cart);
+        _openNewCart();
       } else {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
@@ -190,7 +206,7 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
               duration: const Duration(seconds: 2),
               action: SnackBarAction(
                 label: 'GO TO CART',
-                onPressed: () => context.push(RouteNames.cart),
+                onPressed: _openNewCart,
               ),
             ),
           );
@@ -223,31 +239,20 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
+      appBar: CommonAppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: HomeColors.secondary,
-        foregroundColor: HomeColors.white,
+        titleColor: HomeColors.white,
+        iconColor: HomeColors.white,
         elevation: 0,
-        titleSpacing: 16,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              _product.name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: HomeTextStyles.productAppBarTitle.copyWith(
-                color: HomeColors.white,
-              ),
-            ),
-            if (variant != null)
-              Text(
-                '₹${variant.price.toStringAsFixed(0)}  |  ${variant.weight}',
-                style: HomeTextStyles.appBarSubtitle.copyWith(
-                  color: HomeColors.white,
-                ),
-              ),
-          ],
-        ),
+        height: kToolbarHeight,
+        title: _product.name,
+        subtitle: variant == null
+            ? null
+            : '₹${variant.price.toStringAsFixed(0)}  |  ${variant.weight}',
+        titleFontSize: HomeTextStyles.sizeProduct,
+        subtitleFontSize: HomeTextStyles.sizeSmall,
+        showBackButton: true,
       ),
       body: Stack(
         children: [
@@ -418,6 +423,10 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
               ),
             ),
           ],
+          if (_product.discountLabel.trim().isNotEmpty) ...[
+            const SizedBox(height: 8),
+            _summaryChip(_product.discountLabel),
+          ],
         ],
       ),
     );
@@ -467,6 +476,7 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
                     setState(() {
                       _selectedVariantIndex = selected ? null : index;
                       _quantity = 1;
+                      _wasInCart = _isInCart;
                     });
                   },
                   child: Container(
@@ -1003,7 +1013,7 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
                           : variant == null
                           ? null
                           : _isInCart
-                          ? () => context.push(RouteNames.cart)
+                          ? _openNewCart
                           : () => _addToCart(),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: HomeColors.secondary,
@@ -1037,7 +1047,7 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
                       onPressed: variant == null || _isAddingToCart
                           ? null
                           : _isInCart
-                          ? () => context.push(RouteNames.cart)
+                          ? _openNewCart
                           : () => _addToCart(openCart: true),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: HomeColors.secondary,

@@ -201,27 +201,50 @@ import 'package:lalbaba_online/new_app/homenew.dart';
 import 'package:lalbaba_online/new_app/new_accountscreen.dart';
 import 'package:lalbaba_online/new_app/new_category.dart';
 import 'package:lalbaba_online/new_app/new_cart.dart';
+import 'package:lalbaba_online/new_app/new_order.dart';
 import 'package:lalbaba_online/new_app/constantcolour.dart';
 import 'package:lalbaba_online/new_app/new_constant_text_styles.dart';
 
 class BottomNavigationScreen extends StatefulWidget {
-  const BottomNavigationScreen({super.key});
+  final int initialIndex;
+  final bool showCartBackButton;
+
+  const BottomNavigationScreen({
+    super.key,
+    this.initialIndex = 0,
+    this.showCartBackButton = false,
+  });
+
   @override
   State<BottomNavigationScreen> createState() => _BottomNavigationScreenState();
 }
 
 class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
-  int _selectedIndex = 0;
-  late final List<Widget> _pages = [
-    const HomeNewPage(),
-    const NewCategoryPage(),
-    const NewCartPage(),
-    const _PendingTabPage(title: 'Orders', icon: Icons.receipt_long_outlined),
-    NewAccountPage(onOrdersTap: () => _selectTab(3)),
-  ];
+  late int _selectedIndex;
+  bool _showCartBackButton = false;
+  late final List<Widget> _pages;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedIndex = widget.initialIndex.clamp(0, 4).toInt();
+    _showCartBackButton = widget.showCartBackButton;
+    _pages = [
+      const HomeNewPage(),
+      const NewCategoryPage(),
+      NewCartPage(showBackButton: _showCartBackButton),
+      const NewOrdersPage(),
+      NewAccountPage(onOrdersTap: () => _selectTab(3)),
+    ];
+  }
 
   void _selectTab(int index) {
-    if (_selectedIndex != index) setState(() => _selectedIndex = index);
+    if (_selectedIndex == index && !_showCartBackButton) return;
+    setState(() {
+      _selectedIndex = index;
+      _showCartBackButton = false;
+      _pages[2] = const NewCartPage();
+    });
   }
 
   @override
@@ -301,20 +324,4 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
       ),
     );
   }
-}
-
-// Replace only this Orders placeholder when your Orders screen is ready.
-class _PendingTabPage extends StatelessWidget {
-  final String title;
-  final IconData icon;
-  const _PendingTabPage({required this.title, required this.icon});
-  @override
-  Widget build(BuildContext context) => SafeArea(child: Center(child: Column(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      Icon(icon, size: 44, color: HomeColors.disabled),
-      const SizedBox(height: 12),
-      Text(title, style: HomeTextStyles.pageTitle.copyWith(color: HomeColors.textPrimary)),
-    ],
-  )));
 }
