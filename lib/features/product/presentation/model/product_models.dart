@@ -98,6 +98,7 @@ class ProductItem {
   final List<ProductVariant> variants;
 
   // ---- Detail-page-only fields (all optional / defaulted) ----
+  final String discountLabel;
   final String processedAt;
   final String shortTagline;
   final String description;
@@ -116,6 +117,7 @@ class ProductItem {
     this.reviewCount = 0,
     required this.deliveryDays,
     required this.variants,
+    this.discountLabel = '',
     this.processedAt = '',
     this.shortTagline = '',
     this.description = '',
