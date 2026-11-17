@@ -1,12 +1,12 @@
-
-
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lalbaba_online/features/account/presentation/widgets/app_string.dart';
 import 'package:lalbaba_online/features/account/presentation/widgets/languange_constant.dart';
 import 'package:lalbaba_online/features/product/presentation/pages/product_list_page.dart';
+import 'package:lalbaba_online/features/product/presentation/model/product_models.dart';
 import 'package:lalbaba_online/new_app/constantappbar.dart';
+import 'package:lalbaba_online/new_app/new_product_details.dart';
 import 'package:lalbaba_online/new_app/productlistscreen.dart';
 
 import '../../../../app/theme/app_colors.dart';
@@ -94,7 +94,6 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
     super.dispose();
   }
 
-
   // ===========================================================================
   // HOME CATEGORY TABS
   // ===========================================================================
@@ -121,6 +120,7 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
 
   final List<Map<String, dynamic>> _trendingProducts = [
     {
+      'id': 'home-superior-minikit',
       'name': 'Lalbaba Superior Minikit',
       'imageUrl': AssetConstants.miniket,
       'price': '₹1,089.00',
@@ -129,6 +129,7 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
       'rating': 5.0,
     },
     {
+      'id': 'home-basmati-steam',
       'name': 'Lalbaba Basmati Steam',
       'imageUrl': AssetConstants.basmoti,
       'price': '₹230.00',
@@ -137,6 +138,7 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
       'rating': 4.5,
     },
     {
+      'id': 'home-jeer-rice',
       'name': 'Lalbaba Jeer Rice',
       'imageUrl': AssetConstants.jeerrice,
       'price': '₹650.00',
@@ -144,7 +146,8 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
       'discountLabel': '',
       'rating': 4.7,
     },
-      {
+    {
+      'id': 'home-jeer-rice',
       'name': 'Lalbaba Jeer Rice',
       'imageUrl': AssetConstants.jeerrice,
       'price': '₹650.00',
@@ -160,16 +163,19 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
 
   final List<Map<String, dynamic>> _popularSearch = [
     {
+      'id': 'home-superior-minikit',
       'name': 'Minikit',
       'imageUrl': AssetConstants.miniket1,
       'discountLabel': '10% OFF',
     },
     {
+      'id': 'home-ratna-basmati',
       'name': 'Ratna Basmati',
       'imageUrl': AssetConstants.ratna,
       'discountLabel': '20% OFF',
     },
-     {
+    {
+      'id': 'home-ratna-basmati',
       'name': 'Ratna Basmati',
       'imageUrl': AssetConstants.ratna,
       'discountLabel': '20% OFF',
@@ -182,6 +188,7 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
 
   final List<Map<String, dynamic>> _bestSellers = [
     {
+      'id': 'home-superior-minikit',
       'name': 'Lalbaba Superior Minikit',
       'imageUrl': AssetConstants.miniket,
       'price': '₹1,089.00',
@@ -190,6 +197,7 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
       'rating': 5.0,
     },
     {
+      'id': 'home-basmati',
       'name': 'Lalbaba Basmati',
       'imageUrl': AssetConstants.baskati,
       'price': '₹230.00',
@@ -198,6 +206,7 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
       'rating': 4.5,
     },
     {
+      'id': 'home-jeer-rice',
       'name': 'Lalbaba Jeer Rice',
       'imageUrl': AssetConstants.jeerrice,
       'price': '₹650.00',
@@ -205,7 +214,8 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
       'discountLabel': '13% OFF',
       'rating': 4.6,
     },
-      {
+    {
+      'id': 'home-jeer-rice',
       'name': 'Lalbaba Jeer Rice',
       'imageUrl': AssetConstants.jeerrice,
       'price': '₹650.00',
@@ -277,7 +287,10 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
     // HOME CATEGORY NAVIGATION BLOCK
     // -------------------------------------------------------------------------
 
-    if (title == 'For You' || title == 'For Youu' || title == 'Rice' || title == 'Spices') {
+    if (title == 'For You' ||
+        title == 'For Youu' ||
+        title == 'Rice' ||
+        title == 'Spices') {
       debugPrint('Category navigation blocked: $title');
 
       return;
@@ -287,16 +300,16 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
     // OTHER NAVIGATION
     // -------------------------------------------------------------------------
 
-await Navigator.push(
-  context,
-  MaterialPageRoute(
-    builder: (context) => ProductListscreen(
-      sectionType: sectionType,
-      pageTitle: title,
-      products: products,
-    ),
-  ),
-);
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProductListscreen(
+          sectionType: sectionType,
+          pageTitle: title,
+          products: products,
+        ),
+      ),
+    );
   }
 
   // ===========================================================================
@@ -306,7 +319,8 @@ await Navigator.push(
   Future<void> _handleAddToCart(Map<String, dynamic> product) async {
     final String productName = product['name']?.toString().trim() ?? 'Product';
     if (_addedProductNames.contains(productName) ||
-        _addingProductNames.contains(productName)) return;
+        _addingProductNames.contains(productName))
+      return;
 
     setState(() => _addingProductNames.add(productName));
     try {
@@ -356,7 +370,53 @@ await Navigator.push(
   // ===========================================================================
 
   void _handleSearchProductTap(Map<String, dynamic> product) {
-    debugPrint('Search product: ${product['name']}');
+    _openProductDetails(product);
+  }
+
+  void _openProductDetails(Map<String, dynamic> product) {
+    final String? id = product['id']?.toString().trim();
+    if (id == null || id.isEmpty) {
+      debugPrint('Cannot open product details without a product id.');
+      return;
+    }
+    final String imageUrl = product['imageUrl']?.toString() ?? '';
+    final String discountLabel = product['discountLabel']?.toString() ?? '';
+    final String name = product['name']?.toString().trim() ?? 'Product';
+    final double? price = _parseProductPrice(product['price']);
+    final double? originalPrice = _parseProductPrice(product['originalPrice']);
+    final dynamic ratingValue = product['rating'];
+    final double rating = ratingValue is num
+        ? ratingValue.toDouble()
+        : double.tryParse(ratingValue?.toString() ?? '') ?? 0;
+    final List<ProductVariant> variants = price == null
+        ? const []
+        : [ProductVariant(weight: '1 item', price: price, mrp: originalPrice)];
+
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => NewProductDetailsPage(
+          key: ValueKey(id),
+          product: ProductItem(
+            id: id,
+            name: name,
+            imageUrl: imageUrl,
+            discountLabel: discountLabel,
+            rating: rating,
+            deliveryDays: 3,
+            variants: variants,
+      ),
+        ),
+      ),
+    );
+  }
+
+  double? _parseProductPrice(dynamic value) {
+    if (value == null) return null;
+    final String normalized = value.toString().replaceAll(
+      RegExp(r'[^0-9.]'),
+      '',
+    );
+    return double.tryParse(normalized);
   }
 
   // ===========================================================================
@@ -392,296 +452,302 @@ await Navigator.push(
           scaffoldBackgroundColor: BBHomeStyle.canvas,
         ),
         child: Scaffold(
-        backgroundColor: BBHomeStyle.canvas,
-        body: _isLoading
-            ? _buildShimmerBody()
-            : Column(
-                children: [
-                  // AppBar collapses on downward scrolling and returns at top.
-                  AnimatedSize(
-                    duration: const Duration(milliseconds: 200),
-                    curve: Curves.easeInOut,
-                    alignment: Alignment.topCenter,
-                    child: _hideAppBar
-                        ? const SizedBox(width: double.infinity)
-                        : SizedBox(
-                            height: kToolbarHeight,
-                            child: CommonAppBar(
+          backgroundColor: BBHomeStyle.canvas,
+          body: _isLoading
+              ? _buildShimmerBody()
+              : Column(
+                  children: [
+                    // AppBar collapses on downward scrolling and returns at top.
+                    AnimatedSize(
+                      duration: const Duration(milliseconds: 200),
+                      curve: Curves.easeInOut,
+                      alignment: Alignment.topCenter,
+                      child: _hideAppBar
+                          ? const SizedBox(width: double.infinity)
+                          : SizedBox(
+                              height: kToolbarHeight,
+                              child: CommonAppBar(
                                 automaticallyImplyLeading: false,
 
-                              height: kToolbarHeight,
-                              backgroundColor: BBHomeStyle.green,
-                              titleWidget: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  SizedBox(
-                                    width: 50,
-                                    height: 50,
-                                    child: Image.asset(
-                                      AssetConstants.logo,
-                                      fit: BoxFit.contain,
-                                      errorBuilder: (context, error, stackTrace) =>
-                                          const Icon(
-                                        Icons.rice_bowl_rounded,
-                                        color: BBHomeStyle.paper,
-                                        size: 34,
+                                height: kToolbarHeight,
+                                backgroundColor: BBHomeStyle.green,
+                                titleWidget: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    SizedBox(
+                                      width: 50,
+                                      height: 50,
+                                      child: Image.asset(
+                                        AssetConstants.logo,
+                                        fit: BoxFit.contain,
+                                        errorBuilder:
+                                            (context, error, stackTrace) =>
+                                                const Icon(
+                                                  Icons.rice_bowl_rounded,
+                                                  color: BBHomeStyle.paper,
+                                                  size: 34,
+                                                ),
                                       ),
                                     ),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  const Flexible(
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'LalBaba',
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                            color: BBHomeStyle.paper,
-                                            fontSize: BBHomeStyle.headerFont,
-                                            fontWeight: FontWeight.w700,
-                                            height: 1.1,
-                                          ),
-                                        ),
-                                        SizedBox(height: 2),
-                                        Text(
-                                          'Quality You Trust',
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                            color: Colors.white70,
-                                            fontSize: BBHomeStyle.captionFont,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              actions: [
-                                ValueListenableBuilder<int>(
-                                  valueListenable: CartService.count,
-                                  builder: (context, count, _) {
-                                    return IconButton(
-                                      tooltip: 'Notifications',
-                                      onPressed: _openCartNotificationPage,
-                                      icon: Badge(
-                                        isLabelVisible: count > 0,
-                                        label: Text(count > 99 ? '99+' : '$count'),
-                                        child: const Icon(
-                                          Icons.notifications_none_rounded,
-                                          color: Colors.white,
-                                          size: 27,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                                const SizedBox(width: 8),
-                              ],
-                            ),
-                          ),
-                  ),
-                  // FIXED: search, including its existing autocomplete UI.
-                  const SizedBox(height: 10),
-                  SearchWidget(
-                    categories: _searchCategories,
-                    products: _searchProducts,
-                    onCategoryTap: _handleSearchCategoryTap,
-                    onProductTap: _handleSearchProductTap,
-                  ),
-                  // FIXED: horizontal home categories.
-                  CategoryWidget(
-                    names: _categoryNames,
-                    onCategoryTap: (name) {
-                      _openProductListPage(title: name);
-                    },
-                  ),
-                  // Only the content below search/category scrolls.
-                  Expanded(
-                    child: Stack(
-                      children: [
-                        CustomScrollView(
-                          controller: _homeScrollController,
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          slivers: [
-                            SliverToBoxAdapter(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                        const SizedBox(height: 8),
-
-                        // =====================================================
-                        // BANNER
-                        // =====================================================
-                        const BannerWidget(),
-
-                        // =====================================================
-                        // TRENDING
-                        // =====================================================
-                        AnimatedBuilder(
-                          animation: AppLanguageConstants.instance,
-
-                          builder: (context, child) {
-                            return TrendingWidget(
-                              products: _trendingProducts,
-
-                              onProductTap: (product) {
-                                debugPrint(
-                                  'Trending Product: '
-                                  '${product['name']}',
-                                );
-                              },
-
-                              onAddToCart: _handleAddToCart,
-                              onGoToCart: _openCartNotificationPage,
-                              addedProductNames: _addedProductNames,
-                              addingProductNames: _addingProductNames,
-
-                              onViewAllTap: () {
-                                _openProductListPage(
-                                  sectionType: 'trending',
-
-                                  title: AppStrings.trendingThisWeek,
-                                  products: _trendingProducts,
-                                );
-                              },
-                            );
-                          },
-                        ),
-
-                        // =====================================================
-                        // POPULAR SEARCH
-                        // =====================================================
-                        AnimatedBuilder(
-                          animation: AppLanguageConstants.instance,
-
-                          builder: (context, child) {
-                            return PopularSearchWidget(
-                              products: _popularSearch,
-
-                              onProductTap: _handleSearchProductTap,
-                              onViewAllTap: () {
-                                _openProductListPage(
-                                  sectionType: 'popularSearch',
-                                  title: AppStrings.popularSearch,
-                                  products: _popularSearch,
-                                );
-                              },
-                            );
-                          },
-                        ),
-
-                        // =====================================================
-                        // BEST SELLER
-                        // =====================================================
-                        AnimatedBuilder(
-                          animation: AppLanguageConstants.instance,
-
-                          builder: (context, child) {
-                            return BestSellerWidget(
-                              products: _bestSellers,
-
-                              onProductTap: (product) {
-                                debugPrint(
-                                  'Best Seller Product: '
-                                  '${product['name']}',
-                                );
-                              },
-
-                              onAddToCart: _handleAddToCart,
-                              onGoToCart: _openCartNotificationPage,
-                              addedProductNames: _addedProductNames,
-                              addingProductNames: _addingProductNames,
-
-                              onViewAllTap: () {
-                                _openProductListPage(
-                                  sectionType: 'bestSeller',
-
-                                  title: AppStrings.bestSeller,
-                                  products: _bestSellers,
-                                );
-                              },
-                            );
-                          },
-                        ),
-
-                        // =====================================================
-                        // RECIPE
-                        // =====================================================
-                        RecipeWidget(onRecipeTap: _handleRecipeTap),
-
-                        // =====================================================
-                        // HAPPY HOME CHEFS
-                        // =====================================================
-                        TestimonialWidget(onReviewTap: _handleReviewTap),
-
-                        // =====================================================
-                        // SMALL BOTTOM GAP
-                        //
-                        // Age 110 chilo.
-                        // Ekhon 24 kora holo.
-                        // =====================================================
-                        const SizedBox(height: 24),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        // BigBasket-style floating control in the middle,
-                        // just below the pinned search and category strip.
-                        Positioned(
-                          top: 24,
-                          left: 0,
-                          right: 0,
-                          child: Center(
-                            child: IgnorePointer(
-                              ignoring: !_showBackToTop,
-                              child: AnimatedOpacity(
-                                opacity: _showBackToTop ? 1 : 0,
-                                duration: const Duration(milliseconds: 180),
-                                child: Material(
-                                  color: BBHomeStyle.darkChip,
-                                  elevation: 5,
-                                  shadowColor: Colors.black26,
-                                  borderRadius: BorderRadius.circular(28),
-                                  child: InkWell(
-                                    onTap: _scrollToTop,
-                                    borderRadius: BorderRadius.circular(28),
-                                    child: const Padding(
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                        vertical: 10,
-                                      ),
-                                      child: Row(
+                                    const SizedBox(width: 10),
+                                    const Flexible(
+                                      child: Column(
                                         mainAxisSize: MainAxisSize.min,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
-                                          Icon(Icons.keyboard_double_arrow_up,
-                                              color: Colors.white, size: 19),
-                                          SizedBox(width: 5),
-                                          Text('Back to top',
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: BBHomeStyle.productFont,
-                                                fontWeight: FontWeight.w600,
-                                              )),
+                                          Text(
+                                            'LalBaba',
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              color: BBHomeStyle.paper,
+                                              fontSize: BBHomeStyle.headerFont,
+                                              fontWeight: FontWeight.w700,
+                                              height: 1.1,
+                                            ),
+                                          ),
+                                          SizedBox(height: 2),
+                                          Text(
+                                            'Quality You Trust',
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              color: Colors.white70,
+                                              fontSize: BBHomeStyle.captionFont,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
                                         ],
                                       ),
                                     ),
+                                  ],
+                                ),
+                                actions: [
+                                  ValueListenableBuilder<int>(
+                                    valueListenable: CartService.count,
+                                    builder: (context, count, _) {
+                                      return IconButton(
+                                        tooltip: 'Notifications',
+                                        onPressed: _openCartNotificationPage,
+                                        icon: Badge(
+                                          isLabelVisible: count > 0,
+                                          label: Text(
+                                            count > 99 ? '99+' : '$count',
+                                          ),
+                                          child: const Icon(
+                                            Icons.notifications_none_rounded,
+                                            color: Colors.white,
+                                            size: 27,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  const SizedBox(width: 8),
+                                ],
+                              ),
+                            ),
+                    ),
+                    // FIXED: search, including its existing autocomplete UI.
+                    const SizedBox(height: 10),
+                    SearchWidget(
+                      categories: _searchCategories,
+                      products: _searchProducts,
+                      onCategoryTap: _handleSearchCategoryTap,
+                      onProductTap: _handleSearchProductTap,
+                    ),
+                    // FIXED: horizontal home categories.
+                    CategoryWidget(
+                      names: _categoryNames,
+                      onCategoryTap: (name) {
+                        _openProductListPage(title: name);
+                      },
+                    ),
+                    // Only the content below search/category scrolls.
+                    Expanded(
+                      child: Stack(
+                        children: [
+                          CustomScrollView(
+                            controller: _homeScrollController,
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            slivers: [
+                              SliverToBoxAdapter(
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    const SizedBox(height: 8),
+
+                                    // =====================================================
+                                    // BANNER
+                                    // =====================================================
+                                    const BannerWidget(),
+
+                                    // =====================================================
+                                    // TRENDING
+                                    // =====================================================
+                                    AnimatedBuilder(
+                                      animation: AppLanguageConstants.instance,
+
+                                      builder: (context, child) {
+                                        return TrendingWidget(
+                                          products: _trendingProducts,
+
+                                          onProductTap: _openProductDetails,
+
+                                          onAddToCart: _handleAddToCart,
+                                          onGoToCart: _openCartNotificationPage,
+                                          addedProductNames: _addedProductNames,
+                                          addingProductNames:
+                                              _addingProductNames,
+
+                                          onViewAllTap: () {
+                                            _openProductListPage(
+                                              sectionType: 'trending',
+
+                                              title:
+                                                  AppStrings.trendingThisWeek,
+                                              products: _trendingProducts,
+                                            );
+                                          },
+                                        );
+                                      },
+                                    ),
+
+                                    // =====================================================
+                                    // POPULAR SEARCH
+                                    // =====================================================
+                                    AnimatedBuilder(
+                                      animation: AppLanguageConstants.instance,
+
+                                      builder: (context, child) {
+                                        return PopularSearchWidget(
+                                          products: _popularSearch,
+
+                                          onProductTap: _handleSearchProductTap,
+                                          onViewAllTap: () {
+                                            _openProductListPage(
+                                              sectionType: 'popularSearch',
+                                              title: AppStrings.popularSearch,
+                                              products: _popularSearch,
+                                            );
+                                          },
+                                        );
+                                      },
+                                    ),
+
+                                    // =====================================================
+                                    // BEST SELLER
+                                    // =====================================================
+                                    AnimatedBuilder(
+                                      animation: AppLanguageConstants.instance,
+
+                                      builder: (context, child) {
+                                        return BestSellerWidget(
+                                          products: _bestSellers,
+
+                                          onProductTap: _openProductDetails,
+
+                                          onAddToCart: _handleAddToCart,
+                                          onGoToCart: _openCartNotificationPage,
+                                          addedProductNames: _addedProductNames,
+                                          addingProductNames:
+                                              _addingProductNames,
+
+                                          onViewAllTap: () {
+                                            _openProductListPage(
+                                              sectionType: 'bestSeller',
+
+                                              title: AppStrings.bestSeller,
+                                              products: _bestSellers,
+                                            );
+                                          },
+                                        );
+                                      },
+                                    ),
+
+                                    // =====================================================
+                                    // RECIPE
+                                    // =====================================================
+                                    RecipeWidget(onRecipeTap: _handleRecipeTap),
+
+                                    // =====================================================
+                                    // HAPPY HOME CHEFS
+                                    // =====================================================
+                                    TestimonialWidget(
+                                      onReviewTap: _handleReviewTap,
+                                    ),
+
+                                    // =====================================================
+                                    // SMALL BOTTOM GAP
+                                    //
+                                    // Age 110 chilo.
+                                    // Ekhon 24 kora holo.
+                                    // =====================================================
+                                    const SizedBox(height: 24),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          // BigBasket-style floating control in the middle,
+                          // just below the pinned search and category strip.
+                          Positioned(
+                            top: 24,
+                            left: 0,
+                            right: 0,
+                            child: Center(
+                              child: IgnorePointer(
+                                ignoring: !_showBackToTop,
+                                child: AnimatedOpacity(
+                                  opacity: _showBackToTop ? 1 : 0,
+                                  duration: const Duration(milliseconds: 180),
+                                  child: Material(
+                                    color: BBHomeStyle.darkChip,
+                                    elevation: 5,
+                                    shadowColor: Colors.black26,
+                                    borderRadius: BorderRadius.circular(28),
+                                    child: InkWell(
+                                      onTap: _scrollToTop,
+                                      borderRadius: BorderRadius.circular(28),
+                                      child: const Padding(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 10,
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.keyboard_double_arrow_up,
+                                              color: Colors.white,
+                                              size: 19,
+                                            ),
+                                            SizedBox(width: 5),
+                                            Text(
+                                              'Back to top',
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize:
+                                                    BBHomeStyle.productFont,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
         ), // Scaffold
       ), // Theme
     );
@@ -1894,7 +1960,9 @@ class _CategoryWidgetState extends State<CategoryWidget> {
                 decoration: BoxDecoration(
                   color: isSelected ? BBHomeStyle.mint : BBHomeStyle.paper,
                   borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: isSelected ? BBHomeStyle.mint : _border),
+                  border: Border.all(
+                    color: isSelected ? BBHomeStyle.mint : _border,
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: isSelected
@@ -2389,9 +2457,12 @@ class SectionCardWidget extends StatelessWidget {
         final double usableWidth =
             screenWidth - (_outerMargin * 2) - (_railPadding * 2);
         // Precisely three visible cards per row, regardless of phone width.
-        final double cardWidth =
-            ((usableWidth - (_cardGap * 2)) / 3).clamp(70.0, 300.0).toDouble();
-        final double imageHeight = (cardWidth * 1.30).clamp(108.0, 170.0).toDouble();
+        final double cardWidth = ((usableWidth - (_cardGap * 2)) / 3)
+            .clamp(70.0, 300.0)
+            .toDouble();
+        final double imageHeight = (cardWidth * 1.30)
+            .clamp(108.0, 170.0)
+            .toDouble();
         return Container(
           margin: const EdgeInsets.symmetric(
             horizontal: _outerMargin,
@@ -2425,8 +2496,11 @@ class SectionCardWidget extends StatelessWidget {
                       child: IconButton(
                         tooltip: 'View All',
                         onPressed: onViewAllTap,
-                        icon: const Icon(Icons.chevron_right_rounded,
-                            color: BBHomeStyle.title, size: 24),
+                        icon: const Icon(
+                          Icons.chevron_right_rounded,
+                          color: BBHomeStyle.title,
+                          size: 24,
+                        ),
                       ),
                     ),
                   ],
@@ -2458,8 +2532,12 @@ class SectionCardWidget extends StatelessWidget {
                       showPriceAndRating: true,
                       width: cardWidth,
                       imageHeight: imageHeight,
-                      isInCart: addedProductNames.contains(product['name']?.toString().trim() ?? ''),
-                      isAdding: addingProductNames.contains(product['name']?.toString().trim() ?? ''),
+                      isInCart: addedProductNames.contains(
+                        product['name']?.toString().trim() ?? '',
+                      ),
+                      isAdding: addingProductNames.contains(
+                        product['name']?.toString().trim() ?? '',
+                      ),
                       onGoToCart: onGoToCart,
                       onTap: () => onProductTap?.call(product),
                       onAddToCart: onAddToCart == null
@@ -2621,8 +2699,13 @@ class ProductCardWidget extends StatelessWidget {
                   ? Align(
                       alignment: Alignment.centerLeft,
                       child: Container(
-                        constraints: const BoxConstraints(maxWidth: double.infinity),
-                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+                        constraints: const BoxConstraints(
+                          maxWidth: double.infinity,
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 5,
+                          vertical: 3,
+                        ),
                         decoration: BoxDecoration(
                           color: BBHomeStyle.yellow,
                           borderRadius: BorderRadius.circular(5),
@@ -2710,8 +2793,11 @@ class ProductCardWidget extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.star_rounded,
-                        color: Color(0xFFFFA51B), size: 13),
+                    const Icon(
+                      Icons.star_rounded,
+                      color: Color(0xFFFFA51B),
+                      size: 13,
+                    ),
                     const SizedBox(width: 2),
                     Text(
                       rating.toStringAsFixed(1),
@@ -4543,5 +4629,3 @@ class _EmptyCartNotification extends StatelessWidget {
     );
   }
 }
-
-
