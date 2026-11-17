@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lalbaba_online/core/constants/asset_constants.dart';
 
 import 'package:lalbaba_online/core/services/cart_service.dart';
 import 'package:lalbaba_online/core/services/cart_notification_item.dart';
@@ -13,6 +14,246 @@ import 'package:lalbaba_online/new_app/new_constant_text_styles.dart';
 import 'package:lalbaba_online/new_app/new_cart.dart';
 import 'package:lalbaba_online/new_app/new_wishlist.dart';
 import 'package:lalbaba_online/new_app/new_back_to_top_button.dart';
+
+
+// Shared pack data for Home and Product List. Demo prices are for development only.
+// Replace these records with verified API/catalog prices before production.
+class HomeProductPacks {
+  HomeProductPacks._();
+
+  static const Map<String, List<Map<String, dynamic>>> demoPacks = {
+    'home-superior-minikit': [
+      {'weight': '5 kg', 'price': 290.0, 'mrp': 320.0},
+      {'weight': '10 kg', 'price': 550.0, 'mrp': 650.0},
+      {'weight': '25 kg', 'price': 1089.0, 'mrp': 1299.0},
+    ],
+    'home-basmati-steam': [
+      {'weight': '1 kg', 'price': 230.0, 'mrp': 270.0},
+      {'weight': '5 kg', 'price': 1050.0, 'mrp': 1250.0},
+      {'weight': '10 kg', 'price': 1990.0, 'mrp': 2400.0},
+    ],
+    'home-jeer-rice': [
+      {'weight': '1 kg', 'price': 140.0, 'mrp': 160.0},
+      {'weight': '5 kg', 'price': 650.0, 'mrp': 750.0},
+      {'weight': '10 kg', 'price': 1250.0, 'mrp': 1450.0},
+    ],
+    'home-basmati': [
+      {'weight': '1 kg', 'price': 230.0, 'mrp': 275.0},
+      {'weight': '5 kg', 'price': 1050.0, 'mrp': 1280.0},
+      {'weight': '10 kg', 'price': 2050.0, 'mrp': 2500.0},
+    ],
+    'home-ratna-basmati': [
+      {'weight': '1 kg', 'price': 65.0, 'mrp': 80.0},
+      {'weight': '5 kg', 'price': 300.0, 'mrp': 375.0},
+      {'weight': '10 kg', 'price': 580.0, 'mrp': 725.0},
+    ],
+  };
+
+  static String normalize(String value) => value.toLowerCase()
+      .replaceAll(RegExp(r'[^a-z0-9]'), '');
+
+  static String _nameKey(String value) =>
+      normalize(value).replaceFirst(RegExp(r'^lalbaba'), '');
+
+  static String? _demoKey(Map<String, dynamic> product) {
+    final id = product['id']?.toString();
+    if (demoPacks.containsKey(id)) return id;
+    switch (_nameKey(product['name']?.toString() ?? '')) {
+      case 'superiorminikit':
+      case 'minikit':
+      case 'miniket':
+      case 'superiorminiket':
+        return 'home-superior-minikit';
+      case 'basmatisteam': return 'home-basmati-steam';
+      case 'jeerrice':
+      case 'jeerarice': return 'home-jeer-rice';
+      case 'basmati': return 'home-basmati';
+      case 'ratnabasmati': return 'home-ratna-basmati';
+    }
+    return null;
+  }
+
+  static ProductItem? resolveModel(Map<String, dynamic> product) {
+    final embedded = product['_model'];
+    if (embedded is ProductItem) return embedded;
+    final id = product['id']?.toString().trim() ?? '';
+    final name = _nameKey(product['name']?.toString() ?? '');
+    final image = product['imageUrl']?.toString() ?? '';
+    final all = ProductRepository.allProducts;
+    final byId = all.where((p) => id.isNotEmpty && p.id == id).toList();
+    if (byId.length == 1) return byId.first;
+    // Only fall back for a demo home ID or an item without a real ID.
+    if (id.isNotEmpty && !id.startsWith('home-')) return null;
+    final byName = all.where((p) => name.isNotEmpty && _nameKey(p.name) == name).toList();
+    if (byName.length == 1) return byName.first;
+    final group = _demoKey(product);
+    if (group != null) {
+      final byGroup = all.where((p) => _demoKey({'name': p.name}) == group).toList();
+      if (byGroup.length == 1) return byGroup.first;
+    }
+    final byImage = all.where((p) => image.isNotEmpty && p.imageUrl == image).toList();
+    if (byImage.length == 1) return byImage.first;
+    return null;
+  }
+
+  static double? parsePrice(dynamic value) {
+    if (value is num) return value.toDouble();
+    return double.tryParse((value?.toString() ?? '').replaceAll(RegExp(r'[^0-9.]'), ''));
+  }
+
+  static String money(num value) => '₹${value.toStringAsFixed(2)}';
+
+  static double? _kg(String weight) {
+    final match = RegExp(r'^\s*(\d+(?:\.\d+)?)\s*(kg|g|gm|grams?)\s*$', caseSensitive: false).firstMatch(weight);
+    if (match == null) return null;
+    final number = double.tryParse(match.group(1)!);
+    if (number == null || number <= 0) return null;
+    return match.group(2)!.toLowerCase() == 'kg' ? number : number / 1000;
+  }
+
+  static String formatWeight(String weight) {
+    final kg = _kg(weight);
+    if (kg == null) return weight.trim();
+    final number = kg == kg.roundToDouble() ? kg.toStringAsFixed(0) : kg.toString();
+    return '$number kg';
+  }
+
+  // Keep up to three distinct existing variants; when there are fewer, add
+  // demo weights (with proportional sample prices) for development only.
+  static List<Map<String, dynamic>> _threePacks(
+    Map<String, dynamic> raw, ProductItem? model, String preferred,
+  ) {
+    final group = _demoKey(raw) ?? (model == null ? null : _demoKey({'name': model.name}));
+    if (group != null) {
+      return demoPacks[group]!.map((v) => Map<String, dynamic>.from(v)).toList();
+    }
+    final result = <Map<String, dynamic>>[];
+    void add(String weight, double? price, double? mrp) {
+      weight = formatWeight(weight);
+      if (_kg(weight) == null || price == null || !price.isFinite || price <= 0 ||
+          result.any((v) => normalize(v['weight'].toString()) == normalize(weight))) return;
+      result.add({'weight': weight, 'price': price, 'mrp': mrp});
+    }
+    final rawVariants = raw['variants'];
+    if (rawVariants is List) {
+      for (final v in rawVariants) {
+        if (v is Map) add(v['weight']?.toString() ?? '', parsePrice(v['price']), parsePrice(v['mrp'] ?? v['originalPrice']));
+      }
+    }
+    if (result.isEmpty && model != null) {
+      for (final v in model.variants) {
+        add(v.weight, v.price.toDouble(), v.mrp?.toDouble());
+      }
+    }
+    if (result.isEmpty && preferred.isNotEmpty) {
+      add(preferred, parsePrice(raw['price']), parsePrice(raw['originalPrice']));
+    }
+    // If the catalog supplies a price but no usable KG label, treat that
+    // price as a sample 1 kg price for the development-only demo.
+    if (result.isEmpty) {
+      final modelBase = model != null && model.variants.isNotEmpty
+          ? model.variants[model.selectedVariant.clamp(0, model.variants.length - 1).toInt()]
+          : null;
+      add('1 kg', parsePrice(raw['price']) ?? modelBase?.price.toDouble(),
+          parsePrice(raw['originalPrice']) ?? modelBase?.mrp?.toDouble());
+    }
+    // A product without any valid price must remain unavailable.
+    if (result.isEmpty) return result;
+    final index = result.indexWhere((v) => normalize(v['weight'].toString()) == normalize(preferred));
+    final base = result[index < 0 ? 0 : index];
+    if (result.length > 3) {
+      final chosen = result.take(3).toList();
+      if (!chosen.contains(base)) chosen[2] = base;
+      return chosen;
+    }
+    final baseKg = _kg(base['weight'].toString()) ?? 1.0;
+    final basePrice = parsePrice(base['price'])!;
+    final baseMrp = parsePrice(base['mrp']);
+    for (final kg in [1, 5, 10, 25]) {
+      if (result.length >= 3) break;
+      final samplePrice = (basePrice / baseKg * kg * 100).round() / 100;
+      final sampleMrp = baseMrp == null ? null : (baseMrp / baseKg * kg * 100).round() / 100;
+      add('$kg kg', samplePrice, sampleMrp);
+    }
+    return result;
+  }
+
+  // Home gives a preferred weight; all three options travel with the same map.
+  static Map<String, dynamic> prepare(Map<String, dynamic> raw) {
+    final model = resolveModel(raw);
+    final group = _demoKey(raw);
+    final defaultWeight = model != null && model.variants.isNotEmpty
+        ? model.variants[model.selectedVariant.clamp(0, model.variants.length - 1).toInt()].weight
+        : '';
+    final requested = formatWeight(raw['weight']?.toString().trim().isNotEmpty == true
+        ? raw['weight'].toString() : defaultWeight);
+    final packs = _threePacks(raw, model, requested);
+    final id = model?.id ?? group ?? raw['id'];
+    if (packs.isEmpty) return {...raw, 'id': id, 'variants': <Map<String, dynamic>>[], if (model != null) '_model': model};
+    final pack = packs.firstWhere((v) => normalize(v['weight'].toString()) == normalize(requested), orElse: () => packs.first);
+    final price = parsePrice(pack['price'])!;
+    final mrp = parsePrice(pack['mrp']);
+    return {
+      ...raw,
+      'id': id,
+      if (model != null) '_model': model,
+      'weight': pack['weight'],
+      'price': money(price),
+      'originalPrice': mrp == null ? '' : money(mrp),
+      'discountLabel': mrp != null && mrp > price ? '${((mrp - price) / mrp * 100).round()}% OFF' : '',
+      'rating': raw['rating'] ?? model?.rating ?? 0.0,
+      'variants': packs,
+    };
+  }
+
+  // Category labels are inferred from catalog product names until an API
+  // supplies explicit category metadata. Match the more specific names first.
+  static String categoryOf(Map<String, dynamic> product) {
+    final model = resolveModel(product);
+    final value = normalize(product['category']?.toString().trim().isNotEmpty == true
+        ? product['category'].toString() : (model?.name ?? product['name']?.toString() ?? ''));
+    if (value.contains('jeera') || value.contains('jeerrice') || value.contains('jirakati') || value.contains('jeerkathi')) return 'Jeera Kathi';
+    if (value.contains('gobindo') || value.contains('govindo') || value.contains('gobinda') || value.contains('govinda')) return 'Gobindo Bhog';
+    if (value.contains('ratna')) return 'Ratna';
+    if (value.contains('banskathi') || value.contains('banskati') || value.contains('baskati') || value.contains('baskathi') || value.contains('banshkathi')) return 'Banskathi';
+    if (value.contains('minikit') || value.contains('miniket')) return 'Minikit';
+    if (value.contains('basmati') || value.contains('basmoti')) return 'Basmati';
+    return product['category']?.toString().trim() ?? '';
+  }
+
+  // Include the existing Home demo products even if they are not yet linked
+  // to a repository product. Do not invent missing varieties or inventory.
+  static List<Map<String, dynamic>> catalog() {
+    final result = ProductRepository.allProducts.map<Map<String, dynamic>>((p) => {
+      '_model': p, 'id': p.id, 'name': p.name, 'imageUrl': p.imageUrl,
+      'rating': p.rating,
+    }).toList();
+    final home = <Map<String, dynamic>>[
+      {'id': 'home-superior-minikit', 'name': 'Lalbaba Superior Minikit', 'imageUrl': AssetConstants.miniket},
+      {'id': 'home-basmati-steam', 'name': 'Lalbaba Basmati Steam', 'imageUrl': AssetConstants.basmoti},
+      {'id': 'home-jeer-rice', 'name': 'Lalbaba Jeer Rice', 'imageUrl': AssetConstants.jeerrice},
+      {'id': 'home-basmati', 'name': 'Lalbaba Basmati', 'imageUrl': AssetConstants.baskati},
+      {'id': 'home-ratna-basmati', 'name': 'Ratna Basmati', 'imageUrl': AssetConstants.ratna},
+    ];
+    for (final raw in home) {
+      final model = resolveModel(raw);
+      final exists = result.any((p) => (model?.id != null && p['id'] == model!.id) ||
+          identical(p['_model'], model) && model != null ||
+          _demoKey(p) == raw['id']);
+      if (!exists) result.add(raw);
+    }
+    return result.map(prepare).map((p) => {...p, 'category': categoryOf(p)}).toList();
+  }
+
+  static String cartKey(String? id, String name, String? weight) {
+    final key = id?.trim() ?? '';
+    return '${key.isEmpty ? normalize(name) : key}|${normalize(formatWeight(weight ?? ''))}';
+  }
+
+  static String productCartKey(Map<String, dynamic> product) => cartKey(
+    product['id']?.toString(), product['name']?.toString() ?? '', product['weight']?.toString(),
+  );
+}
 
 // =============================================================
 // CONSTANT STYLE
@@ -31,12 +272,14 @@ class ProductListStyle {
 
 class ProductListPage extends StatefulWidget {
   final String? sectionType;
+  final String? categoryFilter;
   final String pageTitle;
   final List<Map<String, dynamic>>? products;
 
   const ProductListPage({
     super.key,
     this.sectionType,
+    this.categoryFilter,
     this.pageTitle = 'Products',
     this.products,
   });
@@ -52,6 +295,7 @@ class ProductListscreen extends ProductListPage {
   const ProductListscreen({
     super.key,
     super.sectionType,
+    super.categoryFilter,
     super.pageTitle,
     super.products,
   });
@@ -182,77 +426,27 @@ class _ProductListPageState extends State<ProductListPage> {
   // PRODUCT MODEL MATCHING
   // ===========================================================
 
-  String _normalize(String value) {
-    return value
-        .trim()
-        .toLowerCase()
-        .replaceAll(RegExp(r'[^a-z0-9]'), '');
-  }
-
-  ProductItem? _model(Map<String, dynamic> product) {
-    final embedded = product['_model'];
-
-    if (embedded is ProductItem) {
-      return embedded;
-    }
-
-    final id = product['id']?.toString().trim();
-
-    final name = _normalize(
-      product['name']?.toString() ?? '',
-    );
-
-    final image =
-        product['imageUrl']?.toString().trim() ?? '';
-
-    for (final item in ProductRepository.allProducts) {
-      if (id != null &&
-          id.isNotEmpty &&
-          item.id == id) {
-        return item;
-      }
-    }
-
-    if (id != null && id.isNotEmpty) {
-      return null;
-    }
-
-    final matches =
-        ProductRepository.allProducts.where((item) {
-      return (name.isNotEmpty &&
-              _normalize(item.name) == name) ||
-          (image.isNotEmpty &&
-              item.imageUrl == image);
-    }).toList();
-
-    return matches.length == 1
-        ? matches.first
-        : null;
-  }
+  ProductItem? _model(Map<String, dynamic> product) =>
+      HomeProductPacks.resolveModel(product);
 
   // ===========================================================
   // PRODUCT SOURCE
   // ===========================================================
 
   List<Map<String, dynamic>> get _source {
+    final List<Map<String, dynamic>> source;
     if (widget.products != null) {
-      return widget.products!;
+      source = widget.products!.map(HomeProductPacks.prepare)
+          .map((p) => {...p, 'category': HomeProductPacks.categoryOf(p)}).toList();
+    } else if (widget.sectionType?.isNotEmpty == true && widget.categoryFilter == null) {
+      source = [];
+    } else {
+      source = HomeProductPacks.catalog();
     }
-
-    if (widget.sectionType?.isNotEmpty == true) {
-      return [];
-    }
-
-    return ProductRepository.allProducts
-        .map<Map<String, dynamic>>(
-          (product) => {
-            '_model': product,
-            'id': product.id,
-            'name': product.name,
-            'imageUrl': product.imageUrl,
-          },
-        )
-        .toList();
+    final category = widget.categoryFilter;
+    if (category == null || category.trim().isEmpty || category == 'All') return source;
+    return source.where((p) => HomeProductPacks.normalize(p['category']?.toString() ?? '') ==
+        HomeProductPacks.normalize(category)).toList();
   }
 
   // ===========================================================
@@ -295,18 +489,6 @@ class _ProductListPageState extends State<ProductListPage> {
   List<_ListVariant> _variants(
     Map<String, dynamic> product,
   ) {
-    final model = _model(product);
-
-    if (model != null && model.variants.isNotEmpty) {
-      return model.variants.map((variant) {
-        return _ListVariant(
-          variant.weight,
-          variant.price.toDouble(),
-          variant.mrp?.toDouble(),
-        );
-      }).toList();
-    }
-
     final rawVariants = product['variants'];
 
     if (rawVariants is List) {
@@ -335,9 +517,19 @@ class _ProductListPageState extends State<ProductListPage> {
         }
       }
 
-      if (result.isNotEmpty) {
-        return result;
-      }
+      return result.take(3).toList();
+    }
+
+    final model = _model(product);
+
+    if (model != null && model.variants.isNotEmpty) {
+      return model.variants.map((variant) {
+        return _ListVariant(
+          variant.weight,
+          variant.price.toDouble(),
+          variant.mrp?.toDouble(),
+        );
+      }).take(3).toList();
     }
 
     final price = _parsePrice(product['price']);
@@ -366,8 +558,8 @@ class _ProductListPageState extends State<ProductListPage> {
 
     if (variants.isEmpty) return null;
 
-    final selectedWeight =
-        _chosenWeights[_key(product)];
+    final selectedWeight = _chosenWeights[_selectionKey(product)] ??
+        product['weight']?.toString();
 
     for (final variant in variants) {
       if (variant.weight == selectedWeight) {
@@ -437,10 +629,13 @@ class _ProductListPageState extends State<ProductListPage> {
   // SELECT QUANTITY KEY
   // ===========================================================
 
+  String _selectionKey(Map<String, dynamic> product) =>
+      '${_key(product)}|${product['weight'] ?? ''}';
+
   String _quantityKey(Map<String, dynamic> product) {
     final variant = _selectedVariant(product);
 
-    return '${_key(product)}|${variant?.weight ?? ''}';
+    return '${_selectionKey(product)}|${variant?.weight ?? ''}';
   }
 
   int _getQuantity(Map<String, dynamic> product) {
@@ -500,6 +695,7 @@ class _ProductListPageState extends State<ProductListPage> {
 
     if (!_cartReady ||
         variant == null ||
+        variant.weight.trim().isEmpty ||
         _busy.contains(key)) {
       return;
     }
@@ -684,15 +880,7 @@ class _ProductListPageState extends State<ProductListPage> {
   // ===========================================================
 
   List<String> get _categories {
-    final result = <String>{
-      'All',
-      'Minikit',
-      'Banskathi',
-      'Ratna',
-      'Gobindo Bhog',
-      'Basmati',
-      'JEERA KATHI',
-    };
+    final result = <String>{'All'};
 
     for (final product in _source) {
       final category = product['category']?.toString();
@@ -1517,15 +1705,7 @@ class _ProductListPageState extends State<ProductListPage> {
                           _selectedVariant(product);
 
                       return _ProductCard(
-                        product: {
-                          ...product,
-
-                          if (model != null)
-                            'name': model.name,
-
-                          if (model != null)
-                            'imageUrl': model.imageUrl,
-                        },
+                        product: product,
 
                         money: _money,
 
@@ -1549,7 +1729,7 @@ class _ProductListPageState extends State<ProductListPage> {
                           if (value == null) return;
 
                           setState(() {
-                            _chosenWeights[key] = value;
+                            _chosenWeights[_selectionKey(product)] = value;
                           });
                         },
 
