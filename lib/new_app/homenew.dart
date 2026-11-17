@@ -5,6 +5,7 @@ import 'package:lalbaba_online/features/account/presentation/widgets/app_string.
 import 'package:lalbaba_online/features/account/presentation/widgets/languange_constant.dart';
 import 'package:lalbaba_online/features/product/presentation/model/product_models.dart';
 import 'package:lalbaba_online/new_app/constantappbar.dart';
+import 'package:lalbaba_online/new_app/new_cart.dart';
 import 'package:lalbaba_online/new_app/new_product_details.dart';
 import 'package:lalbaba_online/new_app/productlistscreen.dart';
 
@@ -366,7 +367,17 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
     );
     _refreshHomeCart();
   }
+Future<void> _openCartPage() async {
+  if (!mounted) return;
 
+  await Navigator.of(context).push(
+    MaterialPageRoute(
+      builder: (context) => const NewCartPage(),
+    ),
+  );
+
+  _refreshHomeCart();
+}
   // ===========================================================================
   // SEARCH CATEGORY
   // ===========================================================================
@@ -642,7 +653,8 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
                                           onProductTap: _openProductDetails,
 
                                           onAddToCart: _handleAddToCart,
-                                          onGoToCart: _openCartNotificationPage,
+                                          onGoToCart: _openCartPage,
+                                          // onGoToCart: _openCartNotificationPage,
                                           addedProductNames: _addedProductNames,
                                           addingProductNames:
                                               _addingProductNames,
@@ -695,7 +707,8 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
                                           onProductTap: _openProductDetails,
 
                                           onAddToCart: _handleAddToCart,
-                                          onGoToCart: _openCartNotificationPage,
+                                          onGoToCart: _openCartPage,
+                                          // onGoToCart: _openCartNotificationPage,
                                           addedProductNames: _addedProductNames,
                                           addingProductNames:
                                               _addingProductNames,
