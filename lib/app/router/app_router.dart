@@ -107,10 +107,10 @@ final appRouter = GoRouter(
       path: RouteNames.address,
       builder: (_, __) => const AddressListPage(),
     ),
-    GoRoute(
-      path: RouteNames.newShipping,
-      builder: (_, __) => const NewShippingPage(),
-    ),
+GoRoute(
+  path: RouteNames.newShipping,
+  builder: (context, state) => const NewShippingPage(),
+),
     GoRoute(
       path: RouteNames.newPayment,
       builder: (_, __) => const NewPaymentPage(),
