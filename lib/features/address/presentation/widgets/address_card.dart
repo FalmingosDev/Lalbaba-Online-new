@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../../app/theme/app_colors.dart';
+import '../../../../new_app/constantcolour.dart';
 import '../../data/models/address_model.dart';
 
 class AddressCard extends StatelessWidget {
@@ -61,12 +61,12 @@ class AddressCard extends StatelessWidget {
                   width: 42.w,
                   height: 42.w,
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.09),
+                    color: HomeColors.secondary.withValues(alpha: 0.09),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     _addressIcon,
-                    color: AppColors.primary,
+                    color: HomeColors.secondary,
                     size: 21.sp,
                   ),
                 ),
@@ -95,7 +95,7 @@ class AddressCard extends StatelessWidget {
                                 vertical: 3.h,
                               ),
                               decoration: BoxDecoration(
-                                color: AppColors.primary.withValues(
+                                color: HomeColors.secondary.withValues(
                                   alpha: 0.09,
                                 ),
                                 borderRadius: BorderRadius.circular(6.r),
@@ -105,7 +105,7 @@ class AddressCard extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: 10.sp,
                                   fontWeight: FontWeight.w600,
-                                  color: AppColors.primary,
+                                  color: HomeColors.secondary,
                                 ),
                               ),
                             ),

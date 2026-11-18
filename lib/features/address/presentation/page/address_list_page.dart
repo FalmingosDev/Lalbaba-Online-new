@@ -223,16 +223,14 @@
 // }
 
 
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:lalbaba_online/core/widgets/app_app_bar.dart';
 import 'package:lalbaba_online/features/account/presentation/widgets/app_string.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../../../app/theme/app_colors.dart';
+import '../../../../new_app/constantappbar.dart';
+import '../../../../new_app/constantcolour.dart';
 import '../../data/models/address_model.dart';
+import '../../data/services/address_storage.dart';
 import '../widgets/address_card.dart';
 import 'address_form_page.dart';
 
@@ -246,12 +244,6 @@ class AddressListPage extends StatefulWidget {
 class _AddressListPageState extends State<AddressListPage> {
   // ============================================================
   // SHARED PREFERENCE KEY
-  // ============================================================
-
-  static const String _addressStorageKey = 'saved_addresses';
-
-  // ============================================================
-  // ADDRESS LIST
   // ============================================================
 
   final List<AddressModel> addresses = [];
@@ -275,30 +267,21 @@ class _AddressListPageState extends State<AddressListPage> {
 
   Future<void> _loadAddresses() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
+      final loadedAddresses = await AddressStorage.loadAddresses();
+      if (!mounted) return;
 
-      final String? savedData = prefs.getString(_addressStorageKey);
-
-      if (savedData != null && savedData.isNotEmpty) {
-        final List<dynamic> decodedData = jsonDecode(savedData);
-
-        final List<AddressModel> loadedAddresses = decodedData
-            .map(
-              (item) => AddressModel.fromJson(
-                Map<String, dynamic>.from(item),
-              ),
-            )
-            .toList();
-
-        if (!mounted) return;
-
-        setState(() {
-          addresses.clear();
-          addresses.addAll(loadedAddresses);
-        });
+      setState(() {
+        addresses
+          ..clear()
+          ..addAll(loadedAddresses);
+      });
+    } catch (error) {
+      debugPrint('Address load error: $error');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Unable to load saved addresses.')),
+        );
       }
-    } catch (e) {
-      debugPrint('Address load error: $e');
     }
 
     if (!mounted) return;
@@ -314,21 +297,14 @@ class _AddressListPageState extends State<AddressListPage> {
 
   Future<void> _saveAddresses() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-
-      final List<Map<String, dynamic>> addressJsonList =
-          addresses.map((address) => address.toJson()).toList();
-
-      final String encodedData = jsonEncode(addressJsonList);
-
-      await prefs.setString(
-        _addressStorageKey,
-        encodedData,
-      );
-
-      debugPrint('Addresses saved successfully');
-    } catch (e) {
-      debugPrint('Address save error: $e');
+      await AddressStorage.saveAddresses(addresses);
+    } catch (error) {
+      debugPrint('Address save error: $error');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Unable to save this address.')),
+        );
+      }
     }
   }
 
@@ -470,14 +446,18 @@ class _AddressListPageState extends State<AddressListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppAppBar(
+      appBar: CommonAppBar(
         title: AppStrings.myAddress,
         automaticallyImplyLeading: true,
+        showBackButton: true,
+        backgroundColor: HomeColors.secondary,
+        titleColor: HomeColors.white,
+        iconColor: HomeColors.white,
       ),
 
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _addAddress,
-        backgroundColor: AppColors.primary,
+        backgroundColor: HomeColors.secondary,
         icon: const Icon(
           Icons.add_location_alt_outlined,
           color: Colors.white,
@@ -539,7 +519,7 @@ class _AddressListPageState extends State<AddressListPage> {
               width: 85.w,
               height: 85.w,
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(
+                color: HomeColors.secondary.withValues(
                   alpha: 0.08,
                 ),
                 shape: BoxShape.circle,
@@ -547,7 +527,7 @@ class _AddressListPageState extends State<AddressListPage> {
               child: Icon(
                 Icons.location_on_outlined,
                 size: 42.sp,
-                color: AppColors.primary,
+                color: HomeColors.secondary,
               ),
             ),
 

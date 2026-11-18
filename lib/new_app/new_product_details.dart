@@ -421,8 +421,7 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
               style: HomeTextStyles.largePrice.copyWith(
                 color: AppColors.textPrimary,
               ),
-            ),
-          ],
+            ),          ],
           if (_product.discountLabel.trim().isNotEmpty) ...[
             const SizedBox(height: 8),
             _summaryChip(_product.discountLabel),

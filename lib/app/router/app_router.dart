@@ -2,8 +2,8 @@
 // Why: Define and manage all application routes in one centralized place.
 import 'package:go_router/go_router.dart';
 import 'package:lalbaba_online/features/address/presentation/page/address_list_page.dart';
+import 'package:lalbaba_online/features/address/presentation/page/new_shipping.dart';
 
-import '../../features/address/presentation/page/address.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/cart/presentation/pages/cart_page.dart';
 import '../../features/categories/presentation/pages/categories_page.dart';
@@ -105,6 +105,10 @@ final appRouter = GoRouter(
     GoRoute(
       path: RouteNames.address,
       builder: (_, __) => const AddressListPage(),
+    ),
+    GoRoute(
+      path: RouteNames.newShipping,
+      builder: (_, __) => const NewShippingPage(),
     ),
     GoRoute(
       path: RouteNames.contact,

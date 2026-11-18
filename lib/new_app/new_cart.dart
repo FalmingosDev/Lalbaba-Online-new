@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
+import '../app/router/route_names.dart';
 import '../core/services/cart_notification_item.dart';
 import '../core/services/cart_service.dart';
 import '../core/services/wishlist_service.dart';
-import '../features/checkout/presentation/pages/checkout_page.dart';
 import '../features/product/presentation/model/product_models.dart';
 import '../features/product/presentation/widgets/product_details_widget/product_repository.dart';
 import 'new_back_to_top_button.dart';
@@ -944,11 +945,7 @@ class _CartCheckoutBar extends StatelessWidget {
               child: SizedBox(
                 height: 52,
                 child: ElevatedButton(
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const CheckoutPage(),
-                    ),
-                  ),
+                  onPressed: () => context.push(RouteNames.newShipping),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: HomeColors.secondary,
                     foregroundColor: HomeColors.white,

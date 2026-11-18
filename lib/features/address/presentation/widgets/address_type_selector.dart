@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../../app/theme/app_colors.dart';
+import '../../../../new_app/constantcolour.dart';
 import '../../../account/presentation/widgets/app_string.dart';
 
 class AddressTypeSelector extends StatelessWidget {
@@ -37,12 +37,12 @@ class AddressTypeSelector extends StatelessWidget {
                 padding: EdgeInsets.symmetric(vertical: 13.h),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? AppColors.primary.withValues(alpha: 0.08)
+                      ? HomeColors.secondary.withValues(alpha: 0.08)
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(14.r),
                   border: Border.all(
                     color: isSelected
-                        ? AppColors.primary
+                        ? HomeColors.secondary
                         : Colors.grey.shade300,
                     width: isSelected ? 1.4 : 1,
                   ),
@@ -65,7 +65,7 @@ class AddressTypeSelector extends StatelessWidget {
                             ? FontWeight.w600
                             : FontWeight.w400,
                         color: isSelected
-                            ? AppColors.primary
+                            ? HomeColors.secondary
                             : Colors.grey.shade700,
                       ),
                     ),

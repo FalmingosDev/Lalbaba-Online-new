@@ -4,9 +4,9 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:lalbaba_online/features/account/presentation/widgets/app_string.dart';
 
-import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_sizes.dart';
-import '../../../../core/widgets/app_app_bar.dart';
+import '../../../../new_app/constantappbar.dart';
+import '../../../../new_app/constantcolour.dart';
 import '../../data/models/address_model.dart';
 import '../../data/models/location_model.dart';
 import '../../data/services/location_service.dart';
@@ -619,7 +619,10 @@ class _AddressFormPageState extends State<AddressFormPage> {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14.r),
-            borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+            borderSide: const BorderSide(
+              color: HomeColors.secondary,
+              width: 1.5,
+            ),
           ),
         ),
       ),
@@ -683,9 +686,13 @@ class _AddressFormPageState extends State<AddressFormPage> {
     final isEdit = widget.isEdit;
 
     return Scaffold(
-      appBar: AppAppBar(
+      appBar: CommonAppBar(
         title: isEdit ? AppStrings.updateAddress : AppStrings.addAddress,
         automaticallyImplyLeading: true,
+        showBackButton: true,
+        backgroundColor: HomeColors.secondary,
+        titleColor: HomeColors.white,
+        iconColor: HomeColors.white,
       ),
 
       //  AppBar(
@@ -934,7 +941,7 @@ class _AddressFormPageState extends State<AddressFormPage> {
                     child: ElevatedButton(
                       onPressed: isSaving ? null : _saveAddress,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
+                        backgroundColor: HomeColors.secondary,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14.r),
                         ),
@@ -1016,9 +1023,11 @@ class _CurrentLocationCard extends StatelessWidget {
         width: double.infinity,
         padding: EdgeInsets.all(15.w),
         decoration: BoxDecoration(
-          color: AppColors.primary.withValues(alpha: 0.07),
+          color: HomeColors.secondary.withValues(alpha: 0.07),
           borderRadius: BorderRadius.circular(16.r),
-          border: Border.all(color: AppColors.primary.withValues(alpha: 0.18)),
+          border: Border.all(
+            color: HomeColors.secondary.withValues(alpha: 0.18),
+          ),
         ),
         child: Row(
           children: [
@@ -1026,7 +1035,7 @@ class _CurrentLocationCard extends StatelessWidget {
               width: 44.w,
               height: 44.w,
               decoration: BoxDecoration(
-                color: AppColors.primary,
+                color: HomeColors.secondary,
                 borderRadius: BorderRadius.circular(12.r),
               ),
               child: loading
@@ -1075,7 +1084,7 @@ class _CurrentLocationCard extends StatelessWidget {
               Icon(
                 Icons.arrow_forward_ios_rounded,
                 size: 15.sp,
-                color: AppColors.primary,
+                color: HomeColors.secondary,
               ),
           ],
         ),
