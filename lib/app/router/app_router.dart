@@ -3,6 +3,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:lalbaba_online/features/address/presentation/page/address_list_page.dart';
 import 'package:lalbaba_online/features/address/presentation/page/new_shipping.dart';
+import 'package:lalbaba_online/new_app/new_payment.dart';
 
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/cart/presentation/pages/cart_page.dart';
@@ -109,6 +110,10 @@ final appRouter = GoRouter(
     GoRoute(
       path: RouteNames.newShipping,
       builder: (_, __) => const NewShippingPage(),
+    ),
+    GoRoute(
+      path: RouteNames.newPayment,
+      builder: (_, __) => const NewPaymentPage(),
     ),
     GoRoute(
       path: RouteNames.contact,

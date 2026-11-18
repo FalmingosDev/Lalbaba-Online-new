@@ -63,10 +63,7 @@ class _NewShippingPageState extends State<NewShippingPage> {
     }
   }
 
-  String? _findSelection(
-    List<AddressModel> addresses,
-    String? requestedId,
-  ) {
+  String? _findSelection(List<AddressModel> addresses, String? requestedId) {
     if (addresses.isEmpty) return null;
 
     for (final address in addresses) {
@@ -98,9 +95,7 @@ class _NewShippingPageState extends State<NewShippingPage> {
 
   Future<void> _addAddress() async {
     final address = await Navigator.of(context).push<AddressModel>(
-      MaterialPageRoute<AddressModel>(
-        builder: (_) => const AddressFormPage(),
-      ),
+      MaterialPageRoute<AddressModel>(builder: (_) => const AddressFormPage()),
     );
 
     if (address == null || !mounted) return;
@@ -294,9 +289,7 @@ class _NewShippingPageState extends State<NewShippingPage> {
                       const SizedBox(height: 4),
                       Text(
                         'Phone: ${address.phone}',
-                        style: const TextStyle(
-                          color: HomeColors.textSecondary,
-                        ),
+                        style: const TextStyle(color: HomeColors.textSecondary),
                       ),
                     ],
                   ),
