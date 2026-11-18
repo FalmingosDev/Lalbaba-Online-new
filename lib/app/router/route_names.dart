@@ -33,5 +33,6 @@ class RouteNames {
   static const account = '/account';
   static const address = '/address';
   static const newShipping = '/new-shipping';
+  static const newDelivery = '/new-delivery';
   static const newPayment = '/new-payment';
 }

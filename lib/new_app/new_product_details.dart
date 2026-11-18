@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import '../app/router/route_names.dart';
@@ -263,6 +264,7 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
               _buildImageCarousel(),
               _buildProductSummary(variant),
               _buildPackSizes(),
+              const _DeliveryPincodeCheck(),
               _buildBrandBanner(),
               _buildProductRail('People also bought'),
               _buildProductRail('Similar Products'),
@@ -421,7 +423,8 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
               style: HomeTextStyles.largePrice.copyWith(
                 color: AppColors.textPrimary,
               ),
-            ),          ],
+            ),
+          ],
           if (_product.discountLabel.trim().isNotEmpty) ...[
             const SizedBox(height: 8),
             _summaryChip(_product.discountLabel),
@@ -1069,6 +1072,146 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _DeliveryPincodeCheck extends StatefulWidget {
+  const _DeliveryPincodeCheck();
+
+  @override
+  State<_DeliveryPincodeCheck> createState() => _DeliveryPincodeCheckState();
+}
+
+class _DeliveryPincodeCheckState extends State<_DeliveryPincodeCheck> {
+  final TextEditingController _pincodeController = TextEditingController();
+  bool _isChecking = false;
+  bool _isPincodeValid = false;
+  String? _message;
+
+  @override
+  void dispose() {
+    _pincodeController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _checkPincode() async {
+    final pincode = _pincodeController.text.trim();
+    if (!RegExp(r'^\d{6}$').hasMatch(pincode)) {
+      setState(() {
+        _message = 'Enter a valid 6-digit PIN code.';
+        _isPincodeValid = false;
+      });
+      return;
+    }
+
+    setState(() {
+      _isChecking = true;
+      _message = null;
+      _isPincodeValid = false;
+    });
+
+    try {
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+      if (!mounted) return;
+      setState(() {
+        _message =
+            'PIN format is valid.';
+        _isPincodeValid = true;
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isChecking = false;
+        });
+      }
+    }
+  }
+
+  void _onPincodeChanged(String value) {
+    if (_message == null) return;
+    setState(() {
+      _message = null;
+      _isPincodeValid = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: AppColors.surface,
+      padding: const EdgeInsets.fromLTRB(18, 12, 18, 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Delivery',
+            style: HomeTextStyles.bodyEmphasis.copyWith(
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _pincodeController,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(6),
+                  ],
+                  onChanged: _onPincodeChanged,
+                  decoration: const InputDecoration(
+                    hintText: 'Enter a PIN code',
+                    counterText: '',
+                    isDense: true,
+                    border: OutlineInputBorder(),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
+                  ),
+                ),
+              ),
+              TextButton(
+                onPressed: _isChecking ? null : _checkPincode,
+                child: _isChecking
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: HomeColors.secondary,
+                        ),
+                      )
+                    : const Text(
+                        'Apply',
+                        style: TextStyle(color: HomeColors.secondary),
+                      ),
+              ),
+            ],
+          ),
+          if (_message != null) ...[
+            const SizedBox(height: 6),
+            Text(
+              _message!,
+              style: TextStyle(
+                color: _isPincodeValid ? HomeColors.success : HomeColors.error,
+                fontSize: 12,
+              ),
+            ),
+          ],
+          const SizedBox(height: 8),
+          Text(
+            'Fulfilled by Lalbaba',
+            style: HomeTextStyles.bodySmall.copyWith(
+              color: AppColors.textPrimary,
+              fontWeight: HomeTextStyles.bold,
+            ),
+          ),
+        ],
       ),
     );
   }

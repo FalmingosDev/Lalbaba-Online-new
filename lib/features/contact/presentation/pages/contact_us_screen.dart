@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../../app/theme/app_colors.dart';
-import '../../../../../app/theme/app_text_styles.dart';
 import '../../../../../core/constants/app_sizes.dart';
-import '../../../../core/widgets/app_app_bar.dart';
+import '../../../../../new_app/constantappbar.dart';
+import '../../../../../new_app/constantcolour.dart';
 import '../../../account/presentation/widgets/app_string.dart';
 import 'create_ticket_form.dart';
 import 'ticket_list_view.dart';
@@ -24,7 +23,7 @@ class ContactUsScreen extends ConsumerWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.surface,
+      backgroundColor: HomeColors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(AppSizes.dialogRadius_16),
@@ -37,15 +36,19 @@ class ContactUsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      backgroundColor: AppColors.background,
-        appBar: AppAppBar(
-            title: AppStrings.contactUs,
-            automaticallyImplyLeading: true,
-          ),
+      backgroundColor: HomeColors.background,
+      appBar: CommonAppBar(
+        title: AppStrings.contactUs,
+        automaticallyImplyLeading: true,
+        showBackButton: true,
+        backgroundColor: HomeColors.secondary,
+        titleColor: HomeColors.white,
+        iconColor: HomeColors.white,
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openCreateTicketSheet(context),
-        backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.white,
+        backgroundColor: HomeColors.secondary,
+        foregroundColor: HomeColors.white,
         icon: const Icon(Icons.add),
         label: const Text('Create a Ticket'),
       ),

@@ -39,7 +39,7 @@ class _LoginPageState extends State<LoginPage> {
     // LOGIN SUCCESS
     // ==========================================================
 
-    final redirectPath = widget.redirectPath;
+    final redirectPath = widget.redirectPath ?? widget.redirectUrl;
 
     if (redirectPath != null && redirectPath.isNotEmpty) {
       context.go(redirectPath);

@@ -311,13 +311,13 @@
 // }
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lalbaba_online/new_app/new_constant_checkout_page.dart';
-import 'package:lalbaba_online/new_app/new_delivery_page.dart';
 
 import 'constantcolour.dart';
 import 'new_constant_text_styles.dart';
 
-
+import '../app/router/route_names.dart';
 import '../core/services/cart_service.dart';
 import '../core/services/cart_notification_item.dart';
 
@@ -330,17 +330,13 @@ import '../features/address/presentation/page/address_form_page.dart';
 // ============================================================
 
 class NewShippingPage extends StatefulWidget {
-  const NewShippingPage({
-    super.key,
-  });
+  const NewShippingPage({super.key});
 
   @override
-  State<NewShippingPage> createState() =>
-      _NewShippingPageState();
+  State<NewShippingPage> createState() => _NewShippingPageState();
 }
 
 class _NewShippingPageState extends State<NewShippingPage> {
-
   // ==========================================================
   // VARIABLES
   // ==========================================================
@@ -368,20 +364,16 @@ class _NewShippingPageState extends State<NewShippingPage> {
   // LOAD SAVED ADDRESSES
   // ==========================================================
 
-  Future<void> _loadAddresses({
-    String? preferredAddressId,
-  }) async {
+  Future<void> _loadAddresses({String? preferredAddressId}) async {
     setState(() {
       _isLoading = true;
       _loadError = null;
     });
 
     try {
-      final addresses =
-          await AddressStorage.loadAddresses();
+      final addresses = await AddressStorage.loadAddresses();
 
-      final storedAddressId =
-          await AddressStorage.loadSelectedAddressId();
+      final storedAddressId = await AddressStorage.loadSelectedAddressId();
 
       final selectedAddressId = _findSelection(
         addresses,
@@ -389,9 +381,7 @@ class _NewShippingPageState extends State<NewShippingPage> {
       );
 
       if (selectedAddressId != storedAddressId) {
-        await AddressStorage.saveSelectedAddressId(
-          selectedAddressId,
-        );
+        await AddressStorage.saveSelectedAddressId(selectedAddressId);
       }
 
       if (!mounted) return;
@@ -402,15 +392,12 @@ class _NewShippingPageState extends State<NewShippingPage> {
         _selectedAddressId = selectedAddressId;
       });
     } catch (error) {
-      debugPrint(
-        'Shipping address load error: $error',
-      );
+      debugPrint('Shipping address load error: $error');
 
       if (!mounted) return;
 
       setState(() {
-        _loadError =
-            'Unable to load saved addresses. Please try again.';
+        _loadError = 'Unable to load saved addresses. Please try again.';
       });
     } finally {
       if (mounted) {
@@ -425,10 +412,7 @@ class _NewShippingPageState extends State<NewShippingPage> {
   // FIND SELECTED ADDRESS
   // ==========================================================
 
-  String? _findSelection(
-    List<AddressModel> addresses,
-    String? requestedId,
-  ) {
+  String? _findSelection(List<AddressModel> addresses, String? requestedId) {
     if (addresses.isEmpty) return null;
 
     for (final address in addresses) {
@@ -450,9 +434,7 @@ class _NewShippingPageState extends State<NewShippingPage> {
   // SELECT ADDRESS
   // ==========================================================
 
-  Future<void> _selectAddress(
-    AddressModel address,
-  ) async {
+  Future<void> _selectAddress(AddressModel address) async {
     if (_isSavingAddress || _isLoading) return;
 
     setState(() {
@@ -460,9 +442,7 @@ class _NewShippingPageState extends State<NewShippingPage> {
     });
 
     try {
-      await AddressStorage.saveSelectedAddressId(
-        address.id,
-      );
+      await AddressStorage.saveSelectedAddressId(address.id);
 
       if (!mounted) return;
 
@@ -470,18 +450,12 @@ class _NewShippingPageState extends State<NewShippingPage> {
         _selectedAddressId = address.id;
       });
     } catch (error) {
-      debugPrint(
-        'Shipping address selection error: $error',
-      );
+      debugPrint('Shipping address selection error: $error');
 
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Unable to save your address selection.',
-          ),
-        ),
+        const SnackBar(content: Text('Unable to save your address selection.')),
       );
     } finally {
       if (mounted) {
@@ -499,11 +473,8 @@ class _NewShippingPageState extends State<NewShippingPage> {
   Future<void> _addAddress() async {
     if (_isSavingAddress || _isLoading) return;
 
-    final address = await Navigator.of(context)
-        .push<AddressModel>(
-      MaterialPageRoute<AddressModel>(
-        builder: (_) => const AddressFormPage(),
-      ),
+    final address = await Navigator.of(context).push<AddressModel>(
+      MaterialPageRoute<AddressModel>(builder: (_) => const AddressFormPage()),
     );
 
     if (address == null || !mounted) return;
@@ -517,22 +488,14 @@ class _NewShippingPageState extends State<NewShippingPage> {
 
       if (!mounted) return;
 
-      await _loadAddresses(
-        preferredAddressId: address.id,
-      );
+      await _loadAddresses(preferredAddressId: address.id);
     } catch (error) {
-      debugPrint(
-        'Shipping address save error: $error',
-      );
+      debugPrint('Shipping address save error: $error');
 
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Unable to save the new address.',
-          ),
-        ),
+        const SnackBar(content: Text('Unable to save the new address.')),
       );
     } finally {
       if (mounted) {
@@ -561,7 +524,7 @@ class _NewShippingPageState extends State<NewShippingPage> {
   // CONTINUE TO DELIVERY
   // ==========================================================
 
-  void _continueToDelivery() {
+  Future<void> _continueToDelivery() async {
     final address = _selectedAddress;
 
     if (_isLoading ||
@@ -574,16 +537,7 @@ class _NewShippingPageState extends State<NewShippingPage> {
 
     FocusScope.of(context).unfocus();
 
-    Navigator.of(
-      context,
-      rootNavigator: true,
-    ).push(
-      MaterialPageRoute<void>(
-        builder: (_) => NewDeliveryPage(
-          shippingAddress: address,
-        ),
-      ),
-    );
+    await context.push<void>(RouteNames.newDelivery, extra: address);
   }
 
   // ==========================================================
@@ -593,29 +547,24 @@ class _NewShippingPageState extends State<NewShippingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
       backgroundColor: HomeColors.background,
 
       // ======================================================
       // NO APP BAR IN SHIPPING PAGE
       // ======================================================
-
       body: SafeArea(
         child: Column(
           children: [
-
             // ================================================
             // CHECKOUT CONSTANT
             // SHIPPING INDEX = 1
             // ================================================
 
             const Padding(
-              padding: EdgeInsets.fromLTRB(
-                16, 16, 16, 0,
-              ),
+              padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
 
               child: NewConstantCheckout(
-                currentIndex: NewConstantCheckout.address,
+                currentIndex: NewConstantCheckout.shipping,
               ),
             ),
 
@@ -624,28 +573,99 @@ class _NewShippingPageState extends State<NewShippingPage> {
             // ================================================
             // SCROLLABLE ADDRESS SECTION
             // ================================================
-
             Expanded(
               child: _isLoading
-
                   // LOADING
-
                   ? const Center(
                       child: CircularProgressIndicator(
                         color: HomeColors.secondary,
                       ),
                     )
-
                   // ERROR
-
                   : _loadError != null
-                      ? Center(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
+                  ? Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
 
-                            children: [
-                              Text(
-                                _loadError!,
+                        children: [
+                          Text(
+                            _loadError!,
+
+                            textAlign: TextAlign.center,
+
+                            style: HomeTextStyles.body.copyWith(
+                              color: HomeColors.textSecondary,
+                            ),
+                          ),
+
+                          const SizedBox(height: 12),
+
+                          TextButton(
+                            onPressed: _loadAddresses,
+
+                            child: Text(
+                              'Retry',
+
+                              style: HomeTextStyles.button.copyWith(
+                                color: HomeColors.secondary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  // ADDRESS LIST
+                  : RadioGroup<String>(
+                      groupValue: _selectedAddressId,
+
+                      onChanged: (addressId) {
+                        if (addressId == null) return;
+
+                        for (final address in _addresses) {
+                          if (address.id == addressId) {
+                            _selectAddress(address);
+                            return;
+                          }
+                        }
+                      },
+
+                      child: ListView(
+                        padding: const EdgeInsets.all(16),
+
+                        children: [
+                          // =================================
+                          // ADDRESS SECTION TITLE
+                          // =================================
+
+                          Text(
+                            'Choose a delivery address',
+
+                            style: HomeTextStyles.sectionTitle.copyWith(
+                              color: HomeColors.textPrimary,
+                            ),
+                          ),
+
+                          const SizedBox(height: 6),
+
+                          Text(
+                            'Your saved addresses are stored on this device until API sync is available.',
+
+                            style: HomeTextStyles.body.copyWith(
+                              color: HomeColors.textSecondary,
+                            ),
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          // =================================
+                          // SAVED ADDRESSES
+                          // =================================
+                          if (_addresses.isEmpty)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 24),
+
+                              child: Text(
+                                'No saved addresses yet. Add one to continue.',
 
                                 textAlign: TextAlign.center,
 
@@ -653,159 +673,65 @@ class _NewShippingPageState extends State<NewShippingPage> {
                                   color: HomeColors.textSecondary,
                                 ),
                               ),
+                            )
+                          else
+                            ..._addresses.map(_buildAddressCard),
 
-                              const SizedBox(height: 12),
+                          const SizedBox(height: 12),
 
-                              TextButton(
-                                onPressed: _loadAddresses,
+                          // =================================
+                          // ADD NEW ADDRESS BUTTON
+                          // =================================
+                          OutlinedButton.icon(
+                            onPressed: _isSavingAddress ? null : _addAddress,
 
-                                child: Text(
-                                  'Retry',
+                            icon: const Icon(
+                              Icons.add,
+                              color: HomeColors.secondary,
+                            ),
 
-                                  style: HomeTextStyles.button.copyWith(
-                                    color: HomeColors.secondary,
-                                  ),
-                                ),
+                            label: Text(
+                              'Add New Address',
+
+                              style: HomeTextStyles.button.copyWith(
+                                color: HomeColors.secondary,
                               ),
-                            ],
+                            ),
+
+                            style: OutlinedButton.styleFrom(
+                              minimumSize: const Size.fromHeight(54),
+
+                              side: const BorderSide(color: HomeColors.border),
+
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
                           ),
-                        )
-
-                      // ADDRESS LIST
-
-                      : RadioGroup<String>(
-                          groupValue: _selectedAddressId,
-
-                          onChanged: (addressId) {
-                            if (addressId == null) return;
-
-                            for (final address in _addresses) {
-                              if (address.id == addressId) {
-                                _selectAddress(address);
-                                return;
-                              }
-                            }
-                          },
-
-                          child: ListView(
-                            padding: const EdgeInsets.all(16),
-
-                            children: [
-
-                              // =================================
-                              // ADDRESS SECTION TITLE
-                              // =================================
-
-                              Text(
-                                'Choose a delivery address',
-
-                                style: HomeTextStyles.sectionTitle.copyWith(
-                                  color: HomeColors.textPrimary,
-                                ),
-                              ),
-
-                              const SizedBox(height: 6),
-
-                              Text(
-                                'Your saved addresses are stored on this device until API sync is available.',
-
-                                style: HomeTextStyles.body.copyWith(
-                                  color: HomeColors.textSecondary,
-                                ),
-                              ),
-
-                              const SizedBox(height: 16),
-
-                              // =================================
-                              // SAVED ADDRESSES
-                              // =================================
-
-                              if (_addresses.isEmpty)
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 24,
-                                  ),
-
-                                  child: Text(
-                                    'No saved addresses yet. Add one to continue.',
-
-                                    textAlign: TextAlign.center,
-
-                                    style: HomeTextStyles.body.copyWith(
-                                      color: HomeColors.textSecondary,
-                                    ),
-                                  ),
-                                )
-                              else
-                                ..._addresses.map(
-                                  _buildAddressCard,
-                                ),
-
-                              const SizedBox(height: 12),
-
-                              // =================================
-                              // ADD NEW ADDRESS BUTTON
-                              // =================================
-
-                              OutlinedButton.icon(
-                                onPressed: _isSavingAddress
-                                    ? null
-                                    : _addAddress,
-
-                                icon: const Icon(
-                                  Icons.add,
-                                  color: HomeColors.secondary,
-                                ),
-
-                                label: Text(
-                                  'Add New Address',
-
-                                  style: HomeTextStyles.button.copyWith(
-                                    color: HomeColors.secondary,
-                                  ),
-                                ),
-
-                                style: OutlinedButton.styleFrom(
-                                  minimumSize:
-                                      const Size.fromHeight(54),
-
-                                  side: const BorderSide(
-                                    color: HomeColors.border,
-                                  ),
-
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius:
-                                        BorderRadius.circular(10),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                        ],
+                      ),
+                    ),
             ),
 
             // ================================================
             // FIXED COMMON CHECKOUT BOTTOM BUTTON
             // CONTINUE TO DELIVERY
             // ================================================
-
             ValueListenableBuilder<List<CartNotificationItem>>(
               valueListenable: CartService.items,
 
               builder: (context, items, child) {
                 return NewCheckoutBottomBar(
-                  currentIndex: NewConstantCheckout.address,
+                  currentIndex: NewConstantCheckout.shipping,
 
                   onContinue:
                       !_isLoading &&
-                      !_isSavingAddress &&
-                      _loadError == null &&
-                      _selectedAddress != null &&
-                      items.isNotEmpty
-
-                          ? _continueToDelivery
-
-                          : null,
+                          !_isSavingAddress &&
+                          _loadError == null &&
+                          _selectedAddress != null &&
+                          items.isNotEmpty
+                      ? _continueToDelivery
+                      : null,
                 );
               },
             ),
@@ -819,11 +745,8 @@ class _NewShippingPageState extends State<NewShippingPage> {
   // SAVED ADDRESS CARD
   // ==========================================================
 
-  Widget _buildAddressCard(
-    AddressModel address,
-  ) {
-    final selected =
-        address.id == _selectedAddressId;
+  Widget _buildAddressCard(AddressModel address) {
+    final selected = address.id == _selectedAddressId;
 
     final addressLines = [
       address.address,
@@ -831,9 +754,7 @@ class _NewShippingPageState extends State<NewShippingPage> {
       address.city,
       address.state,
       address.pin,
-    ].where(
-      (part) => part.trim().isNotEmpty,
-    ).join(', ');
+    ].where((part) => part.trim().isNotEmpty).join(', ');
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -846,9 +767,7 @@ class _NewShippingPageState extends State<NewShippingPage> {
         borderRadius: BorderRadius.circular(10),
 
         side: BorderSide(
-          color: selected
-              ? HomeColors.secondary
-              : HomeColors.border,
+          color: selected ? HomeColors.secondary : HomeColors.border,
 
           width: selected ? 1.5 : 1,
         ),
@@ -860,16 +779,12 @@ class _NewShippingPageState extends State<NewShippingPage> {
         borderRadius: BorderRadius.circular(10),
 
         child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 8,
-            vertical: 12,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
 
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
 
             children: [
-
               // ==============================================
               // RADIO BUTTON
               // ==============================================
@@ -883,19 +798,14 @@ class _NewShippingPageState extends State<NewShippingPage> {
               // ==============================================
               // ADDRESS INFORMATION
               // ==============================================
-
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.only(
-                    top: 10,
-                    right: 8,
-                  ),
+                  padding: const EdgeInsets.only(top: 10, right: 8),
 
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
 
                     children: [
-
                       // ADDRESS TYPE
 
                       Row(
@@ -913,7 +823,6 @@ class _NewShippingPageState extends State<NewShippingPage> {
                           ),
 
                           // DEFAULT ADDRESS LABEL
-
                           if (address.isDefault)
                             Text(
                               'DEFAULT',
@@ -930,7 +839,6 @@ class _NewShippingPageState extends State<NewShippingPage> {
                       const SizedBox(height: 6),
 
                       // CUSTOMER NAME
-
                       Text(
                         address.name,
 
@@ -942,7 +850,6 @@ class _NewShippingPageState extends State<NewShippingPage> {
                       const SizedBox(height: 4),
 
                       // FULL ADDRESS
-
                       Text(
                         addressLines,
 
@@ -956,7 +863,6 @@ class _NewShippingPageState extends State<NewShippingPage> {
                       const SizedBox(height: 4),
 
                       // PHONE NUMBER
-
                       Text(
                         'Phone: ${address.phone}',
 

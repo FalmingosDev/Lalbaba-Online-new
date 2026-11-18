@@ -674,10 +674,7 @@ import 'new_constant_checkout_page.dart';
 // PAYMENT METHOD
 // ============================================================
 
-enum _PaymentMethod {
-  worldline,
-  cashOnDelivery,
-}
+enum _PaymentMethod { worldline, cashOnDelivery }
 
 // ============================================================
 // NEW PAYMENT PAGE
@@ -687,27 +684,21 @@ class NewPaymentPage extends StatefulWidget {
   const NewPaymentPage({super.key});
 
   @override
-  State<NewPaymentPage> createState() =>
-      _NewPaymentPageState();
+  State<NewPaymentPage> createState() => _NewPaymentPageState();
 }
 
 class _NewPaymentPageState extends State<NewPaymentPage> {
-
   // ==========================================================
   // VARIABLES AND CONTROLLERS
   // ==========================================================
 
-  static const String _instructionsKey =
-      'checkout_delivery_instructions';
+  static const String _instructionsKey = 'checkout_delivery_instructions';
 
-  final TextEditingController _instructionsController =
-      TextEditingController();
+  final TextEditingController _instructionsController = TextEditingController();
 
-  final TextEditingController _pincodeController =
-      TextEditingController();
+  final TextEditingController _pincodeController = TextEditingController();
 
-  _PaymentMethod _paymentMethod =
-      _PaymentMethod.worldline;
+  _PaymentMethod _paymentMethod = _PaymentMethod.worldline;
 
   bool _isSavingInstructions = false;
   bool _instructionsSaved = false;
@@ -741,28 +732,21 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
 
   Future<void> _loadInstructions() async {
     try {
-      final prefs =
-          await SharedPreferences.getInstance();
+      final prefs = await SharedPreferences.getInstance();
 
       if (!mounted) return;
 
-      _instructionsController.text =
-          prefs.getString(_instructionsKey) ?? '';
+      _instructionsController.text = prefs.getString(_instructionsKey) ?? '';
 
       setState(() {
-        _instructionsSaved =
-            _instructionsController.text.isNotEmpty;
+        _instructionsSaved = _instructionsController.text.isNotEmpty;
       });
     } catch (error) {
-      debugPrint(
-        'Delivery instruction load error: $error',
-      );
+      debugPrint('Delivery instruction load error: $error');
 
       if (!mounted) return;
 
-      _showMessage(
-        'Unable to load saved delivery instructions.',
-      );
+      _showMessage('Unable to load saved delivery instructions.');
     }
   }
 
@@ -771,13 +755,10 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
   // ==========================================================
 
   Future<void> _saveInstructions() async {
-    final instructions =
-        _instructionsController.text.trim();
+    final instructions = _instructionsController.text.trim();
 
     if (instructions.isEmpty) {
-      _showMessage(
-        'Write your delivery instructions before saving.',
-      );
+      _showMessage('Write your delivery instructions before saving.');
 
       return;
     }
@@ -787,13 +768,9 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
     });
 
     try {
-      final prefs =
-          await SharedPreferences.getInstance();
+      final prefs = await SharedPreferences.getInstance();
 
-      await prefs.setString(
-        _instructionsKey,
-        instructions,
-      );
+      await prefs.setString(_instructionsKey, instructions);
 
       if (!mounted) return;
 
@@ -801,21 +778,13 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
         _instructionsSaved = true;
       });
 
-      _showMessage(
-        'Delivery instructions saved.',
-      );
-
+      _showMessage('Delivery instructions saved.');
     } catch (error) {
-      debugPrint(
-        'Delivery instruction save error: $error',
-      );
+      debugPrint('Delivery instruction save error: $error');
 
       if (!mounted) return;
 
-      _showMessage(
-        'Unable to save delivery instructions.',
-      );
-
+      _showMessage('Unable to save delivery instructions.');
     } finally {
       if (mounted) {
         setState(() {
@@ -830,13 +799,11 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
   // ==========================================================
 
   Future<void> _checkPincode() async {
-    final pincode =
-        _pincodeController.text.trim();
+    final pincode = _pincodeController.text.trim();
 
     if (!RegExp(r'^\d{6}$').hasMatch(pincode)) {
       setState(() {
-        _pincodeMessage =
-            'Enter a valid 6-digit PIN code.';
+        _pincodeMessage = 'Enter a valid 6-digit PIN code.';
 
         _isPincodeValid = false;
       });
@@ -851,12 +818,9 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
     });
 
     try {
-
       // TODO: Connect delivery service API.
 
-      await Future<void>.delayed(
-        const Duration(milliseconds: 300),
-      );
+      await Future<void>.delayed(const Duration(milliseconds: 300));
 
       if (!mounted) return;
 
@@ -866,7 +830,6 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
 
         _isPincodeValid = true;
       });
-
     } finally {
       if (mounted) {
         setState(() {
@@ -902,18 +865,13 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
       );
 
       if (!launched && mounted) {
-        _showMessage(
-          'Unable to open this page.',
-        );
+        _showMessage('Unable to open this page.');
       }
-
     } catch (error) {
       debugPrint('Policy link error: $error');
 
       if (mounted) {
-        _showMessage(
-          'Unable to open this page.',
-        );
+        _showMessage('Unable to open this page.');
       }
     }
   }
@@ -925,11 +883,18 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
   void _showMessage(String message) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-        ),
-      );
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  void _placeOrder() {
+    if (!_agreedToTerms) {
+      _showMessage('Please agree to the terms and conditions.');
+      return;
+    }
+
+    _showMessage(
+      'Order placement will be available when checkout is connected.',
+    );
   }
 
   // ==========================================================
@@ -940,27 +905,25 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: HomeColors.background,
+      bottomNavigationBar: NewCheckoutBottomBar(
+        currentIndex: NewConstantCheckout.payment,
+        onContinue: _agreedToTerms ? _placeOrder : null,
+      ),
 
       // ======================================================
       // NO APP BAR IN PAYMENT PAGE
       // ======================================================
-
       body: SafeArea(
-        child: ValueListenableBuilder<
-            List<CartNotificationItem>>(
-
+        child: ValueListenableBuilder<List<CartNotificationItem>>(
           valueListenable: CartService.items,
 
           builder: (context, cartItems, child) {
             return LayoutBuilder(
               builder: (context, constraints) {
-
                 final instructionsAndPayment = Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.stretch,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
 
                   children: [
-
                     // ADDITIONAL INSTRUCTIONS
 
                     _buildInstructionsCard(),
@@ -968,18 +931,15 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
                     const SizedBox(height: 16),
 
                     // PAYMENT METHOD
-
                     _buildPaymentMethodsCard(),
 
                     const SizedBox(height: 16),
 
                     // MOBILE SUMMARY
-
                     if (constraints.maxWidth < 800)
                       _buildSummaryCard(cartItems),
 
-                    if (constraints.maxWidth < 800)
-                      const SizedBox(height: 16),
+                    if (constraints.maxWidth < 800) const SizedBox(height: 16),
                   ],
                 );
 
@@ -988,21 +948,17 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
 
                   child: Center(
                     child: ConstrainedBox(
-                      constraints: const BoxConstraints(
-                        maxWidth: 1200,
-                      ),
+                      constraints: const BoxConstraints(maxWidth: 1200),
 
                       child: Column(
                         children: [
-
                           // ==================================
                           // CONSTANT CHECKOUT
                           // PAYMENT INDEX = 3
                           // ==================================
 
                           const NewConstantCheckout(
-                            currentIndex:
-                                NewConstantCheckout.payment,
+                            currentIndex: NewConstantCheckout.payment,
                           ),
 
                           const SizedBox(height: 24),
@@ -1010,34 +966,25 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
                           // ==================================
                           // DESKTOP VIEW
                           // ==================================
-
                           if (constraints.maxWidth >= 800)
                             Row(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
 
                               children: [
-                                Expanded(
-                                  child:
-                                      instructionsAndPayment,
-                                ),
+                                Expanded(child: instructionsAndPayment),
 
                                 const SizedBox(width: 20),
 
                                 SizedBox(
                                   width: 380,
 
-                                  child: _buildSummaryCard(
-                                    cartItems,
-                                  ),
+                                  child: _buildSummaryCard(cartItems),
                                 ),
                               ],
                             )
-
                           // ==================================
                           // MOBILE VIEW
                           // ==================================
-
                           else
                             instructionsAndPayment,
                         ],
@@ -1062,11 +1009,9 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
       title: 'Any additional instructions?',
 
       child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.stretch,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
 
         children: [
-
           // INSTRUCTIONS TEXT FIELD
 
           TextField(
@@ -1091,9 +1036,7 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
               border: OutlineInputBorder(),
 
               focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(
-                  color: HomeColors.secondary,
-                ),
+                borderSide: BorderSide(color: HomeColors.secondary),
               ),
             ),
           ),
@@ -1101,17 +1044,13 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
           const SizedBox(height: 12),
 
           // SAVE INSTRUCTIONS BUTTON
-
           Align(
             alignment: Alignment.centerRight,
 
             child: ElevatedButton.icon(
-              onPressed: _isSavingInstructions
-                  ? null
-                  : _saveInstructions,
+              onPressed: _isSavingInstructions ? null : _saveInstructions,
 
               icon: _isSavingInstructions
-
                   ? const SizedBox(
                       width: 16,
                       height: 16,
@@ -1122,18 +1061,11 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
                         color: HomeColors.white,
                       ),
                     )
-
                   : Icon(
-                      _instructionsSaved
-                          ? Icons.check
-                          : Icons.save_outlined,
+                      _instructionsSaved ? Icons.check : Icons.save_outlined,
                     ),
 
-              label: Text(
-                _instructionsSaved
-                    ? 'Saved'
-                    : 'Save',
-              ),
+              label: Text(_instructionsSaved ? 'Saved' : 'Save'),
 
               style: ElevatedButton.styleFrom(
                 backgroundColor: HomeColors.secondary,
@@ -1171,7 +1103,6 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
           runSpacing: 12,
 
           children: [
-
             // ================================================
             // WORLDLINE PAYMENT
             // ================================================
@@ -1179,9 +1110,7 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
             _PaymentMethodOption(
               value: _PaymentMethod.worldline,
 
-              selected:
-                  _paymentMethod ==
-                      _PaymentMethod.worldline,
+              selected: _paymentMethod == _PaymentMethod.worldline,
 
               title: 'WORLDLINE',
 
@@ -1189,8 +1118,7 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
 
               onSelected: () {
                 setState(() {
-                  _paymentMethod =
-                      _PaymentMethod.worldline;
+                  _paymentMethod = _PaymentMethod.worldline;
                 });
               },
             ),
@@ -1198,13 +1126,10 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
             // ================================================
             // CASH ON DELIVERY
             // ================================================
-
             _PaymentMethodOption(
               value: _PaymentMethod.cashOnDelivery,
 
-              selected:
-                  _paymentMethod ==
-                      _PaymentMethod.cashOnDelivery,
+              selected: _paymentMethod == _PaymentMethod.cashOnDelivery,
 
               title: 'Cash on Delivery',
 
@@ -1212,8 +1137,7 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
 
               onSelected: () {
                 setState(() {
-                  _paymentMethod =
-                      _PaymentMethod.cashOnDelivery;
+                  _paymentMethod = _PaymentMethod.cashOnDelivery;
                 });
               },
             ),
@@ -1227,18 +1151,13 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
   // ORDER SUMMARY CARD
   // ==========================================================
 
-  Widget _buildSummaryCard(
-    List<CartNotificationItem> cartItems,
-  ) {
-
+  Widget _buildSummaryCard(List<CartNotificationItem> cartItems) {
     // DYNAMIC PRODUCT SUBTOTAL
 
     final subtotal = cartItems.fold<double>(
       0,
 
-      (sum, item) =>
-          sum +
-          (_parsePrice(item.price) * item.quantity),
+      (sum, item) => sum + (_parsePrice(item.price) * item.quantity),
     );
 
     // TOTAL PRODUCT QUANTITY
@@ -1263,11 +1182,9 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
       ),
 
       child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.stretch,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
 
         children: [
-
           // ==================================================
           // DELIVERY PIN CODE FIELD
           // ==================================================
@@ -1281,8 +1198,7 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
                   keyboardType: TextInputType.number,
 
                   inputFormatters: [
-                    FilteringTextInputFormatter
-                        .digitsOnly,
+                    FilteringTextInputFormatter.digitsOnly,
 
                     LengthLimitingTextInputFormatter(6),
                   ],
@@ -1290,8 +1206,7 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
                   onChanged: _onPincodeChanged,
 
                   decoration: const InputDecoration(
-                    hintText:
-                        'Enter 6-digit delivery PIN code',
+                    hintText: 'Enter 6-digit delivery PIN code',
 
                     isDense: true,
 
@@ -1303,24 +1218,18 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
               const SizedBox(width: 8),
 
               // CHECK PIN CODE BUTTON
-
               ElevatedButton(
-                onPressed: _isCheckingPincode
-                    ? null
-                    : _checkPincode,
+                onPressed: _isCheckingPincode ? null : _checkPincode,
 
                 style: ElevatedButton.styleFrom(
                   backgroundColor: HomeColors.secondary,
 
                   foregroundColor: HomeColors.white,
 
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
                 ),
 
                 child: _isCheckingPincode
-
                     ? const SizedBox(
                         width: 18,
                         height: 18,
@@ -1331,14 +1240,12 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
                           color: HomeColors.white,
                         ),
                       )
-
                     : const Text('Check'),
               ),
             ],
           ),
 
           // PIN CODE MESSAGE
-
           if (_pincodeMessage != null) ...[
             const SizedBox(height: 8),
 
@@ -1346,9 +1253,7 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
               _pincodeMessage!,
 
               style: TextStyle(
-                color: _isPincodeValid
-                    ? HomeColors.success
-                    : HomeColors.error,
+                color: _isPincodeValid ? HomeColors.success : HomeColors.error,
 
                 fontSize: 12,
               ),
@@ -1360,26 +1265,17 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
           // ==================================================
           // PRODUCT TABLE HEADER
           // ==================================================
-
           const Row(
             children: [
               Expanded(
                 child: Text(
                   'Product',
 
-                  style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.w700),
                 ),
               ),
 
-              Text(
-                'Total',
-
-                style: TextStyle(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
+              Text('Total', style: TextStyle(fontWeight: FontWeight.w700)),
             ],
           ),
 
@@ -1388,42 +1284,30 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
           // ==================================================
           // DYNAMIC CART PRODUCTS
           // ==================================================
-
           if (cartItems.isEmpty)
             const Padding(
-              padding: EdgeInsets.symmetric(
-                vertical: 8,
-              ),
+              padding: EdgeInsets.symmetric(vertical: 8),
 
               child: Text(
                 'Your cart is empty.',
 
-                style: TextStyle(
-                  color: HomeColors.textSecondary,
-                ),
+                style: TextStyle(color: HomeColors.textSecondary),
               ),
             )
-
           else
-
             ...cartItems.map(
               (item) => Padding(
-                padding: const EdgeInsets.only(
-                  bottom: 12,
-                ),
+                padding: const EdgeInsets.only(bottom: 12),
 
                 child: Row(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
 
                   children: [
                     Expanded(
                       child: Text(
                         '${item.name} × ${item.quantity}',
 
-                        style: const TextStyle(
-                          color: HomeColors.textPrimary,
-                        ),
+                        style: const TextStyle(color: HomeColors.textPrimary),
                       ),
                     ),
 
@@ -1432,9 +1316,7 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
                     Text(
                       '₹${(_parsePrice(item.price) * item.quantity).toStringAsFixed(2)}',
 
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
                   ],
                 ),
@@ -1446,65 +1328,35 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
           // ==================================================
           // PRICE SUMMARY
           // ==================================================
+          _SummaryRow(label: 'Total Base Price', amount: subtotal),
 
-          _SummaryRow(
-            label: 'Total Base Price',
+          const _SummaryRow(label: 'Discount', amount: 0),
 
-            amount: subtotal,
-          ),
+          _SummaryRow(label: 'Subtotal', amount: subtotal),
 
-          const _SummaryRow(
-            label: 'Discount',
+          const _SummaryRow(label: 'Tax', amount: 0),
 
-            amount: 0,
-          ),
-
-          _SummaryRow(
-            label: 'Subtotal',
-
-            amount: subtotal,
-          ),
-
-          const _SummaryRow(
-            label: 'Tax',
-
-            amount: 0,
-          ),
-
-          const _SummaryRow(
-            label: 'Total Shipping',
-
-            amount: 0,
-          ),
+          const _SummaryRow(label: 'Total Shipping', amount: 0),
 
           const Divider(height: 20),
 
           // ==================================================
           // GRAND TOTAL
           // ==================================================
-
-          _SummaryRow(
-            label: 'Total',
-
-            amount: subtotal,
-
-            isEmphasized: true,
-          ),
+          _SummaryRow(label: 'Total', amount: subtotal, isEmphasized: true),
 
           const SizedBox(height: 12),
 
           // ==================================================
           // TERMS AND CONDITIONS
           // ==================================================
-
           Material(
             color: HomeColors.surface,
 
             child: CheckboxListTile(
               contentPadding: EdgeInsets.zero,
 
-              controlAffinity:
-                  ListTileControlAffinity.leading,
+              controlAffinity: ListTileControlAffinity.leading,
 
               value: _agreedToTerms,
 
@@ -1518,16 +1370,12 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
 
               title: Wrap(
                 children: [
-                  const Text(
-                    'I agree to the ',
-                  ),
+                  const Text('I agree to the '),
 
                   _PolicyLink(
                     label: 'terms and conditions',
 
-                    onTap: () => _openPolicy(
-                      'https://lalbabaonline.com/terms',
-                    ),
+                    onTap: () => _openPolicy('https://lalbabaonline.com/terms'),
                   ),
 
                   const Text(', '),
@@ -1535,9 +1383,8 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
                   _PolicyLink(
                     label: 'return policy',
 
-                    onTap: () => _openPolicy(
-                      'https://lalbabaonline.com/return-policy',
-                    ),
+                    onTap: () =>
+                        _openPolicy('https://lalbabaonline.com/return-policy'),
                   ),
 
                   const Text(' & '),
@@ -1545,9 +1392,8 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
                   _PolicyLink(
                     label: 'privacy policy',
 
-                    onTap: () => _openPolicy(
-                      'https://lalbabaonline.com/privacy-policy',
-                    ),
+                    onTap: () =>
+                        _openPolicy('https://lalbabaonline.com/privacy-policy'),
                   ),
                 ],
               ),
@@ -1559,7 +1405,6 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
           // ==================================================
           // RETURN TO DELIVERY PAGE
           // ==================================================
-
           TextButton(
             onPressed: () {
               Navigator.of(context).maybePop();
@@ -1568,9 +1413,7 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
             child: const Text(
               'Return to delivery',
 
-              style: TextStyle(
-                color: HomeColors.textSecondary,
-              ),
+              style: TextStyle(color: HomeColors.textSecondary),
             ),
           ),
         ],
@@ -1583,10 +1426,7 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
   // ==========================================================
 
   static double _parsePrice(String value) {
-    final normalized = value.replaceAll(
-      RegExp(r'[^0-9.]'),
-      '',
-    );
+    final normalized = value.replaceAll(RegExp(r'[^0-9.]'), '');
 
     return double.tryParse(normalized) ?? 0;
   }
@@ -1597,11 +1437,7 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
 // ============================================================
 
 class _SectionCard extends StatelessWidget {
-  const _SectionCard({
-    required this.title,
-    required this.child,
-    this.trailing,
-  });
+  const _SectionCard({required this.title, required this.child, this.trailing});
 
   final String title;
 
@@ -1615,19 +1451,15 @@ class _SectionCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: HomeColors.surface,
 
-        border: Border.all(
-          color: HomeColors.border,
-        ),
+        border: Border.all(color: HomeColors.border),
 
         borderRadius: BorderRadius.circular(8),
       ),
 
       child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.stretch,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
 
         children: [
-
           // SECTION HEADER
 
           Padding(
@@ -1647,25 +1479,15 @@ class _SectionCard extends StatelessWidget {
                   ),
                 ),
 
-                if (trailing != null)
-                  trailing!,
+                if (trailing != null) trailing!,
               ],
             ),
           ),
 
-          const Divider(
-            height: 1,
-
-            color: HomeColors.divider,
-          ),
+          const Divider(height: 1, color: HomeColors.divider),
 
           // SECTION CONTENT
-
-          Padding(
-            padding: const EdgeInsets.all(16),
-
-            child: child,
-          ),
+          Padding(padding: const EdgeInsets.all(16), child: child),
         ],
       ),
     );
@@ -1715,9 +1537,7 @@ class _PaymentMethodOption extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
 
           border: Border.all(
-            color: selected
-                ? HomeColors.secondary
-                : HomeColors.border,
+            color: selected ? HomeColors.secondary : HomeColors.border,
 
             width: selected ? 1.5 : 1,
           ),
@@ -1725,21 +1545,13 @@ class _PaymentMethodOption extends StatelessWidget {
 
         child: Column(
           children: [
-
             // PAYMENT ICON
 
-            Icon(
-              icon,
-
-              size: 30,
-
-              color: HomeColors.secondary,
-            ),
+            Icon(icon, size: 30, color: HomeColors.secondary),
 
             const SizedBox(height: 6),
 
             // PAYMENT TITLE
-
             Text(
               title,
 
@@ -1759,14 +1571,12 @@ class _PaymentMethodOption extends StatelessWidget {
             const Spacer(),
 
             // PAYMENT RADIO BUTTON
-
             Radio<_PaymentMethod>(
               value: value,
 
               visualDensity: VisualDensity.compact,
 
-              materialTapTargetSize:
-                  MaterialTapTargetSize.shrinkWrap,
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
           ],
         ),
@@ -1795,13 +1605,10 @@ class _SummaryRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        vertical: 8,
-      ),
+      padding: const EdgeInsets.symmetric(vertical: 8),
 
       child: Row(
         children: [
-
           // SUMMARY LABEL
 
           Expanded(
@@ -1811,32 +1618,23 @@ class _SummaryRow extends StatelessWidget {
               style: TextStyle(
                 color: HomeColors.textPrimary,
 
-                fontWeight: isEmphasized
-                    ? FontWeight.w700
-                    : FontWeight.w500,
+                fontWeight: isEmphasized ? FontWeight.w700 : FontWeight.w500,
 
-                fontSize: isEmphasized
-                    ? 16
-                    : 14,
+                fontSize: isEmphasized ? 16 : 14,
               ),
             ),
           ),
 
           // SUMMARY AMOUNT
-
           Text(
             '₹${amount.toStringAsFixed(2)}',
 
             style: TextStyle(
               color: HomeColors.textPrimary,
 
-              fontWeight: isEmphasized
-                  ? FontWeight.w700
-                  : FontWeight.w600,
+              fontWeight: isEmphasized ? FontWeight.w700 : FontWeight.w600,
 
-              fontSize: isEmphasized
-                  ? 16
-                  : 14,
+              fontSize: isEmphasized ? 16 : 14,
             ),
           ),
         ],
@@ -1850,10 +1648,7 @@ class _SummaryRow extends StatelessWidget {
 // ============================================================
 
 class _PolicyLink extends StatelessWidget {
-  const _PolicyLink({
-    required this.label,
-    required this.onTap,
-  });
+  const _PolicyLink({required this.label, required this.onTap});
 
   final String label;
 

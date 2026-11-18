@@ -1029,6 +1029,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lalbaba_online/new_app/new_constant_checkout_page.dart';
 
+import '../app/router/route_guards.dart';
 import '../app/router/route_names.dart';
 import '../core/services/cart_notification_item.dart';
 import '../core/services/cart_service.dart';
@@ -1049,10 +1050,7 @@ import 'new_wishlist.dart';
 class NewCartPage extends StatefulWidget {
   final bool showBackButton;
 
-  const NewCartPage({
-    super.key,
-    this.showBackButton = false,
-  });
+  const NewCartPage({super.key, this.showBackButton = false});
 
   @override
   State<NewCartPage> createState() => _NewCartPageState();
@@ -1072,8 +1070,7 @@ class _NewCartPageState extends State<NewCartPage> {
 
     _cartInitializeFuture = CartService.initialize();
 
-    _scrollController = ScrollController()
-      ..addListener(_handleScroll);
+    _scrollController = ScrollController()..addListener(_handleScroll);
   }
 
   @override
@@ -1134,10 +1131,7 @@ class _NewCartPageState extends State<NewCartPage> {
               )
             : null,
 
-        title: const Text(
-          'Cart',
-          style: HomeTextStyles.appBarTitle,
-        ),
+        title: const Text('Cart', style: HomeTextStyles.appBarTitle),
 
         actions: [
           IconButton(
@@ -1154,9 +1148,7 @@ class _NewCartPageState extends State<NewCartPage> {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
-              child: CircularProgressIndicator(
-                color: HomeColors.secondary,
-              ),
+              child: CircularProgressIndicator(color: HomeColors.secondary),
             );
           }
 
@@ -1183,7 +1175,8 @@ class _NewCartPageState extends State<NewCartPage> {
             builder: (context, cartItems, child) {
               const delivery = 40.0;
 
-              final total = cartItems.fold<double>(
+              final total =
+                  cartItems.fold<double>(
                     0,
                     (sum, item) =>
                         sum + _parsePrice(item.price) * item.quantity,
@@ -1198,12 +1191,9 @@ class _NewCartPageState extends State<NewCartPage> {
                         child: ListView(
                           controller: _scrollController,
 
-                          padding: const EdgeInsets.fromLTRB(
-                            16, 16, 16, 20,
-                          ),
+                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
 
                           children: [
-
                             // =================================
                             // CART PRODUCTS
                             // NO CHECKOUT STEPPER IN CART
@@ -1223,13 +1213,9 @@ class _NewCartPageState extends State<NewCartPage> {
 
                               ...cartItems.map(
                                 (item) => Padding(
-                                  padding: const EdgeInsets.only(
-                                    bottom: 12,
-                                  ),
+                                  padding: const EdgeInsets.only(bottom: 12),
 
-                                  child: _CartItemCard(
-                                    item: item,
-                                  ),
+                                  child: _CartItemCard(item: item),
                                 ),
                               ),
                             ],
@@ -1237,7 +1223,6 @@ class _NewCartPageState extends State<NewCartPage> {
                             // =================================
                             // TRENDING PRODUCTS
                             // =================================
-
                             _ProductRail(
                               title: 'Trending',
                               products: _trendingProducts(cartItems),
@@ -1246,7 +1231,6 @@ class _NewCartPageState extends State<NewCartPage> {
                             // =================================
                             // RELATED PRODUCTS
                             // =================================
-
                             _ProductRail(
                               title: 'People also bought these',
                               products: _peopleAlsoBought(cartItems),
@@ -1255,7 +1239,6 @@ class _NewCartPageState extends State<NewCartPage> {
                             // =================================
                             // WISHLIST
                             // =================================
-
                             const _WishlistSection(),
                           ],
                         ),
@@ -1264,16 +1247,13 @@ class _NewCartPageState extends State<NewCartPage> {
                       // =======================================
                       // FIXED COMMON CHECKOUT BUTTON
                       // =======================================
-
-                      if (cartItems.isNotEmpty)
-                        _CartCheckoutBar(total: total),
+                      if (cartItems.isNotEmpty) _CartCheckoutBar(total: total),
                     ],
                   ),
 
                   // ===========================================
                   // BACK TO TOP BUTTON
                   // ===========================================
-
                   if (_showBackToTop)
                     Positioned(
                       top: 12,
@@ -1281,9 +1261,7 @@ class _NewCartPageState extends State<NewCartPage> {
                       right: 0,
 
                       child: Center(
-                        child: BackToTopButton(
-                          onPressed: _scrollToTop,
-                        ),
+                        child: BackToTopButton(onPressed: _scrollToTop),
                       ),
                     ),
                 ],
@@ -1299,9 +1277,7 @@ class _NewCartPageState extends State<NewCartPage> {
   // TRENDING PRODUCTS
   // ==========================================================
 
-  List<ProductItem> _trendingProducts(
-    List<CartNotificationItem> cartItems,
-  ) {
+  List<ProductItem> _trendingProducts(List<CartNotificationItem> cartItems) {
     final cartIds = cartItems
         .map((item) => item.productId?.trim())
         .whereType<String>()
@@ -1318,9 +1294,7 @@ class _NewCartPageState extends State<NewCartPage> {
   // PEOPLE ALSO BOUGHT
   // ==========================================================
 
-  List<ProductItem> _peopleAlsoBought(
-    List<CartNotificationItem> cartItems,
-  ) {
+  List<ProductItem> _peopleAlsoBought(List<CartNotificationItem> cartItems) {
     ProductItem? anchor;
 
     if (cartItems.isNotEmpty) {
@@ -1332,7 +1306,8 @@ class _NewCartPageState extends State<NewCartPage> {
       }
     }
 
-    final baseProduct = anchor ??
+    final baseProduct =
+        anchor ??
         (ProductRepository.allProducts.isEmpty
             ? null
             : ProductRepository.allProducts.first);
@@ -1345,10 +1320,9 @@ class _NewCartPageState extends State<NewCartPage> {
         .where((id) => id.isNotEmpty)
         .toSet();
 
-    return ProductRepository.relatedTo(baseProduct)
-        .where((product) => !cartIds.contains(product.id))
-        .take(6)
-        .toList();
+    return ProductRepository.relatedTo(
+      baseProduct,
+    ).where((product) => !cartIds.contains(product.id)).take(6).toList();
   }
 }
 
@@ -1360,10 +1334,7 @@ class _CartSectionHeader extends StatelessWidget {
   final String title;
   final String trailing;
 
-  const _CartSectionHeader({
-    required this.title,
-    required this.trailing,
-  });
+  const _CartSectionHeader({required this.title, required this.trailing});
 
   @override
   Widget build(BuildContext context) {
@@ -1399,9 +1370,7 @@ class _CartSectionHeader extends StatelessWidget {
 class _CartItemCard extends StatelessWidget {
   final CartNotificationItem item;
 
-  const _CartItemCard({
-    required this.item,
-  });
+  const _CartItemCard({required this.item});
 
   @override
   Widget build(BuildContext context) {
@@ -1418,9 +1387,7 @@ class _CartItemCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: HomeColors.surface,
 
-        border: Border.all(
-          color: HomeColors.border,
-        ),
+        border: Border.all(color: HomeColors.border),
 
         borderRadius: BorderRadius.circular(14),
 
@@ -1437,7 +1404,6 @@ class _CartItemCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
 
         children: [
-
           // ==================================================
           // PRODUCT IMAGE
           // ==================================================
@@ -1461,8 +1427,7 @@ class _CartItemCard extends StatelessWidget {
                       item.imageUrl,
                       fit: BoxFit.contain,
 
-                      errorBuilder: (context, error, stackTrace) =>
-                          const Icon(
+                      errorBuilder: (context, error, stackTrace) => const Icon(
                         Icons.shopping_bag_outlined,
                         color: HomeColors.textHint,
                         size: 34,
@@ -1476,7 +1441,6 @@ class _CartItemCard extends StatelessWidget {
           // ==================================================
           // PRODUCT INFORMATION
           // ==================================================
-
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1541,7 +1505,6 @@ class _CartItemCard extends StatelessWidget {
           // ==================================================
           // DELETE BUTTON
           // ==================================================
-
           IconButton(
             tooltip: 'Remove ${item.name}',
             visualDensity: VisualDensity.compact,
@@ -1567,9 +1530,7 @@ class _CartItemCard extends StatelessWidget {
 class _QuantityControl extends StatelessWidget {
   final CartNotificationItem item;
 
-  const _QuantityControl({
-    required this.item,
-  });
+  const _QuantityControl({required this.item});
 
   @override
   Widget build(BuildContext context) {
@@ -1585,7 +1546,6 @@ class _QuantityControl extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
 
         children: [
-
           // MINUS BUTTON
 
           _QuantityButton(
@@ -1605,11 +1565,8 @@ class _QuantityControl extends StatelessWidget {
           ),
 
           // QUANTITY VALUE
-
           Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 6,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 6),
 
             child: Text(
               '${item.quantity}',
@@ -1623,7 +1580,6 @@ class _QuantityControl extends StatelessWidget {
           ),
 
           // PLUS BUTTON
-
           _QuantityButton(
             icon: Icons.add,
             label: 'Increase quantity',
@@ -1658,20 +1614,11 @@ class _QuantityButton extends StatelessWidget {
       onPressed: onTap,
       visualDensity: VisualDensity.compact,
 
-      padding: const EdgeInsets.symmetric(
-        horizontal: 8,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 8),
 
-      constraints: const BoxConstraints(
-        minWidth: 32,
-        minHeight: 32,
-      ),
+      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
 
-      icon: Icon(
-        icon,
-        size: 17,
-        color: HomeColors.secondary,
-      ),
+      icon: Icon(icon, size: 17, color: HomeColors.secondary),
     );
   }
 }
@@ -1684,10 +1631,7 @@ class _ProductRail extends StatelessWidget {
   final String title;
   final List<ProductItem> products;
 
-  const _ProductRail({
-    required this.title,
-    required this.products,
-  });
+  const _ProductRail({required this.title, required this.products});
 
   @override
   Widget build(BuildContext context) {
@@ -1719,19 +1663,16 @@ class _ProductRail extends StatelessWidget {
               scrollDirection: Axis.horizontal,
               itemCount: products.length,
 
-              separatorBuilder: (context, index) =>
-                  const SizedBox(width: 12),
+              separatorBuilder: (context, index) => const SizedBox(width: 12),
 
               itemBuilder: (context, index) {
                 final product = products[index];
 
                 final variant = product.variants.isEmpty
                     ? null
-                    : product.variants[
-                        product.selectedVariant
-                            .clamp(0, product.variants.length - 1)
-                            .toInt()
-                      ];
+                    : product.variants[product.selectedVariant
+                          .clamp(0, product.variants.length - 1)
+                          .toInt()];
 
                 return SizedBox(
                   width: 148,
@@ -1742,17 +1683,13 @@ class _ProductRail extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: HomeColors.surface,
 
-                      border: Border.all(
-                        color: HomeColors.border,
-                      ),
+                      border: Border.all(color: HomeColors.border),
 
                       borderRadius: BorderRadius.circular(12),
 
                       boxShadow: [
                         BoxShadow(
-                          color: HomeColors.black.withValues(
-                            alpha: 0.03,
-                          ),
+                          color: HomeColors.black.withValues(alpha: 0.03),
                           blurRadius: 10,
                           offset: const Offset(0, 3),
                         ),
@@ -1763,7 +1700,6 @@ class _ProductRail extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
 
                       children: [
-
                         // PRODUCT IMAGE
 
                         Expanded(
@@ -1771,9 +1707,7 @@ class _ProductRail extends StatelessWidget {
                             onTap: () => Navigator.of(context).push(
                               MaterialPageRoute<void>(
                                 builder: (_) =>
-                                    NewProductDetailsPage(
-                                  product: product,
-                                ),
+                                    NewProductDetailsPage(product: product),
                               ),
                             ),
 
@@ -1789,12 +1723,15 @@ class _ProductRail extends StatelessWidget {
                                       fit: BoxFit.contain,
 
                                       errorBuilder:
-                                          (context, error, stackTrace) =>
-                                              const Icon(
-                                        Icons.image_not_supported_outlined,
-                                        color: HomeColors.textHint,
-                                        size: 42,
-                                      ),
+                                          (
+                                            context,
+                                            error,
+                                            stackTrace,
+                                          ) => const Icon(
+                                            Icons.image_not_supported_outlined,
+                                            color: HomeColors.textHint,
+                                            size: 42,
+                                          ),
                                     ),
                             ),
                           ),
@@ -1803,7 +1740,6 @@ class _ProductRail extends StatelessWidget {
                         const SizedBox(height: 8),
 
                         // PRODUCT NAME
-
                         Text(
                           product.name,
                           maxLines: 1,
@@ -1815,7 +1751,6 @@ class _ProductRail extends StatelessWidget {
                         ),
 
                         // PRODUCT WEIGHT AND PRICE
-
                         if (variant != null)
                           Text(
                             '${variant.weight} · ₹${variant.price.toStringAsFixed(0)}',
@@ -1831,7 +1766,6 @@ class _ProductRail extends StatelessWidget {
                         const SizedBox(height: 6),
 
                         // ADD BUTTON
-
                         SizedBox(
                           width: double.infinity,
                           height: 34,
@@ -1839,11 +1773,7 @@ class _ProductRail extends StatelessWidget {
                           child: OutlinedButton(
                             onPressed: variant == null
                                 ? null
-                                : () => _addProduct(
-                                      context,
-                                      product,
-                                      variant,
-                                    ),
+                                : () => _addProduct(context, product, variant),
 
                             style: OutlinedButton.styleFrom(
                               foregroundColor: HomeColors.secondary,
@@ -1904,9 +1834,7 @@ class _ProductRail extends StatelessWidget {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(
-            content: Text('Unable to add product to cart'),
-          ),
+          const SnackBar(content: Text('Unable to add product to cart')),
         );
     }
   }
@@ -1956,9 +1884,7 @@ class _WishlistSection extends StatelessWidget {
               ),
 
               if (products.isEmpty)
-                _EmptyWishlistCard(
-                  onOpen: () => _openWishlist(context),
-                )
+                _EmptyWishlistCard(onOpen: () => _openWishlist(context))
               else ...[
                 const SizedBox(height: 8),
 
@@ -1973,9 +1899,7 @@ class _WishlistSection extends StatelessWidget {
                         const SizedBox(width: 12),
 
                     itemBuilder: (context, index) =>
-                        _WishlistProductCard(
-                          product: products[index],
-                        ),
+                        _WishlistProductCard(product: products[index]),
                   ),
                 ),
               ],
@@ -1994,19 +1918,15 @@ class _WishlistSection extends StatelessWidget {
 class _WishlistProductCard extends StatelessWidget {
   final ProductItem product;
 
-  const _WishlistProductCard({
-    required this.product,
-  });
+  const _WishlistProductCard({required this.product});
 
   @override
   Widget build(BuildContext context) {
     final variant = product.variants.isEmpty
         ? null
-        : product.variants[
-            product.selectedVariant
-                .clamp(0, product.variants.length - 1)
-                .toInt()
-          ];
+        : product.variants[product.selectedVariant
+              .clamp(0, product.variants.length - 1)
+              .toInt()];
 
     return Container(
       width: 270,
@@ -2015,16 +1935,13 @@ class _WishlistProductCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: HomeColors.surface,
 
-        border: Border.all(
-          color: HomeColors.border,
-        ),
+        border: Border.all(color: HomeColors.border),
 
         borderRadius: BorderRadius.circular(14),
       ),
 
       child: Row(
         children: [
-
           // ==================================================
           // PRODUCT IMAGE
           // ==================================================
@@ -2032,9 +1949,7 @@ class _WishlistProductCard extends StatelessWidget {
           GestureDetector(
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute<void>(
-                builder: (_) => NewProductDetailsPage(
-                  product: product,
-                ),
+                builder: (_) => NewProductDetailsPage(product: product),
               ),
             ),
 
@@ -2058,9 +1973,9 @@ class _WishlistProductCard extends StatelessWidget {
 
                         errorBuilder: (context, error, stackTrace) =>
                             const Icon(
-                          Icons.image_not_supported_outlined,
-                          color: HomeColors.textHint,
-                        ),
+                              Icons.image_not_supported_outlined,
+                              color: HomeColors.textHint,
+                            ),
                       ),
               ),
             ),
@@ -2071,7 +1986,6 @@ class _WishlistProductCard extends StatelessWidget {
           // ==================================================
           // PRODUCT INFORMATION
           // ==================================================
-
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -2112,14 +2026,12 @@ class _WishlistProductCard extends StatelessWidget {
 
                 Row(
                   children: [
-
                     // REMOVE FROM WISHLIST
 
                     IconButton(
                       tooltip: 'Remove from wishlist',
 
-                      onPressed: () =>
-                          WishlistService.remove(product),
+                      onPressed: () => WishlistService.remove(product),
 
                       visualDensity: VisualDensity.compact,
 
@@ -2140,7 +2052,6 @@ class _WishlistProductCard extends StatelessWidget {
                     const SizedBox(width: 8),
 
                     // ADD TO CART
-
                     Expanded(
                       child: SizedBox(
                         height: 34,
@@ -2149,10 +2060,10 @@ class _WishlistProductCard extends StatelessWidget {
                           onPressed: variant == null
                               ? null
                               : () => _addWishlistProduct(
-                                    context,
-                                    product,
-                                    variant,
-                                  ),
+                                  context,
+                                  product,
+                                  variant,
+                                ),
 
                           style: ElevatedButton.styleFrom(
                             backgroundColor: HomeColors.secondary,
@@ -2209,9 +2120,7 @@ class _WishlistProductCard extends StatelessWidget {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          SnackBar(
-            content: Text('${product.name} added to cart'),
-          ),
+          SnackBar(content: Text('${product.name} added to cart')),
         );
     } catch (error) {
       if (!context.mounted) return;
@@ -2219,9 +2128,7 @@ class _WishlistProductCard extends StatelessWidget {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(
-            content: Text('Unable to add product to cart'),
-          ),
+          const SnackBar(content: Text('Unable to add product to cart')),
         );
     }
   }
@@ -2234,9 +2141,7 @@ class _WishlistProductCard extends StatelessWidget {
 class _EmptyWishlistCard extends StatelessWidget {
   final VoidCallback onOpen;
 
-  const _EmptyWishlistCard({
-    required this.onOpen,
-  });
+  const _EmptyWishlistCard({required this.onOpen});
 
   @override
   Widget build(BuildContext context) {
@@ -2247,9 +2152,7 @@ class _EmptyWishlistCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: HomeColors.surface,
 
-        border: Border.all(
-          color: HomeColors.border,
-        ),
+        border: Border.all(color: HomeColors.border),
 
         borderRadius: BorderRadius.circular(14),
       ),
@@ -2310,11 +2213,9 @@ class _EmptyWishlistCard extends StatelessWidget {
 // ============================================================
 
 void _openWishlist(BuildContext context) {
-  Navigator.of(context).push(
-    MaterialPageRoute<void>(
-      builder: (_) => const NewWishlistPage(),
-    ),
-  );
+  Navigator.of(
+    context,
+  ).push(MaterialPageRoute<void>(builder: (_) => const NewWishlistPage()));
 }
 
 // ============================================================
@@ -2324,9 +2225,7 @@ void _openWishlist(BuildContext context) {
 class _CartCheckoutBar extends StatelessWidget {
   final double total;
 
-  const _CartCheckoutBar({
-    required this.total,
-  });
+  const _CartCheckoutBar({required this.total});
 
   @override
   Widget build(BuildContext context) {
@@ -2335,8 +2234,21 @@ class _CartCheckoutBar extends StatelessWidget {
 
       total: total,
 
-      onContinue: () {
-        context.push(RouteNames.newShipping);
+      onContinue: () async {
+        if (await RouteGuards.isAuthenticated()) {
+          if (context.mounted) {
+            await context.push<void>(RouteNames.newShipping);
+          }
+          return;
+        }
+
+        if (!context.mounted) return;
+
+        final loginLocation = Uri(
+          path: RouteNames.login,
+          queryParameters: {'redirect': RouteNames.newShipping},
+        ).toString();
+        await context.push<void>(loginLocation);
       },
     );
   }
@@ -2356,10 +2268,7 @@ class _EmptyCart extends StatelessWidget {
 
       margin: const EdgeInsets.only(bottom: 4),
 
-      padding: const EdgeInsets.symmetric(
-        horizontal: 24,
-        vertical: 26,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 26),
 
       decoration: BoxDecoration(
         color: HomeColors.surface,
@@ -2406,9 +2315,7 @@ class _EmptyCart extends StatelessWidget {
 // ============================================================
 
 double _parsePrice(String value) {
-  final cleaned = value
-      .replaceAll(',', '')
-      .replaceAll(RegExp(r'[^0-9.]'), '');
+  final cleaned = value.replaceAll(',', '').replaceAll(RegExp(r'[^0-9.]'), '');
 
   return double.tryParse(cleaned) ?? 0;
 }

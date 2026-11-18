@@ -1,13 +1,12 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:lalbaba_online/new_app/new_login.dart';
-import 'package:lalbaba_online/new_app/new_payment.dart';
+import 'package:go_router/go_router.dart';
 
 import 'bottomnavigation.dart';
 import 'constantcolour.dart';
 import 'new_constant_checkout_page.dart';
 import 'new_constant_text_styles.dart';
 
+import '../app/router/route_names.dart';
 import '../features/address/data/models/address_model.dart';
 import '../core/services/cart_notification_item.dart';
 import '../core/services/cart_service.dart';
@@ -17,10 +16,7 @@ import '../core/widgets/app_shimmer.dart';
 // DELIVERY TYPE
 // ============================================================
 
-enum DeliveryType {
-  homeDelivery,
-  localPickup,
-}
+enum DeliveryType { homeDelivery, localPickup }
 
 // ============================================================
 // PICKUP POINT MODEL
@@ -49,10 +45,8 @@ class NewDeliveryPage extends StatefulWidget {
 
   final List<PickupPoint>? pickupPoints;
 
-  final void Function(
-    DeliveryType deliveryType,
-    PickupPoint? pickupPoint,
-  )? onDeliverySelected;
+  final void Function(DeliveryType deliveryType, PickupPoint? pickupPoint)?
+  onDeliverySelected;
 
   const NewDeliveryPage({
     super.key,
@@ -63,18 +57,15 @@ class NewDeliveryPage extends StatefulWidget {
   });
 
   @override
-  State<NewDeliveryPage> createState() =>
-      _NewDeliveryPageState();
+  State<NewDeliveryPage> createState() => _NewDeliveryPageState();
 }
 
 class _NewDeliveryPageState extends State<NewDeliveryPage> {
-
   // ==========================================================
   // VARIABLES
   // ==========================================================
 
-  DeliveryType _selectedDeliveryType =
-      DeliveryType.homeDelivery;
+  DeliveryType _selectedDeliveryType = DeliveryType.homeDelivery;
 
   PickupPoint? _selectedPickupPoint;
 
@@ -82,10 +73,8 @@ class _NewDeliveryPageState extends State<NewDeliveryPage> {
   bool _isLoading = true;
   bool _isUpdatingCart = false;
   bool _hasLoadError = false;
-  bool _isLoginPopupOpen = false;
 
-  final TextEditingController _searchController =
-      TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
 
   String _searchQuery = '';
 
@@ -96,8 +85,7 @@ class _NewDeliveryPageState extends State<NewDeliveryPage> {
   static const List<PickupPoint> _defaultPickupPoints = [
     PickupPoint(
       name: 'Office Premises Store',
-      address:
-          'City Tower, Ground Floor 70, G.T. Road, Badamtala More',
+      address: 'City Tower, Ground Floor 70, G.T. Road, Badamtala More',
       phone: '9999988888',
     ),
     PickupPoint(
@@ -162,7 +150,6 @@ class _NewDeliveryPageState extends State<NewDeliveryPage> {
       setState(() {
         _isLoading = false;
       });
-
     } catch (error) {
       if (!mounted) return;
 
@@ -171,9 +158,7 @@ class _NewDeliveryPageState extends State<NewDeliveryPage> {
         _hasLoadError = true;
       });
 
-      debugPrint(
-        'Delivery cart loading error: $error',
-      );
+      debugPrint('Delivery cart loading error: $error');
     }
   }
 
@@ -195,13 +180,11 @@ class _NewDeliveryPageState extends State<NewDeliveryPage> {
     if (_isLoading ||
         _hasLoadError ||
         _isUpdatingCart ||
-        _isLoginPopupOpen ||
         CartService.items.value.isEmpty) {
       return false;
     }
 
-    if (_selectedDeliveryType ==
-        DeliveryType.homeDelivery) {
+    if (_selectedDeliveryType == DeliveryType.homeDelivery) {
       return true;
     }
 
@@ -212,26 +195,19 @@ class _NewDeliveryPageState extends State<NewDeliveryPage> {
   // SHOW MESSAGE
   // ==========================================================
 
-  void _showMessage(
-    String message, {
-    bool isError = false,
-  }) {
+  void _showMessage(String message, {bool isError = false}) {
     if (!mounted) return;
 
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          backgroundColor: isError
-              ? HomeColors.error
-              : HomeColors.secondary,
+          backgroundColor: isError ? HomeColors.error : HomeColors.secondary,
 
           content: Text(
             message,
 
-            style: HomeTextStyles.body.copyWith(
-              color: HomeColors.white,
-            ),
+            style: HomeTextStyles.body.copyWith(color: HomeColors.white),
           ),
         ),
       );
@@ -267,16 +243,14 @@ class _NewDeliveryPageState extends State<NewDeliveryPage> {
 
     final integerPart = parts[0];
 
-    final decimalPart =
-        parts.length > 1 ? parts[1] : '00';
+    final decimalPart = parts.length > 1 ? parts[1] : '00';
 
     final buffer = StringBuffer();
 
     for (int i = 0; i < integerPart.length; i++) {
       buffer.write(integerPart[i]);
 
-      final remaining =
-          integerPart.length - i - 1;
+      final remaining = integerPart.length - i - 1;
 
       if (remaining > 0 && remaining % 3 == 0) {
         buffer.write(',');
@@ -290,9 +264,7 @@ class _NewDeliveryPageState extends State<NewDeliveryPage> {
   // CART UPDATE
   // ==========================================================
 
-  Future<void> _updateCart(
-    Future<void> Function() action,
-  ) async {
+  Future<void> _updateCart(Future<void> Function() action) async {
     if (_isUpdatingCart) return;
 
     setState(() {
@@ -301,15 +273,10 @@ class _NewDeliveryPageState extends State<NewDeliveryPage> {
 
     try {
       await action();
-
     } catch (error) {
-      _showMessage(
-        'Unable to update cart. Please try again.',
-        isError: true,
-      );
+      _showMessage('Unable to update cart. Please try again.', isError: true);
 
       debugPrint('Cart update error: $error');
-
     } finally {
       if (mounted) {
         setState(() {
@@ -323,9 +290,7 @@ class _NewDeliveryPageState extends State<NewDeliveryPage> {
   // INCREASE QUANTITY
   // ==========================================================
 
-  Future<void> _increaseQuantity(
-    CartNotificationItem item,
-  ) async {
+  Future<void> _increaseQuantity(CartNotificationItem item) async {
     await _updateCart(() async {
       await CartService.increaseItemQuantity(item);
     });
@@ -335,9 +300,7 @@ class _NewDeliveryPageState extends State<NewDeliveryPage> {
   // DECREASE QUANTITY
   // ==========================================================
 
-  Future<void> _decreaseQuantity(
-    CartNotificationItem item,
-  ) async {
+  Future<void> _decreaseQuantity(CartNotificationItem item) async {
     if (item.quantity <= 1) return;
 
     await _updateCart(() async {
@@ -349,9 +312,7 @@ class _NewDeliveryPageState extends State<NewDeliveryPage> {
   // REMOVE PRODUCT
   // ==========================================================
 
-  Future<void> _removeProduct(
-    CartNotificationItem item,
-  ) async {
+  Future<void> _removeProduct(CartNotificationItem item) async {
     await _updateCart(() async {
       await CartService.removeItem(item);
     });
@@ -365,8 +326,7 @@ class _NewDeliveryPageState extends State<NewDeliveryPage> {
     FocusScope.of(context).unfocus();
 
     setState(() {
-      _selectedDeliveryType =
-          DeliveryType.homeDelivery;
+      _selectedDeliveryType = DeliveryType.homeDelivery;
 
       _selectedPickupPoint = null;
       _isPickupListOpen = false;
@@ -384,8 +344,7 @@ class _NewDeliveryPageState extends State<NewDeliveryPage> {
     FocusScope.of(context).unfocus();
 
     setState(() {
-      _selectedDeliveryType =
-          DeliveryType.localPickup;
+      _selectedDeliveryType = DeliveryType.localPickup;
 
       _isPickupListOpen = false;
     });
@@ -411,91 +370,28 @@ class _NewDeliveryPageState extends State<NewDeliveryPage> {
 
   // ==========================================================
   // CONTINUE TO PAYMENT
-  // OPEN LOGIN POPUP IN DELIVERY PAGE
   // ==========================================================
 
-Future<void> _continueToPayment() async {
-  if (!_canContinue) return;
+  Future<void> _continueToPayment() async {
+    if (!_canContinue) return;
 
-  FocusScope.of(context).unfocus();
+    FocusScope.of(context).unfocus();
 
-  setState(() {
-    _isLoginPopupOpen = true;
-  });
-
-  bool? proceed;
-
-  try {
-    proceed = await showModalBottomSheet<bool>(
-      context: context,
-
-      useRootNavigator: true,
-
-      isScrollControlled: true,
-
-      isDismissible: true,
-
-      enableDrag: true,
-
-      backgroundColor: Colors.transparent,
-
-      builder: (_) => const NewCheckoutLoginPopup(),
+    widget.onDeliverySelected?.call(
+      _selectedDeliveryType,
+      _selectedPickupPoint,
     );
 
-  } catch (error) {
-    debugPrint('Checkout login popup error: $error');
+    if (!mounted) return;
 
-    if (mounted) {
-      _showMessage(
-        'Unable to open login. Please try again.',
-        isError: true,
-      );
+    final onContinueToPayment = widget.onContinueToPayment;
+    if (onContinueToPayment != null) {
+      onContinueToPayment();
+      return;
     }
 
-    return;
-
-  } finally {
-    if (mounted) {
-      setState(() {
-        _isLoginPopupOpen = false;
-      });
-    }
+    await context.push<void>(RouteNames.newPayment);
   }
-
-  // DEBUG MODE UI TESTING
-
-  if (!mounted ||
-      !kDebugMode ||
-      proceed != true ||
-      !_canContinue) {
-    return;
-  }
-
-  // DELIVERY DETAILS
-
-  widget.onDeliverySelected?.call(
-    _selectedDeliveryType,
-    _selectedPickupPoint,
-  );
-
-  if (!mounted) return;
-
-  if (widget.onContinueToPayment != null) {
-    widget.onContinueToPayment!();
-    return;
-  }
-
-  // OPEN PAYMENT PAGE
-
-  await Navigator.of(
-    context,
-    rootNavigator: true,
-  ).push<void>(
-    MaterialPageRoute<void>(
-      builder: (_) => const NewPaymentPage(),
-    ),
-  );
-}
   // ==========================================================
   // RETURN TO SHOP
   // ==========================================================
@@ -503,14 +399,8 @@ Future<void> _continueToPayment() async {
   void _returnToShop() {
     FocusScope.of(context).unfocus();
 
-    Navigator.of(
-      context,
-      rootNavigator: true,
-    ).pushAndRemoveUntil(
-      MaterialPageRoute<void>(
-        builder: (_) =>
-            const BottomNavigationScreen(),
-      ),
+    Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+      MaterialPageRoute<void>(builder: (_) => const BottomNavigationScreen()),
       (route) => false,
     );
   }
@@ -529,16 +419,12 @@ Future<void> _continueToPayment() async {
 
       borderRadius: BorderRadius.circular(radius),
 
-      border: Border.all(
-        color: HomeColors.border,
-      ),
+      border: Border.all(color: HomeColors.border),
 
       boxShadow: showShadow
           ? [
               BoxShadow(
-                color: HomeColors.black.withValues(
-                  alpha: 0.05,
-                ),
+                color: HomeColors.black.withValues(alpha: 0.05),
 
                 blurRadius: 12,
 
@@ -559,23 +445,18 @@ Future<void> _continueToPayment() async {
       backgroundColor: HomeColors.surface,
 
       body: SafeArea(
-        child: ValueListenableBuilder<
-            List<CartNotificationItem>>(
-
+        child: ValueListenableBuilder<List<CartNotificationItem>>(
           valueListenable: CartService.items,
 
           builder: (context, cartItems, child) {
             return LayoutBuilder(
               builder: (context, constraints) {
-
-                final double horizontalPadding =
-                    constraints.maxWidth <= 360
-                        ? 12
-                        : 16;
+                final double horizontalPadding = constraints.maxWidth <= 360
+                    ? 12
+                    : 16;
 
                 return Column(
                   children: [
-
                     // ========================================
                     // SCROLLABLE CONTENT
                     // ========================================
@@ -583,8 +464,7 @@ Future<void> _continueToPayment() async {
                     Expanded(
                       child: SingleChildScrollView(
                         keyboardDismissBehavior:
-                            ScrollViewKeyboardDismissBehavior
-                                .onDrag,
+                            ScrollViewKeyboardDismissBehavior.onDrag,
 
                         padding: EdgeInsets.fromLTRB(
                           horizontalPadding,
@@ -594,19 +474,16 @@ Future<void> _continueToPayment() async {
                         ),
 
                         child: Column(
-                          crossAxisAlignment:
-                              CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
 
                           children: [
-
                             // ================================
                             // CHECKOUT CONSTANT
                             // DELIVERY INDEX = 2
                             // ================================
 
                             const NewConstantCheckout(
-                              currentIndex:
-                                  NewConstantCheckout.delivery,
+                              currentIndex: NewConstantCheckout.delivery,
                             ),
 
                             const SizedBox(height: 24),
@@ -614,13 +491,10 @@ Future<void> _continueToPayment() async {
                             // ================================
                             // ORDER SUMMARY
                             // ================================
-
                             if (_isLoading)
                               _buildProductShimmer()
-
                             else if (_hasLoadError)
                               _buildErrorState()
-
                             else
                               _buildOrderSummary(cartItems),
 
@@ -629,7 +503,6 @@ Future<void> _continueToPayment() async {
                             // ================================
                             // CHOOSE DELIVERY TYPE
                             // ================================
-
                             _buildDeliverySection(),
 
                             const SizedBox(height: 30),
@@ -641,7 +514,6 @@ Future<void> _continueToPayment() async {
                     // ========================================
                     // FIXED BOTTOM CHECKOUT BUTTON
                     // ========================================
-
                     _buildBottomSection(),
                   ],
                 );
@@ -657,24 +529,17 @@ Future<void> _continueToPayment() async {
   // ORDER SUMMARY
   // ==========================================================
 
-  Widget _buildOrderSummary(
-    List<CartNotificationItem> cartItems,
-  ) {
+  Widget _buildOrderSummary(List<CartNotificationItem> cartItems) {
     final double subtotal = cartItems.fold<double>(
       0,
 
-      (total, item) =>
-          total +
-          (_parsePrice(item.price) * item.quantity),
+      (total, item) => total + (_parsePrice(item.price) * item.quantity),
     );
 
     return Container(
       width: double.infinity,
 
-      decoration: _cardDecoration(
-        radius: 16,
-        showShadow: true,
-      ),
+      decoration: _cardDecoration(radius: 16, showShadow: true),
 
       clipBehavior: Clip.antiAlias,
 
@@ -684,24 +549,15 @@ Future<void> _continueToPayment() async {
         children: [
           _buildSummaryHeader(cartItems.length),
 
-          const Divider(
-            height: 1,
-            thickness: 1,
-            color: HomeColors.divider,
-          ),
+          const Divider(height: 1, thickness: 1, color: HomeColors.divider),
 
           // EMPTY CART
-
-          if (cartItems.isEmpty)
-            _buildEmptyCart(),
+          if (cartItems.isEmpty) _buildEmptyCart(),
 
           // PRODUCT LIST
-
           if (cartItems.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.fromLTRB(
-                16, 16, 16, 10,
-              ),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
 
               child: Column(
                 children: List.generate(
@@ -709,24 +565,17 @@ Future<void> _continueToPayment() async {
 
                   (index) => Padding(
                     padding: EdgeInsets.only(
-                      bottom:
-                          index == cartItems.length - 1
-                              ? 0
-                              : 12,
+                      bottom: index == cartItems.length - 1 ? 0 : 12,
                     ),
 
-                    child: _buildProductCard(
-                      cartItems[index],
-                    ),
+                    child: _buildProductCard(cartItems[index]),
                   ),
                 ),
               ),
             ),
 
           // SUBTOTAL
-
-          if (cartItems.isNotEmpty)
-            _buildSubtotal(subtotal),
+          if (cartItems.isNotEmpty) _buildSubtotal(subtotal),
         ],
       ),
     );
@@ -751,8 +600,7 @@ Future<void> _continueToPayment() async {
             decoration: BoxDecoration(
               color: HomeColors.secondaryLight,
 
-              borderRadius:
-                  BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(10),
             ),
 
             child: const Icon(
@@ -766,16 +614,13 @@ Future<void> _continueToPayment() async {
 
           Expanded(
             child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
 
               children: [
                 Text(
                   'Order Summary',
 
-                  style: HomeTextStyles
-                      .summaryTotalLabel
-                      .copyWith(
+                  style: HomeTextStyles.summaryTotalLabel.copyWith(
                     color: HomeColors.textPrimary,
                   ),
                 ),
@@ -785,8 +630,7 @@ Future<void> _continueToPayment() async {
                 Text(
                   'Products in your cart',
 
-                  style:
-                      HomeTextStyles.caption.copyWith(
+                  style: HomeTextStyles.caption.copyWith(
                     color: HomeColors.textSecondary,
                   ),
                 ),
@@ -795,16 +639,12 @@ Future<void> _continueToPayment() async {
           ),
 
           Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 10,
-              vertical: 5,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
 
             decoration: BoxDecoration(
               color: HomeColors.disabledBackground,
 
-              borderRadius:
-                  BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(20),
             ),
 
             child: Text(
@@ -824,35 +664,26 @@ Future<void> _continueToPayment() async {
   // PRODUCT CARD
   // ==========================================================
 
-  Widget _buildProductCard(
-    CartNotificationItem item,
-  ) {
-    final double unitPrice =
-        _parsePrice(item.price);
+  Widget _buildProductCard(CartNotificationItem item) {
+    final double unitPrice = _parsePrice(item.price);
 
-    final double totalPrice =
-        unitPrice * item.quantity;
+    final double totalPrice = unitPrice * item.quantity;
 
     return Container(
       width: double.infinity,
 
       padding: const EdgeInsets.all(16),
 
-      decoration: _cardDecoration(
-        backgroundColor: HomeColors.background,
-      ),
+      decoration: _cardDecoration(backgroundColor: HomeColors.background),
 
       child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
 
         children: [
           Row(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
 
             children: [
-
               // PRODUCT ICON
 
               Container(
@@ -861,9 +692,7 @@ Future<void> _continueToPayment() async {
 
                 alignment: Alignment.center,
 
-                decoration: _cardDecoration(
-                  radius: 10,
-                ),
+                decoration: _cardDecoration(radius: 10),
 
                 child: const Icon(
                   Icons.inventory_2_outlined,
@@ -875,11 +704,9 @@ Future<void> _continueToPayment() async {
               const SizedBox(width: 12),
 
               // PRODUCT NAME AND WEIGHT
-
               Expanded(
                 child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
 
                   children: [
                     Text(
@@ -887,37 +714,24 @@ Future<void> _continueToPayment() async {
 
                       maxLines: 2,
 
-                      overflow:
-                          TextOverflow.ellipsis,
+                      overflow: TextOverflow.ellipsis,
 
-                      style:
-                          HomeTextStyles.bodyEmphasis
-                              .copyWith(
+                      style: HomeTextStyles.bodyEmphasis.copyWith(
                         height: 1.3,
 
-                        color:
-                            HomeColors.textPrimary,
+                        color: HomeColors.textPrimary,
                       ),
                     ),
 
-                    if (item.weight != null &&
-                        item.weight!
-                            .trim()
-                            .isNotEmpty)
+                    if (item.weight != null && item.weight!.trim().isNotEmpty)
                       Padding(
-                        padding:
-                            const EdgeInsets.only(
-                          top: 4,
-                        ),
+                        padding: const EdgeInsets.only(top: 4),
 
                         child: Text(
                           item.weight!.trim(),
 
-                          style:
-                              HomeTextStyles.caption
-                                  .copyWith(
-                            color: HomeColors
-                                .textSecondary,
+                          style: HomeTextStyles.caption.copyWith(
+                            color: HomeColors.textSecondary,
                           ),
                         ),
                       ),
@@ -928,40 +742,30 @@ Future<void> _continueToPayment() async {
               const SizedBox(width: 8),
 
               // DELETE PRODUCT
-
               _buildDeleteButton(item),
             ],
           ),
 
           const SizedBox(height: 16),
 
-          const Divider(
-            height: 1,
-            color: HomeColors.divider,
-          ),
+          const Divider(height: 1, color: HomeColors.divider),
 
           const SizedBox(height: 12),
 
           // ==================================================
           // UNIT PRICE AND TOTAL
           // ==================================================
-
           Row(
             children: [
               Expanded(
                 child: _buildPriceInfo(
                   label: 'Unit Price',
 
-                  value:
-                      '₹${_formatPrice(unitPrice)}',
+                  value: '₹${_formatPrice(unitPrice)}',
                 ),
               ),
 
-              Container(
-                width: 1,
-                height: 35,
-                color: HomeColors.border,
-              ),
+              Container(width: 1, height: 35, color: HomeColors.border),
 
               const SizedBox(width: 16),
 
@@ -969,8 +773,7 @@ Future<void> _continueToPayment() async {
                 child: _buildPriceInfo(
                   label: 'Total',
 
-                  value:
-                      '₹${_formatPrice(totalPrice)}',
+                  value: '₹${_formatPrice(totalPrice)}',
 
                   isBold: true,
                 ),
@@ -983,14 +786,12 @@ Future<void> _continueToPayment() async {
           // ==================================================
           // QUANTITY
           // ==================================================
-
           Row(
             children: [
               Text(
                 'Quantity',
 
-                style:
-                    HomeTextStyles.caption.copyWith(
+                style: HomeTextStyles.caption.copyWith(
                   color: HomeColors.textSecondary,
                 ),
               ),
@@ -1015,8 +816,7 @@ Future<void> _continueToPayment() async {
     bool isBold = false,
   }) {
     return Column(
-      crossAxisAlignment:
-          CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
 
       children: [
         Text(
@@ -1035,9 +835,7 @@ Future<void> _continueToPayment() async {
           style: HomeTextStyles.body.copyWith(
             color: HomeColors.textPrimary,
 
-            fontWeight: isBold
-                ? HomeTextStyles.bold
-                : HomeTextStyles.semiBold,
+            fontWeight: isBold ? HomeTextStyles.bold : HomeTextStyles.semiBold,
           ),
         ),
       ],
@@ -1048,42 +846,29 @@ Future<void> _continueToPayment() async {
   // QUANTITY CONTROL
   // ==========================================================
 
-  Widget _buildQuantityControl(
-    CartNotificationItem item,
-  ) {
+  Widget _buildQuantityControl(CartNotificationItem item) {
     return Container(
       height: 36,
 
-      decoration: _cardDecoration(
-        radius: 8,
-      ),
+      decoration: _cardDecoration(radius: 8),
 
       child: Row(
         mainAxisSize: MainAxisSize.min,
 
         children: [
-
           // MINUS BUTTON
 
           _buildQuantityButton(
             icon: Icons.remove,
 
-            enabled:
-                item.quantity > 1 && !_isUpdatingCart,
+            enabled: item.quantity > 1 && !_isUpdatingCart,
 
-            onTap: () =>
-                _decreaseQuantity(item),
+            onTap: () => _decreaseQuantity(item),
           ),
 
-          Container(
-            width: 1,
-            height: 22,
-
-            color: HomeColors.divider,
-          ),
+          Container(width: 1, height: 22, color: HomeColors.divider),
 
           // QUANTITY VALUE
-
           SizedBox(
             width: 38,
 
@@ -1091,30 +876,22 @@ Future<void> _continueToPayment() async {
               child: Text(
                 '${item.quantity}',
 
-                style: HomeTextStyles.bodyEmphasis
-                    .copyWith(
+                style: HomeTextStyles.bodyEmphasis.copyWith(
                   color: HomeColors.textPrimary,
                 ),
               ),
             ),
           ),
 
-          Container(
-            width: 1,
-            height: 22,
-
-            color: HomeColors.divider,
-          ),
+          Container(width: 1, height: 22, color: HomeColors.divider),
 
           // PLUS BUTTON
-
           _buildQuantityButton(
             icon: Icons.add,
 
             enabled: !_isUpdatingCart,
 
-            onTap: () =>
-                _increaseQuantity(item),
+            onTap: () => _increaseQuantity(item),
           ),
         ],
       ),
@@ -1142,9 +919,7 @@ Future<void> _continueToPayment() async {
 
           size: 17,
 
-          color: enabled
-              ? HomeColors.textPrimary
-              : HomeColors.disabled,
+          color: enabled ? HomeColors.textPrimary : HomeColors.disabled,
         ),
       ),
     );
@@ -1154,22 +929,16 @@ Future<void> _continueToPayment() async {
   // DELETE PRODUCT BUTTON
   // ==========================================================
 
-  Widget _buildDeleteButton(
-    CartNotificationItem item,
-  ) {
+  Widget _buildDeleteButton(CartNotificationItem item) {
     return Material(
       color: HomeColors.secondaryLight,
 
-      borderRadius:
-          BorderRadius.circular(9),
+      borderRadius: BorderRadius.circular(9),
 
       child: InkWell(
-        borderRadius:
-            BorderRadius.circular(9),
+        borderRadius: BorderRadius.circular(9),
 
-        onTap: _isUpdatingCart
-            ? null
-            : () => _removeProduct(item),
+        onTap: _isUpdatingCart ? null : () => _removeProduct(item),
 
         child: const SizedBox(
           width: 34,
@@ -1195,19 +964,12 @@ Future<void> _continueToPayment() async {
     return Container(
       width: double.infinity,
 
-      padding: const EdgeInsets.symmetric(
-        horizontal: 20,
-        vertical: 17,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 17),
 
       decoration: const BoxDecoration(
         color: HomeColors.background,
 
-        border: Border(
-          top: BorderSide(
-            color: HomeColors.divider,
-          ),
-        ),
+        border: Border(top: BorderSide(color: HomeColors.divider)),
 
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(16),
@@ -1230,8 +992,7 @@ Future<void> _continueToPayment() async {
           Text(
             '₹${_formatPrice(subtotal)}',
 
-            style: HomeTextStyles.sectionTitleLarge
-                .copyWith(
+            style: HomeTextStyles.sectionTitleLarge.copyWith(
               color: HomeColors.textPrimary,
             ),
           ),
@@ -1246,10 +1007,7 @@ Future<void> _continueToPayment() async {
 
   Widget _buildEmptyCart() {
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        vertical: 28,
-        horizontal: 20,
-      ),
+      padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
 
       child: Column(
         children: [
@@ -1266,8 +1024,7 @@ Future<void> _continueToPayment() async {
           Text(
             'Your cart is empty',
 
-            style: HomeTextStyles.bodyEmphasis
-                .copyWith(
+            style: HomeTextStyles.bodyEmphasis.copyWith(
               color: HomeColors.textSecondary,
             ),
           ),
@@ -1286,28 +1043,20 @@ Future<void> _continueToPayment() async {
 
       padding: const EdgeInsets.all(16),
 
-      decoration: _cardDecoration(
-        showShadow: true,
-      ),
+      decoration: _cardDecoration(showShadow: true),
 
       child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
 
         children: [
-          const Divider(
-            height: 1,
-
-            color: HomeColors.divider,
-          ),
+          const Divider(height: 1, color: HomeColors.divider),
 
           const SizedBox(height: 16),
 
           Text(
             'Choose Delivery Type',
 
-            style:
-                HomeTextStyles.largePrice.copyWith(
+            style: HomeTextStyles.largePrice.copyWith(
               color: HomeColors.textPrimary,
 
               height: 1.25,
@@ -1319,25 +1068,20 @@ Future<void> _continueToPayment() async {
           // ==================================================
           // DELIVERY TYPE OPTIONS
           // ==================================================
-
           LayoutBuilder(
             builder: (context, constraints) {
-              final homeDeliveryCard =
-                  _buildDeliveryTypeCard(
+              final homeDeliveryCard = _buildDeliveryTypeCard(
                 title: 'Home Delivery',
 
-                selected: _selectedDeliveryType ==
-                    DeliveryType.homeDelivery,
+                selected: _selectedDeliveryType == DeliveryType.homeDelivery,
 
                 onTap: _selectHomeDelivery,
               );
 
-              final localPickupCard =
-                  _buildDeliveryTypeCard(
+              final localPickupCard = _buildDeliveryTypeCard(
                 title: 'Local Pickup',
 
-                selected: _selectedDeliveryType ==
-                    DeliveryType.localPickup,
+                selected: _selectedDeliveryType == DeliveryType.localPickup,
 
                 onTap: _selectLocalPickup,
               );
@@ -1359,19 +1103,14 @@ Future<void> _continueToPayment() async {
               // LARGE SCREEN
 
               return Row(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
 
                 children: [
-                  Expanded(
-                    child: homeDeliveryCard,
-                  ),
+                  Expanded(child: homeDeliveryCard),
 
                   const SizedBox(width: 12),
 
-                  Expanded(
-                    child: localPickupCard,
-                  ),
+                  Expanded(child: localPickupCard),
                 ],
               );
             },
@@ -1380,17 +1119,13 @@ Future<void> _continueToPayment() async {
           // ==================================================
           // LOCAL PICKUP LOCATION
           // ==================================================
-
-          if (_selectedDeliveryType ==
-              DeliveryType.localPickup) ...[
+          if (_selectedDeliveryType == DeliveryType.localPickup) ...[
             const SizedBox(height: 16),
 
             _buildPickupField(),
 
             AnimatedSwitcher(
-              duration: const Duration(
-                milliseconds: 220,
-              ),
+              duration: const Duration(milliseconds: 220),
 
               transitionBuilder: (child, animation) {
                 return SizeTransition(
@@ -1398,32 +1133,19 @@ Future<void> _continueToPayment() async {
 
                   axisAlignment: -1,
 
-                  child: FadeTransition(
-                    opacity: animation,
-
-                    child: child,
-                  ),
+                  child: FadeTransition(opacity: animation, child: child),
                 );
               },
 
               child: _isPickupListOpen
                   ? Padding(
-                      key: const ValueKey(
-                        'pickup-list-open',
-                      ),
+                      key: const ValueKey('pickup-list-open'),
 
-                      padding:
-                          const EdgeInsets.only(
-                        top: 8,
-                      ),
+                      padding: const EdgeInsets.only(top: 8),
 
                       child: _buildPickupDropdown(),
                     )
-                  : const SizedBox.shrink(
-                      key: ValueKey(
-                        'pickup-list-closed',
-                      ),
-                    ),
+                  : const SizedBox.shrink(key: ValueKey('pickup-list-closed')),
             ),
           ],
         ],
@@ -1443,42 +1165,29 @@ Future<void> _continueToPayment() async {
     return Material(
       color: HomeColors.surface,
 
-      borderRadius:
-          BorderRadius.circular(6),
+      borderRadius: BorderRadius.circular(6),
 
       child: InkWell(
         onTap: onTap,
 
-        borderRadius:
-            BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(6),
 
         child: AnimatedContainer(
-          duration: const Duration(
-            milliseconds: 180,
-          ),
+          duration: const Duration(milliseconds: 180),
 
           width: double.infinity,
 
-          constraints: const BoxConstraints(
-            minHeight: 72,
-          ),
+          constraints: const BoxConstraints(minHeight: 72),
 
-          padding: const EdgeInsets.symmetric(
-            horizontal: 12,
-
-            vertical: 14,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
 
           decoration: BoxDecoration(
             color: HomeColors.surface,
 
-            borderRadius:
-                BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(6),
 
             border: Border.all(
-              color: selected
-                  ? HomeColors.secondary
-                  : HomeColors.border,
+              color: selected ? HomeColors.secondary : HomeColors.border,
 
               width: selected ? 1.5 : 1,
             ),
@@ -1486,7 +1195,6 @@ Future<void> _continueToPayment() async {
 
           child: Row(
             children: [
-
               // CUSTOM RADIO BUTTON
 
               Container(
@@ -1499,25 +1207,19 @@ Future<void> _continueToPayment() async {
                   shape: BoxShape.circle,
 
                   border: Border.all(
-                    color: selected
-                        ? HomeColors.secondary
-                        : HomeColors.border,
+                    color: selected ? HomeColors.secondary : HomeColors.border,
 
                     width: 1.4,
                   ),
                 ),
 
                 child: AnimatedContainer(
-                  duration: const Duration(
-                    milliseconds: 180,
-                  ),
+                  duration: const Duration(milliseconds: 180),
 
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
 
-                    color: selected
-                        ? HomeColors.secondary
-                        : HomeColors.surface,
+                    color: selected ? HomeColors.secondary : HomeColors.surface,
                   ),
                 ),
               ),
@@ -1530,8 +1232,7 @@ Future<void> _continueToPayment() async {
 
                   softWrap: true,
 
-                  style:
-                      HomeTextStyles.button.copyWith(
+                  style: HomeTextStyles.button.copyWith(
                     color: HomeColors.textPrimary,
 
                     height: 1.3,
@@ -1553,19 +1254,16 @@ Future<void> _continueToPayment() async {
     return Material(
       color: HomeColors.surface,
 
-      borderRadius:
-          BorderRadius.circular(6),
+      borderRadius: BorderRadius.circular(6),
 
       child: InkWell(
-        borderRadius:
-            BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(6),
 
         onTap: () {
           FocusScope.of(context).unfocus();
 
           setState(() {
-            _isPickupListOpen =
-                !_isPickupListOpen;
+            _isPickupListOpen = !_isPickupListOpen;
 
             if (_isPickupListOpen) {
               _searchController.clear();
@@ -1576,31 +1274,25 @@ Future<void> _continueToPayment() async {
         },
 
         child: AnimatedContainer(
-          duration: const Duration(
-            milliseconds: 180,
-          ),
+          duration: const Duration(milliseconds: 180),
 
           width: double.infinity,
 
-          constraints: const BoxConstraints(
-            minHeight: 58,
-          ),
+          constraints: const BoxConstraints(minHeight: 58),
 
           padding: const EdgeInsets.all(12),
 
           decoration: BoxDecoration(
             color: HomeColors.surface,
 
-            borderRadius:
-                BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(6),
 
             border: Border.all(
               color: _isPickupListOpen
                   ? HomeColors.secondary
                   : HomeColors.border,
 
-              width:
-                  _isPickupListOpen ? 1.5 : 1,
+              width: _isPickupListOpen ? 1.5 : 1,
             ),
           ),
 
@@ -1611,64 +1303,47 @@ Future<void> _continueToPayment() async {
 
                 size: 21,
 
-                color:
-                    _selectedPickupPoint == null
-
-                        ? HomeColors.textSecondary
-
-                        : HomeColors.secondary,
+                color: _selectedPickupPoint == null
+                    ? HomeColors.textSecondary
+                    : HomeColors.secondary,
               ),
 
               const SizedBox(width: 10),
 
               Expanded(
                 child: _selectedPickupPoint == null
-
                     ? Text(
                         'Select your nearest pickup point',
 
-                        style:
-                            HomeTextStyles.body.copyWith(
-                          color:
-                              HomeColors.textSecondary,
+                        style: HomeTextStyles.body.copyWith(
+                          color: HomeColors.textSecondary,
 
                           height: 1.3,
                         ),
                       )
-
                     : Column(
-                        mainAxisSize:
-                            MainAxisSize.min,
+                        mainAxisSize: MainAxisSize.min,
 
-                        crossAxisAlignment:
-                            CrossAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
 
                         children: [
                           Text(
                             _selectedPickupPoint!.name,
 
-                            style: HomeTextStyles
-                                .bodyEmphasis
-                                .copyWith(
-                              color:
-                                  HomeColors.textPrimary,
+                            style: HomeTextStyles.bodyEmphasis.copyWith(
+                              color: HomeColors.textPrimary,
 
-                              fontWeight:
-                                  HomeTextStyles.bold,
+                              fontWeight: HomeTextStyles.bold,
                             ),
                           ),
 
                           const SizedBox(height: 4),
 
                           Text(
-                            _selectedPickupPoint!
-                                .address,
+                            _selectedPickupPoint!.address,
 
-                            style: HomeTextStyles
-                                .caption
-                                .copyWith(
-                              color: HomeColors
-                                  .textSecondary,
+                            style: HomeTextStyles.caption.copyWith(
+                              color: HomeColors.textSecondary,
 
                               height: 1.35,
                             ),
@@ -1680,12 +1355,9 @@ Future<void> _continueToPayment() async {
               const SizedBox(width: 8),
 
               AnimatedRotation(
-                turns:
-                    _isPickupListOpen ? 0.5 : 0,
+                turns: _isPickupListOpen ? 0.5 : 0,
 
-                duration: const Duration(
-                  milliseconds: 180,
-                ),
+                duration: const Duration(milliseconds: 180),
 
                 child: const Icon(
                   Icons.keyboard_arrow_down_rounded,
@@ -1707,21 +1379,14 @@ Future<void> _continueToPayment() async {
   // ==========================================================
 
   Widget _buildPickupDropdown() {
-    final filteredPoints =
-        _filteredPickupPoints;
+    final filteredPoints = _filteredPickupPoints;
 
     return Container(
       width: double.infinity,
 
-      constraints: const BoxConstraints(
-        maxHeight: 340,
-      ),
+      constraints: const BoxConstraints(maxHeight: 340),
 
-      decoration: _cardDecoration(
-        radius: 6,
-
-        showShadow: true,
-      ),
+      decoration: _cardDecoration(radius: 6, showShadow: true),
 
       clipBehavior: Clip.antiAlias,
 
@@ -1729,7 +1394,6 @@ Future<void> _continueToPayment() async {
         mainAxisSize: MainAxisSize.min,
 
         children: [
-
           // ==================================================
           // SEARCH PICKUP LOCATION
           // ==================================================
@@ -1744,8 +1408,7 @@ Future<void> _continueToPayment() async {
 
               cursorColor: HomeColors.secondary,
 
-              textInputAction:
-                  TextInputAction.search,
+              textInputAction: TextInputAction.search,
 
               onChanged: (value) {
                 setState(() {
@@ -1760,8 +1423,7 @@ Future<void> _continueToPayment() async {
               decoration: InputDecoration(
                 hintText: 'Search pickup point',
 
-                hintStyle:
-                    HomeTextStyles.body.copyWith(
+                hintStyle: HomeTextStyles.body.copyWith(
                   color: HomeColors.textSecondary,
                 ),
 
@@ -1774,9 +1436,7 @@ Future<void> _continueToPayment() async {
                 ),
 
                 suffixIcon: _searchQuery.isEmpty
-
                     ? null
-
                     : IconButton(
                         onPressed: () {
                           _searchController.clear();
@@ -1791,8 +1451,7 @@ Future<void> _continueToPayment() async {
 
                           size: 20,
 
-                          color:
-                              HomeColors.textSecondary,
+                          color: HomeColors.textSecondary,
                         ),
                       ),
 
@@ -1800,25 +1459,20 @@ Future<void> _continueToPayment() async {
 
                 fillColor: HomeColors.surface,
 
-                contentPadding:
-                    const EdgeInsets.symmetric(
+                contentPadding: const EdgeInsets.symmetric(
                   horizontal: 12,
 
                   vertical: 12,
                 ),
 
                 enabledBorder: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(6),
 
-                  borderSide: const BorderSide(
-                    color: HomeColors.border,
-                  ),
+                  borderSide: const BorderSide(color: HomeColors.border),
                 ),
 
                 focusedBorder: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(6),
 
                   borderSide: const BorderSide(
                     color: HomeColors.secondary,
@@ -1833,25 +1487,18 @@ Future<void> _continueToPayment() async {
           // ==================================================
           // DROPDOWN HEADER
           // ==================================================
-
           Container(
             width: double.infinity,
 
-            padding: const EdgeInsets.symmetric(
-              horizontal: 12,
-
-              vertical: 10,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
 
             color: HomeColors.secondary,
 
             child: Text(
               'Select your nearest pickup point',
 
-              style:
-                  HomeTextStyles.bodySmall.copyWith(
-                fontWeight:
-                    HomeTextStyles.semiBold,
+              style: HomeTextStyles.bodySmall.copyWith(
+                fontWeight: HomeTextStyles.semiBold,
 
                 color: HomeColors.white,
 
@@ -1863,13 +1510,10 @@ Future<void> _continueToPayment() async {
           // ==================================================
           // PICKUP POINT LIST
           // ==================================================
-
           Flexible(
             child: filteredPoints.isEmpty
-
                 ? Padding(
-                    padding:
-                        const EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(20),
 
                     child: Center(
                       child: Text(
@@ -1877,29 +1521,23 @@ Future<void> _continueToPayment() async {
 
                         textAlign: TextAlign.center,
 
-                        style:
-                            HomeTextStyles.bodySmall
-                                .copyWith(
-                          color:
-                              HomeColors.textSecondary,
+                        style: HomeTextStyles.bodySmall.copyWith(
+                          color: HomeColors.textSecondary,
                         ),
                       ),
                     ),
                   )
-
                 : ListView.separated(
                     padding: EdgeInsets.zero,
 
                     shrinkWrap: true,
 
                     keyboardDismissBehavior:
-                        ScrollViewKeyboardDismissBehavior
-                            .onDrag,
+                        ScrollViewKeyboardDismissBehavior.onDrag,
 
                     itemCount: filteredPoints.length,
 
-                    separatorBuilder:
-                        (context, index) {
+                    separatorBuilder: (context, index) {
                       return const Divider(
                         height: 1,
 
@@ -1908,9 +1546,7 @@ Future<void> _continueToPayment() async {
                     },
 
                     itemBuilder: (context, index) {
-                      return _buildPickupItem(
-                        filteredPoints[index],
-                      );
+                      return _buildPickupItem(filteredPoints[index]);
                     },
                   ),
           ),
@@ -1924,29 +1560,21 @@ Future<void> _continueToPayment() async {
   // ==========================================================
 
   Widget _buildPickupItem(PickupPoint point) {
-    final bool isSelected =
-        _selectedPickupPoint == point;
+    final bool isSelected = _selectedPickupPoint == point;
 
     return Material(
-      color: isSelected
-          ? HomeColors.secondaryLight
-          : HomeColors.surface,
+      color: isSelected ? HomeColors.secondaryLight : HomeColors.surface,
 
       child: InkWell(
-        onTap: () =>
-            _selectPickupPoint(point),
+        onTap: () => _selectPickupPoint(point),
 
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(
-            12, 12, 12, 13,
-          ),
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 13),
 
           child: Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
 
             children: [
-
               // STORE NAME
 
               Row(
@@ -1955,14 +1583,10 @@ Future<void> _continueToPayment() async {
                     child: Text(
                       point.name,
 
-                      style: HomeTextStyles
-                          .bodyEmphasis
-                          .copyWith(
-                        fontWeight:
-                            HomeTextStyles.bold,
+                      style: HomeTextStyles.bodyEmphasis.copyWith(
+                        fontWeight: HomeTextStyles.bold,
 
-                        color:
-                            HomeColors.textPrimary,
+                        color: HomeColors.textPrimary,
 
                         height: 1.3,
                       ),
@@ -1983,10 +1607,8 @@ Future<void> _continueToPayment() async {
               const SizedBox(height: 8),
 
               // STORE ADDRESS
-
               Row(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
 
                 children: [
                   const Icon(
@@ -2003,11 +1625,8 @@ Future<void> _continueToPayment() async {
                     child: Text(
                       point.address,
 
-                      style:
-                          HomeTextStyles.bodySmall
-                              .copyWith(
-                        color:
-                            HomeColors.textSecondary,
+                      style: HomeTextStyles.bodySmall.copyWith(
+                        color: HomeColors.textSecondary,
 
                         height: 1.4,
                       ),
@@ -2019,10 +1638,8 @@ Future<void> _continueToPayment() async {
               const SizedBox(height: 7),
 
               // STORE PHONE NUMBER
-
               Row(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
 
                 children: [
                   const Icon(
@@ -2039,11 +1656,8 @@ Future<void> _continueToPayment() async {
                     child: Text(
                       point.phone,
 
-                      style:
-                          HomeTextStyles.bodySmall
-                              .copyWith(
-                        color:
-                            HomeColors.textSecondary,
+                      style: HomeTextStyles.bodySmall.copyWith(
+                        color: HomeColors.textSecondary,
 
                         height: 1.3,
                       ),
@@ -2064,14 +1678,9 @@ Future<void> _continueToPayment() async {
 
   Widget _buildBottomSection() {
     return NewCheckoutBottomBar(
-      currentIndex:
-          NewConstantCheckout.delivery,
+      currentIndex: NewConstantCheckout.delivery,
 
-      onContinue: _canContinue
-
-          ? _continueToPayment
-
-          : null,
+      onContinue: _canContinue ? _continueToPayment : null,
 
       onReturnToShop: _returnToShop,
     );
@@ -2087,87 +1696,53 @@ Future<void> _continueToPayment() async {
 
       padding: const EdgeInsets.all(16),
 
-      decoration: _cardDecoration(
-        radius: 16,
-      ),
+      decoration: _cardDecoration(radius: 16),
 
       child: const Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
 
         children: [
           Row(
             children: [
-              AppShimmer(
-                width: 40,
-                height: 40,
-                radius: 10,
-              ),
+              AppShimmer(width: 40, height: 40, radius: 10),
 
               SizedBox(width: 12),
 
               Expanded(
                 child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
 
                   children: [
-                    AppShimmer(
-                      width: 140,
-                      height: 15,
-                      radius: 6,
-                    ),
+                    AppShimmer(width: 140, height: 15, radius: 6),
 
                     SizedBox(height: 4),
 
-                    AppShimmer(
-                      width: 90,
-                      height: 11,
-                      radius: 6,
-                    ),
+                    AppShimmer(width: 90, height: 11, radius: 6),
                   ],
                 ),
               ),
 
-              AppShimmer(
-                width: 50,
-                height: 20,
-                radius: 12,
-              ),
+              AppShimmer(width: 50, height: 20, radius: 12),
             ],
           ),
 
           SizedBox(height: 24),
 
-          AppShimmer(
-            height: 110,
-            radius: 12,
-          ),
+          AppShimmer(height: 110, radius: 12),
 
           SizedBox(height: 12),
 
-          AppShimmer(
-            height: 110,
-            radius: 12,
-          ),
+          AppShimmer(height: 110, radius: 12),
 
           SizedBox(height: 12),
 
           Row(
             children: [
-              AppShimmer(
-                width: 80,
-                height: 16,
-                radius: 6,
-              ),
+              AppShimmer(width: 80, height: 16, radius: 6),
 
               Spacer(),
 
-              AppShimmer(
-                width: 90,
-                height: 20,
-                radius: 6,
-              ),
+              AppShimmer(width: 90, height: 20, radius: 6),
             ],
           ),
         ],
@@ -2185,19 +1760,11 @@ Future<void> _continueToPayment() async {
 
       padding: const EdgeInsets.all(24),
 
-      decoration: _cardDecoration(
-        radius: 16,
-      ),
+      decoration: _cardDecoration(radius: 16),
 
       child: Column(
         children: [
-          const Icon(
-            Icons.error_outline,
-
-            size: 40,
-
-            color: HomeColors.error,
-          ),
+          const Icon(Icons.error_outline, size: 40, color: HomeColors.error),
 
           const SizedBox(height: 12),
 
@@ -2219,8 +1786,7 @@ Future<void> _continueToPayment() async {
             child: Text(
               'Retry',
 
-              style:
-                  HomeTextStyles.button.copyWith(
+              style: HomeTextStyles.button.copyWith(
                 color: HomeColors.secondary,
               ),
             ),

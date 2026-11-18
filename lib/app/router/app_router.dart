@@ -2,8 +2,10 @@
 // Why: Define and manage all application routes in one centralized place.
 import 'package:go_router/go_router.dart';
 import 'package:lalbaba_online/features/address/presentation/page/address_list_page.dart';
-import 'package:lalbaba_online/features/address/presentation/page/new_shipping.dart';
+import 'package:lalbaba_online/features/address/data/models/address_model.dart';
+import 'package:lalbaba_online/new_app/new_delivery_page.dart';
 import 'package:lalbaba_online/new_app/new_payment.dart';
+import 'package:lalbaba_online/new_app/new_shipping.dart';
 
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/cart/presentation/pages/cart_page.dart';
@@ -107,12 +109,51 @@ final appRouter = GoRouter(
       path: RouteNames.address,
       builder: (_, __) => const AddressListPage(),
     ),
-GoRoute(
-  path: RouteNames.newShipping,
-  builder: (context, state) => const NewShippingPage(),
-),
+    GoRoute(
+      path: RouteNames.newShipping,
+      redirect: (context, state) async {
+        if (await RouteGuards.isAuthenticated()) {
+          return null;
+        }
+
+        return Uri(
+          path: RouteNames.login,
+          queryParameters: {'redirect': state.uri.toString()},
+        ).toString();
+      },
+      builder: (_, __) => const NewShippingPage(),
+    ),
+    GoRoute(
+      path: RouteNames.newDelivery,
+      redirect: (context, state) async {
+        if (await RouteGuards.isAuthenticated()) {
+          return null;
+        }
+
+        return Uri(
+          path: RouteNames.login,
+          queryParameters: {'redirect': state.uri.toString()},
+        ).toString();
+      },
+      builder: (_, state) {
+        final extra = state.extra;
+        return NewDeliveryPage(
+          shippingAddress: extra is AddressModel ? extra : null,
+        );
+      },
+    ),
     GoRoute(
       path: RouteNames.newPayment,
+      redirect: (context, state) async {
+        if (await RouteGuards.isAuthenticated()) {
+          return null;
+        }
+
+        return Uri(
+          path: RouteNames.login,
+          queryParameters: {'redirect': state.uri.toString()},
+        ).toString();
+      },
       builder: (_, __) => const NewPaymentPage(),
     ),
     GoRoute(

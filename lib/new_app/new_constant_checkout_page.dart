@@ -165,7 +165,6 @@
 //   }
 // }
 
-
 import 'package:flutter/material.dart';
 import 'constantcolour.dart';
 import 'new_constant_text_styles.dart';
@@ -177,13 +176,12 @@ import 'new_constant_text_styles.dart';
 class NewConstantCheckout extends StatelessWidget {
   final int currentIndex;
 
-  const NewConstantCheckout({
-    super.key,
-    required this.currentIndex,
-  }) : assert(currentIndex >= 0 && currentIndex <= 4);
+  const NewConstantCheckout({super.key, required this.currentIndex})
+    : assert(currentIndex >= 0 && currentIndex <= 4);
 
   static const int cart = 0;
-  static const int address = 1;
+  static const int shipping = 1;
+  static const int address = shipping;
   static const int delivery = 2;
   static const int payment = 3;
   static const int complete = 4;
@@ -225,10 +223,7 @@ class NewConstantCheckout extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(
-        horizontal: 10,
-        vertical: 13,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 13),
       decoration: BoxDecoration(
         color: HomeColors.surface,
         borderRadius: BorderRadius.circular(6),
@@ -339,9 +334,7 @@ class NewCheckoutBottomBar extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
       decoration: const BoxDecoration(
         color: HomeColors.surface,
-        border: Border(
-          top: BorderSide(color: HomeColors.divider),
-        ),
+        border: Border(top: BorderSide(color: HomeColors.divider)),
       ),
       child: SafeArea(
         top: false,
@@ -373,10 +366,7 @@ class NewCheckoutBottomBar extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 14),
-                  Expanded(
-                    flex: 2,
-                    child: button,
-                  ),
+                  Expanded(flex: 2, child: button),
                 ],
               )
             else
