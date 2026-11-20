@@ -16,7 +16,6 @@ import 'package:lalbaba_online/new_app/dashboard/new_wishlist.dart';
 import 'package:lalbaba_online/new_app/constant/new_back_to_top_button.dart';
 import 'new_product_details.dart';
 
-
 // Shared pack data for Home and Product List. Demo prices are for development only.
 // Replace these records with verified API/catalog prices before production.
 class HomeProductPacks {
@@ -50,8 +49,8 @@ class HomeProductPacks {
     ],
   };
 
-  static String normalize(String value) => value.toLowerCase()
-      .replaceAll(RegExp(r'[^a-z0-9]'), '');
+  static String normalize(String value) =>
+      value.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
 
   static String _nameKey(String value) =>
       normalize(value).replaceFirst(RegExp(r'^lalbaba'), '');
@@ -65,11 +64,15 @@ class HomeProductPacks {
       case 'miniket':
       case 'superiorminiket':
         return 'home-superior-minikit';
-      case 'basmatisteam': return 'home-basmati-steam';
+      case 'basmatisteam':
+        return 'home-basmati-steam';
       case 'jeerrice':
-      case 'jeerarice': return 'home-jeer-rice';
-      case 'basmati': return 'home-basmati';
-      case 'ratnabasmati': return 'home-ratna-basmati';
+      case 'jeerarice':
+        return 'home-jeer-rice';
+      case 'basmati':
+        return 'home-basmati';
+      case 'ratnabasmati':
+        return 'home-ratna-basmati';
     }
     return null;
   }
@@ -85,27 +88,38 @@ class HomeProductPacks {
     if (byId.length == 1) return byId.first;
     // Only fall back for a demo home ID or an item without a real ID.
     if (id.isNotEmpty && !id.startsWith('home-')) return null;
-    final byName = all.where((p) => name.isNotEmpty && _nameKey(p.name) == name).toList();
+    final byName = all
+        .where((p) => name.isNotEmpty && _nameKey(p.name) == name)
+        .toList();
     if (byName.length == 1) return byName.first;
     final group = _demoKey(product);
     if (group != null) {
-      final byGroup = all.where((p) => _demoKey({'name': p.name}) == group).toList();
+      final byGroup = all
+          .where((p) => _demoKey({'name': p.name}) == group)
+          .toList();
       if (byGroup.length == 1) return byGroup.first;
     }
-    final byImage = all.where((p) => image.isNotEmpty && p.imageUrl == image).toList();
+    final byImage = all
+        .where((p) => image.isNotEmpty && p.imageUrl == image)
+        .toList();
     if (byImage.length == 1) return byImage.first;
     return null;
   }
 
   static double? parsePrice(dynamic value) {
     if (value is num) return value.toDouble();
-    return double.tryParse((value?.toString() ?? '').replaceAll(RegExp(r'[^0-9.]'), ''));
+    return double.tryParse(
+      (value?.toString() ?? '').replaceAll(RegExp(r'[^0-9.]'), ''),
+    );
   }
 
   static String money(num value) => '₹${value.toStringAsFixed(2)}';
 
   static double? _kg(String weight) {
-    final match = RegExp(r'^\s*(\d+(?:\.\d+)?)\s*(kg|g|gm|grams?)\s*$', caseSensitive: false).firstMatch(weight);
+    final match = RegExp(
+      r'^\s*(\d+(?:\.\d+)?)\s*(kg|g|gm|grams?)\s*$',
+      caseSensitive: false,
+    ).firstMatch(weight);
     if (match == null) return null;
     final number = double.tryParse(match.group(1)!);
     if (number == null || number <= 0) return null;
@@ -115,30 +129,50 @@ class HomeProductPacks {
   static String formatWeight(String weight) {
     final kg = _kg(weight);
     if (kg == null) return weight.trim();
-    final number = kg == kg.roundToDouble() ? kg.toStringAsFixed(0) : kg.toString();
+    final number = kg == kg.roundToDouble()
+        ? kg.toStringAsFixed(0)
+        : kg.toString();
     return '$number kg';
   }
 
   // Keep up to three distinct existing variants; when there are fewer, add
   // demo weights (with proportional sample prices) for development only.
   static List<Map<String, dynamic>> _threePacks(
-    Map<String, dynamic> raw, ProductItem? model, String preferred,
+    Map<String, dynamic> raw,
+    ProductItem? model,
+    String preferred,
   ) {
-    final group = _demoKey(raw) ?? (model == null ? null : _demoKey({'name': model.name}));
+    final group =
+        _demoKey(raw) ??
+        (model == null ? null : _demoKey({'name': model.name}));
     if (group != null) {
-      return demoPacks[group]!.map((v) => Map<String, dynamic>.from(v)).toList();
+      return demoPacks[group]!
+          .map((v) => Map<String, dynamic>.from(v))
+          .toList();
     }
     final result = <Map<String, dynamic>>[];
     void add(String weight, double? price, double? mrp) {
       weight = formatWeight(weight);
-      if (_kg(weight) == null || price == null || !price.isFinite || price <= 0 ||
-          result.any((v) => normalize(v['weight'].toString()) == normalize(weight))) return;
+      if (_kg(weight) == null ||
+          price == null ||
+          !price.isFinite ||
+          price <= 0 ||
+          result.any(
+            (v) => normalize(v['weight'].toString()) == normalize(weight),
+          ))
+        return;
       result.add({'weight': weight, 'price': price, 'mrp': mrp});
     }
+
     final rawVariants = raw['variants'];
     if (rawVariants is List) {
       for (final v in rawVariants) {
-        if (v is Map) add(v['weight']?.toString() ?? '', parsePrice(v['price']), parsePrice(v['mrp'] ?? v['originalPrice']));
+        if (v is Map)
+          add(
+            v['weight']?.toString() ?? '',
+            parsePrice(v['price']),
+            parsePrice(v['mrp'] ?? v['originalPrice']),
+          );
       }
     }
     if (result.isEmpty && model != null) {
@@ -147,20 +181,31 @@ class HomeProductPacks {
       }
     }
     if (result.isEmpty && preferred.isNotEmpty) {
-      add(preferred, parsePrice(raw['price']), parsePrice(raw['originalPrice']));
+      add(
+        preferred,
+        parsePrice(raw['price']),
+        parsePrice(raw['originalPrice']),
+      );
     }
     // If the catalog supplies a price but no usable KG label, treat that
     // price as a sample 1 kg price for the development-only demo.
     if (result.isEmpty) {
       final modelBase = model != null && model.variants.isNotEmpty
-          ? model.variants[model.selectedVariant.clamp(0, model.variants.length - 1).toInt()]
+          ? model.variants[model.selectedVariant
+                .clamp(0, model.variants.length - 1)
+                .toInt()]
           : null;
-      add('1 kg', parsePrice(raw['price']) ?? modelBase?.price.toDouble(),
-          parsePrice(raw['originalPrice']) ?? modelBase?.mrp?.toDouble());
+      add(
+        '1 kg',
+        parsePrice(raw['price']) ?? modelBase?.price.toDouble(),
+        parsePrice(raw['originalPrice']) ?? modelBase?.mrp?.toDouble(),
+      );
     }
     // A product without any valid price must remain unavailable.
     if (result.isEmpty) return result;
-    final index = result.indexWhere((v) => normalize(v['weight'].toString()) == normalize(preferred));
+    final index = result.indexWhere(
+      (v) => normalize(v['weight'].toString()) == normalize(preferred),
+    );
     final base = result[index < 0 ? 0 : index];
     if (result.length > 3) {
       final chosen = result.take(3).toList();
@@ -173,7 +218,9 @@ class HomeProductPacks {
     for (final kg in [1, 5, 10, 25]) {
       if (result.length >= 3) break;
       final samplePrice = (basePrice / baseKg * kg * 100).round() / 100;
-      final sampleMrp = baseMrp == null ? null : (baseMrp / baseKg * kg * 100).round() / 100;
+      final sampleMrp = baseMrp == null
+          ? null
+          : (baseMrp / baseKg * kg * 100).round() / 100;
       add('$kg kg', samplePrice, sampleMrp);
     }
     return result;
@@ -184,14 +231,30 @@ class HomeProductPacks {
     final model = resolveModel(raw);
     final group = _demoKey(raw);
     final defaultWeight = model != null && model.variants.isNotEmpty
-        ? model.variants[model.selectedVariant.clamp(0, model.variants.length - 1).toInt()].weight
+        ? model
+              .variants[model.selectedVariant
+                  .clamp(0, model.variants.length - 1)
+                  .toInt()]
+              .weight
         : '';
-    final requested = formatWeight(raw['weight']?.toString().trim().isNotEmpty == true
-        ? raw['weight'].toString() : defaultWeight);
+    final requested = formatWeight(
+      raw['weight']?.toString().trim().isNotEmpty == true
+          ? raw['weight'].toString()
+          : defaultWeight,
+    );
     final packs = _threePacks(raw, model, requested);
     final id = model?.id ?? group ?? raw['id'];
-    if (packs.isEmpty) return {...raw, 'id': id, 'variants': <Map<String, dynamic>>[], if (model != null) '_model': model};
-    final pack = packs.firstWhere((v) => normalize(v['weight'].toString()) == normalize(requested), orElse: () => packs.first);
+    if (packs.isEmpty)
+      return {
+        ...raw,
+        'id': id,
+        'variants': <Map<String, dynamic>>[],
+        if (model != null) '_model': model,
+      };
+    final pack = packs.firstWhere(
+      (v) => normalize(v['weight'].toString()) == normalize(requested),
+      orElse: () => packs.first,
+    );
     final price = parsePrice(pack['price'])!;
     final mrp = parsePrice(pack['mrp']);
     return {
@@ -201,7 +264,9 @@ class HomeProductPacks {
       'weight': pack['weight'],
       'price': money(price),
       'originalPrice': mrp == null ? '' : money(mrp),
-      'discountLabel': mrp != null && mrp > price ? '${((mrp - price) / mrp * 100).round()}% OFF' : '',
+      'discountLabel': mrp != null && mrp > price
+          ? '${((mrp - price) / mrp * 100).round()}% OFF'
+          : '',
       'rating': raw['rating'] ?? model?.rating ?? 0.0,
       'variants': packs,
     };
@@ -211,39 +276,90 @@ class HomeProductPacks {
   // supplies explicit category metadata. Match the more specific names first.
   static String categoryOf(Map<String, dynamic> product) {
     final model = resolveModel(product);
-    final value = normalize(product['category']?.toString().trim().isNotEmpty == true
-        ? product['category'].toString() : (model?.name ?? product['name']?.toString() ?? ''));
-    if (value.contains('jeera') || value.contains('jeerrice') || value.contains('jirakati') || value.contains('jeerkathi')) return 'Jeera Kathi';
-    if (value.contains('gobindo') || value.contains('govindo') || value.contains('gobinda') || value.contains('govinda')) return 'Gobindo Bhog';
+    final value = normalize(
+      product['category']?.toString().trim().isNotEmpty == true
+          ? product['category'].toString()
+          : (model?.name ?? product['name']?.toString() ?? ''),
+    );
+    if (value.contains('jeera') ||
+        value.contains('jeerrice') ||
+        value.contains('jirakati') ||
+        value.contains('jeerkathi'))
+      return 'Jeera Kathi';
+    if (value.contains('gobindo') ||
+        value.contains('govindo') ||
+        value.contains('gobinda') ||
+        value.contains('govinda'))
+      return 'Gobindo Bhog';
     if (value.contains('ratna')) return 'Ratna';
-    if (value.contains('banskathi') || value.contains('banskati') || value.contains('baskati') || value.contains('baskathi') || value.contains('banshkathi')) return 'Banskathi';
-    if (value.contains('minikit') || value.contains('miniket')) return 'Minikit';
-    if (value.contains('basmati') || value.contains('basmoti')) return 'Basmati';
+    if (value.contains('banskathi') ||
+        value.contains('banskati') ||
+        value.contains('baskati') ||
+        value.contains('baskathi') ||
+        value.contains('banshkathi'))
+      return 'Banskathi';
+    if (value.contains('minikit') || value.contains('miniket'))
+      return 'Minikit';
+    if (value.contains('basmati') || value.contains('basmoti'))
+      return 'Basmati';
     return product['category']?.toString().trim() ?? '';
   }
 
   // Include the existing Home demo products even if they are not yet linked
   // to a repository product. Do not invent missing varieties or inventory.
   static List<Map<String, dynamic>> catalog() {
-    final result = ProductRepository.allProducts.map<Map<String, dynamic>>((p) => {
-      '_model': p, 'id': p.id, 'name': p.name, 'imageUrl': p.imageUrl,
-      'rating': p.rating,
-    }).toList();
+    final result = ProductRepository.allProducts
+        .map<Map<String, dynamic>>(
+          (p) => {
+            '_model': p,
+            'id': p.id,
+            'name': p.name,
+            'imageUrl': p.imageUrl,
+            'rating': p.rating,
+          },
+        )
+        .toList();
     final home = <Map<String, dynamic>>[
-      {'id': 'home-superior-minikit', 'name': 'Lalbaba Superior Minikit', 'imageUrl': AssetConstants.miniket},
-      {'id': 'home-basmati-steam', 'name': 'Lalbaba Basmati Steam', 'imageUrl': AssetConstants.basmoti},
-      {'id': 'home-jeer-rice', 'name': 'Lalbaba Jeer Rice', 'imageUrl': AssetConstants.jeerrice},
-      {'id': 'home-basmati', 'name': 'Lalbaba Basmati', 'imageUrl': AssetConstants.baskati},
-      {'id': 'home-ratna-basmati', 'name': 'Ratna Basmati', 'imageUrl': AssetConstants.ratna},
+      {
+        'id': 'home-superior-minikit',
+        'name': 'Lalbaba Superior Minikit',
+        'imageUrl': AssetConstants.miniket,
+      },
+      {
+        'id': 'home-basmati-steam',
+        'name': 'Lalbaba Basmati Steam',
+        'imageUrl': AssetConstants.basmoti,
+      },
+      {
+        'id': 'home-jeer-rice',
+        'name': 'Lalbaba Jeer Rice',
+        'imageUrl': AssetConstants.jeerrice,
+      },
+      {
+        'id': 'home-basmati',
+        'name': 'Lalbaba Basmati',
+        'imageUrl': AssetConstants.baskati,
+      },
+      {
+        'id': 'home-ratna-basmati',
+        'name': 'Ratna Basmati',
+        'imageUrl': AssetConstants.ratna,
+      },
     ];
     for (final raw in home) {
       final model = resolveModel(raw);
-      final exists = result.any((p) => (model?.id != null && p['id'] == model!.id) ||
-          identical(p['_model'], model) && model != null ||
-          _demoKey(p) == raw['id']);
+      final exists = result.any(
+        (p) =>
+            (model?.id != null && p['id'] == model!.id) ||
+            identical(p['_model'], model) && model != null ||
+            _demoKey(p) == raw['id'],
+      );
       if (!exists) result.add(raw);
     }
-    return result.map(prepare).map((p) => {...p, 'category': categoryOf(p)}).toList();
+    return result
+        .map(prepare)
+        .map((p) => {...p, 'category': categoryOf(p)})
+        .toList();
   }
 
   static String cartKey(String? id, String name, String? weight) {
@@ -252,7 +368,9 @@ class HomeProductPacks {
   }
 
   static String productCartKey(Map<String, dynamic> product) => cartKey(
-    product['id']?.toString(), product['name']?.toString() ?? '', product['weight']?.toString(),
+    product['id']?.toString(),
+    product['name']?.toString() ?? '',
+    product['weight']?.toString(),
   );
 }
 
@@ -286,8 +404,7 @@ class ProductListPage extends StatefulWidget {
   });
 
   @override
-  State<ProductListPage> createState() =>
-      _ProductListPageState();
+  State<ProductListPage> createState() => _ProductListPageState();
 }
 
 // BOTH CLASS NAMES SUPPORTED
@@ -303,7 +420,6 @@ class ProductListscreen extends ProductListPage {
 }
 
 class _ProductListPageState extends State<ProductListPage> {
-
   // ===========================================================
   // VARIABLES
   // ===========================================================
@@ -312,8 +428,7 @@ class _ProductListPageState extends State<ProductListPage> {
   final Map<String, int> _selectedQuantities = {};
   final Set<String> _busy = {};
 
-  final ScrollController _scrollController =
-      ScrollController();
+  final ScrollController _scrollController = ScrollController();
 
   bool _showBackToTop = false;
   bool _cartReady = false;
@@ -341,9 +456,7 @@ class _ProductListPageState extends State<ProductListPage> {
 
     CartService.items.addListener(_refresh);
 
-    WishlistService.productsNotifier.addListener(
-      _refresh,
-    );
+    WishlistService.productsNotifier.addListener(_refresh);
 
     _initializeCart();
   }
@@ -384,8 +497,7 @@ class _ProductListPageState extends State<ProductListPage> {
   void _handleScroll() {
     final shouldShow =
         _scrollController.hasClients &&
-        _scrollController.offset >
-            _backToTopThreshold;
+        _scrollController.offset > _backToTopThreshold;
 
     if (mounted && shouldShow != _showBackToTop) {
       setState(() {
@@ -412,9 +524,7 @@ class _ProductListPageState extends State<ProductListPage> {
   void dispose() {
     CartService.items.removeListener(_refresh);
 
-    WishlistService.productsNotifier.removeListener(
-      _refresh,
-    );
+    WishlistService.productsNotifier.removeListener(_refresh);
 
     _scrollController
       ..removeListener(_handleScroll)
@@ -437,17 +547,26 @@ class _ProductListPageState extends State<ProductListPage> {
   List<Map<String, dynamic>> get _source {
     final List<Map<String, dynamic>> source;
     if (widget.products != null) {
-      source = widget.products!.map(HomeProductPacks.prepare)
-          .map((p) => {...p, 'category': HomeProductPacks.categoryOf(p)}).toList();
-    } else if (widget.sectionType?.isNotEmpty == true && widget.categoryFilter == null) {
+      source = widget.products!
+          .map(HomeProductPacks.prepare)
+          .map((p) => {...p, 'category': HomeProductPacks.categoryOf(p)})
+          .toList();
+    } else if (widget.sectionType?.isNotEmpty == true &&
+        widget.categoryFilter == null) {
       source = [];
     } else {
       source = HomeProductPacks.catalog();
     }
     final category = widget.categoryFilter;
-    if (category == null || category.trim().isEmpty || category == 'All') return source;
-    return source.where((p) => HomeProductPacks.normalize(p['category']?.toString() ?? '') ==
-        HomeProductPacks.normalize(category)).toList();
+    if (category == null || category.trim().isEmpty || category == 'All')
+      return source;
+    return source
+        .where(
+          (p) =>
+              HomeProductPacks.normalize(p['category']?.toString() ?? '') ==
+              HomeProductPacks.normalize(category),
+        )
+        .toList();
   }
 
   // ===========================================================
@@ -461,12 +580,7 @@ class _ProductListPageState extends State<ProductListPage> {
       return value.toDouble();
     }
 
-    return double.tryParse(
-      value.toString().replaceAll(
-        RegExp(r'[^0-9.]'),
-        '',
-      ),
-    );
+    return double.tryParse(value.toString().replaceAll(RegExp(r'[^0-9.]'), ''));
   }
 
   String _money(double value) {
@@ -474,22 +588,19 @@ class _ProductListPageState extends State<ProductListPage> {
   }
 
   String _key(Map<String, dynamic> product) {
-    return (
-      _model(product)?.id ??
-      product['id'] ??
-      _model(product)?.name ??
-      product['name'] ??
-      ''
-    ).toString();
+    return (_model(product)?.id ??
+            product['id'] ??
+            _model(product)?.name ??
+            product['name'] ??
+            '')
+        .toString();
   }
 
   // ===========================================================
   // PRODUCT VARIANTS
   // ===========================================================
 
-  List<_ListVariant> _variants(
-    Map<String, dynamic> product,
-  ) {
+  List<_ListVariant> _variants(Map<String, dynamic> product) {
     final rawVariants = product['variants'];
 
     if (rawVariants is List) {
@@ -497,21 +608,16 @@ class _ProductListPageState extends State<ProductListPage> {
 
       for (final item in rawVariants) {
         if (item is Map) {
-          final weight =
-              item['weight']?.toString().trim() ?? '';
+          final weight = item['weight']?.toString().trim() ?? '';
 
           final price = _parsePrice(item['price']);
 
-          if (weight.isNotEmpty &&
-              price != null &&
-              price > 0) {
+          if (weight.isNotEmpty && price != null && price > 0) {
             result.add(
               _ListVariant(
                 weight,
                 price,
-                _parsePrice(
-                  item['mrp'] ?? item['originalPrice'],
-                ),
+                _parsePrice(item['mrp'] ?? item['originalPrice']),
               ),
             );
           }
@@ -524,13 +630,16 @@ class _ProductListPageState extends State<ProductListPage> {
     final model = _model(product);
 
     if (model != null && model.variants.isNotEmpty) {
-      return model.variants.map((variant) {
-        return _ListVariant(
-          variant.weight,
-          variant.price.toDouble(),
-          variant.mrp?.toDouble(),
-        );
-      }).take(3).toList();
+      return model.variants
+          .map((variant) {
+            return _ListVariant(
+              variant.weight,
+              variant.price.toDouble(),
+              variant.mrp?.toDouble(),
+            );
+          })
+          .take(3)
+          .toList();
     }
 
     final price = _parsePrice(product['price']);
@@ -552,15 +661,13 @@ class _ProductListPageState extends State<ProductListPage> {
   // SELECTED VARIANT
   // ===========================================================
 
-  _ListVariant? _selectedVariant(
-    Map<String, dynamic> product,
-  ) {
+  _ListVariant? _selectedVariant(Map<String, dynamic> product) {
     final variants = _variants(product);
 
     if (variants.isEmpty) return null;
 
-    final selectedWeight = _chosenWeights[_selectionKey(product)] ??
-        product['weight']?.toString();
+    final selectedWeight =
+        _chosenWeights[_selectionKey(product)] ?? product['weight']?.toString();
 
     for (final variant in variants) {
       if (variant.weight == selectedWeight) {
@@ -579,9 +686,7 @@ class _ProductListPageState extends State<ProductListPage> {
     return _selectedVariant(product)?.price ?? 0;
   }
 
-  List<String> _weights(
-    Map<String, dynamic> product,
-  ) {
+  List<String> _weights(Map<String, dynamic> product) {
     return _variants(product)
         .map((variant) => variant.weight)
         .where((weight) => weight.isNotEmpty)
@@ -598,19 +703,14 @@ class _ProductListPageState extends State<ProductListPage> {
   ) {
     final model = _model(product);
 
-    final id = (
-      model?.id ?? product['id']?.toString()
-    )?.trim();
+    final id = (model?.id ?? product['id']?.toString())?.trim();
 
-    final name = (
-      model?.name ??
-      product['name']?.toString() ??
-      ''
-    ).trim().toLowerCase();
+    final name = (model?.name ?? product['name']?.toString() ?? '')
+        .trim()
+        .toLowerCase();
 
     for (final item in CartService.items.value) {
-      final sameProduct =
-          id != null && id.isNotEmpty
+      final sameProduct = id != null && id.isNotEmpty
           ? item.productId?.trim() == id
           : item.name.trim().toLowerCase() == name;
 
@@ -640,27 +740,33 @@ class _ProductListPageState extends State<ProductListPage> {
   }
 
   int _getQuantity(Map<String, dynamic> product) {
-    return _selectedQuantities[
-      _quantityKey(product)
-    ] ?? 1;
+    final variant = _selectedVariant(product);
+    final item = variant == null ? null : _cartItem(product, variant);
+    if (item != null) return item.quantity;
+
+    return _selectedQuantities[_quantityKey(product)] ?? 1;
   }
 
   // ===========================================================
   // INCREASE QUANTITY
   // ===========================================================
 
-  void _increaseQuantity(
-    Map<String, dynamic> product,
-  ) {
+  void _increaseQuantity(Map<String, dynamic> product) {
     if (_busy.contains(_key(product))) return;
+
+    final variant = _selectedVariant(product);
+    final item = variant == null ? null : _cartItem(product, variant);
+    if (item != null) {
+      _changeCartQuantity(product, increase: true);
+      return;
+    }
 
     final key = _quantityKey(product);
 
     setState(() {
-      _selectedQuantities[key] =
-          ((_selectedQuantities[key] ?? 1) + 1)
-              .clamp(1, 99)
-              .toInt();
+      _selectedQuantities[key] = ((_selectedQuantities[key] ?? 1) + 1)
+          .clamp(1, 99)
+          .toInt();
     });
   }
 
@@ -668,28 +774,57 @@ class _ProductListPageState extends State<ProductListPage> {
   // DECREASE QUANTITY
   // ===========================================================
 
-  void _decreaseQuantity(
-    Map<String, dynamic> product,
-  ) {
+  void _decreaseQuantity(Map<String, dynamic> product) {
     if (_busy.contains(_key(product))) return;
+
+    final variant = _selectedVariant(product);
+    final item = variant == null ? null : _cartItem(product, variant);
+    if (item != null) {
+      _changeCartQuantity(product, increase: false);
+      return;
+    }
 
     final key = _quantityKey(product);
 
     setState(() {
-      _selectedQuantities[key] =
-          ((_selectedQuantities[key] ?? 1) - 1)
-              .clamp(1, 99)
-              .toInt();
+      _selectedQuantities[key] = ((_selectedQuantities[key] ?? 1) - 1)
+          .clamp(1, 99)
+          .toInt();
     });
+  }
+
+  Future<void> _changeCartQuantity(
+    Map<String, dynamic> product, {
+    required bool increase,
+  }) async {
+    final variant = _selectedVariant(product);
+    final item = variant == null ? null : _cartItem(product, variant);
+    final key = _key(product);
+    if (item == null || _busy.contains(key)) return;
+    if (increase && item.quantity >= 99) return;
+
+    setState(() => _busy.add(key));
+    try {
+      if (increase) {
+        await CartService.increaseItemQuantity(item);
+      } else {
+        await CartService.decreaseItemQuantity(item);
+      }
+    } catch (error) {
+      _message('Unable to update cart quantity.');
+      debugPrint('Cart quantity error: $error');
+    } finally {
+      if (mounted) {
+        setState(() => _busy.remove(key));
+      }
+    }
   }
 
   // ===========================================================
   // ADD TO CART
   // ===========================================================
 
-  Future<void> _addToCart(
-    Map<String, dynamic> product,
-  ) async {
+  Future<void> _addToCart(Map<String, dynamic> product) async {
     final variant = _selectedVariant(product);
     final key = _key(product);
     final quantityKey = _quantityKey(product);
@@ -704,65 +839,44 @@ class _ProductListPageState extends State<ProductListPage> {
     final model = _model(product);
     final quantity = _getQuantity(product);
 
-    final productName =
-        model?.name ??
-        product['name']?.toString() ??
-        'Product';
+    final productName = model?.name ?? product['name']?.toString() ?? 'Product';
 
     setState(() {
       _busy.add(key);
     });
 
     try {
-      final existingItem = _cartItem(
-        product,
-        variant,
-      );
+      final existingItem = _cartItem(product, variant);
 
       // FIRST TIME ADD TO CART
 
       if (existingItem == null) {
         await CartService.postAddToCart(
-          productId:
-              model?.id ??
-              product['id']?.toString(),
+          productId: model?.id ?? product['id']?.toString(),
 
           productName: productName,
 
-          imageUrl:
-              model?.imageUrl ??
-              product['imageUrl']?.toString(),
+          imageUrl: model?.imageUrl ?? product['imageUrl']?.toString(),
 
           price: _money(variant.price),
 
-          originalPrice: variant.mrp == null
-              ? null
-              : _money(variant.mrp!),
+          originalPrice: variant.mrp == null ? null : _money(variant.mrp!),
 
           weight: variant.weight,
 
           quantity: quantity,
         );
       }
-
       // PRODUCT ALREADY EXISTS IN CART
-
       else {
         for (int i = 0; i < quantity; i++) {
-          final currentItem = _cartItem(
-            product,
-            variant,
-          );
+          final currentItem = _cartItem(product, variant);
 
           if (currentItem == null) {
-            throw StateError(
-              'Cart item is no longer available.',
-            );
+            throw StateError('Cart item is no longer available.');
           }
 
-          await CartService.increaseItemQuantity(
-            currentItem,
-          );
+          await CartService.increaseItemQuantity(currentItem);
         }
       }
 
@@ -774,15 +888,11 @@ class _ProductListPageState extends State<ProductListPage> {
 
       _message(
         '$quantity × $productName added to cart.',
-        action: SnackBarAction(
-          label: 'VIEW CART',
-          onPressed: _openCart,
-        ),
+        action: SnackBarAction(label: 'VIEW CART', onPressed: _openCart),
+        duration: const Duration(seconds: 5),
       );
     } catch (error) {
-      _message(
-        'Unable to complete cart update. Please check your cart.',
-      );
+      _message('Unable to complete cart update. Please check your cart.');
 
       debugPrint('Cart Error: $error');
     } finally {
@@ -799,11 +909,9 @@ class _ProductListPageState extends State<ProductListPage> {
   // ===========================================================
 
   void _openCart() {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => const NewCartPage(),
-      ),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute<void>(builder: (_) => const NewCartPage()));
   }
 
   void _openProductDetails(Map<String, dynamic> product) {
@@ -818,8 +926,7 @@ class _ProductListPageState extends State<ProductListPage> {
         )
         .toList();
     final selectedWeight =
-        _chosenWeights[_selectionKey(product)] ??
-        product['weight']?.toString();
+        _chosenWeights[_selectionKey(product)] ?? product['weight']?.toString();
     final selectedVariant = variants.indexWhere(
       (variant) => variant.weight == selectedWeight,
     );
@@ -857,15 +964,11 @@ class _ProductListPageState extends State<ProductListPage> {
   // WISHLIST
   // ===========================================================
 
-  void _toggleWishlist(
-    Map<String, dynamic> product,
-  ) {
+  void _toggleWishlist(Map<String, dynamic> product) {
     final item = _model(product);
 
     if (item == null) {
-      _message(
-        'Product is not linked to the product catalog.',
-      );
+      _message('Product is not linked to the product catalog.');
 
       return;
     }
@@ -873,16 +976,12 @@ class _ProductListPageState extends State<ProductListPage> {
     final added = WishlistService.toggle(item);
 
     _message(
-      added
-          ? 'Saved to wishlist.'
-          : 'Removed from wishlist.',
+      added ? 'Saved to wishlist.' : 'Removed from wishlist.',
 
       action: added
-          ? SnackBarAction(
-              label: 'VIEW ALL',
-              onPressed: _openWishlist,
-            )
+          ? SnackBarAction(label: 'VIEW ALL', onPressed: _openWishlist)
           : null,
+      duration: const Duration(seconds: 5),
     );
   }
 
@@ -891,11 +990,9 @@ class _ProductListPageState extends State<ProductListPage> {
   // ===========================================================
 
   void _openWishlist() {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => const NewWishlistPage(),
-      ),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute<void>(builder: (_) => const NewWishlistPage()));
   }
 
   // ===========================================================
@@ -905,6 +1002,7 @@ class _ProductListPageState extends State<ProductListPage> {
   void _message(
     String text, {
     SnackBarAction? action,
+    Duration duration = const Duration(seconds: 4),
   }) {
     if (!mounted) return;
 
@@ -912,11 +1010,10 @@ class _ProductListPageState extends State<ProductListPage> {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
+          duration: duration,
           content: Text(
             text,
-            style: HomeTextStyles.body.copyWith(
-              color: HomeColors.white,
-            ),
+            style: HomeTextStyles.body.copyWith(color: HomeColors.white),
           ),
           action: action,
         ),
@@ -952,27 +1049,21 @@ class _ProductListPageState extends State<ProductListPage> {
   }
 
   double get _minPrice {
-    final values = _source
-        .expand(_variants)
-        .map((variant) => variant.price)
-        .toList()
-      ..sort();
+    final values =
+        _source.expand(_variants).map((variant) => variant.price).toList()
+          ..sort();
 
     return values.isEmpty ? 0 : values.first;
   }
 
   double get _maxPrice {
-    final values = _source
-        .expand(_variants)
-        .map((variant) => variant.price)
-        .toList()
-      ..sort();
+    final values =
+        _source.expand(_variants).map((variant) => variant.price).toList()
+          ..sort();
 
     if (values.isEmpty) return 1;
 
-    return values.last > values.first
-        ? values.last
-        : values.first + 1;
+    return values.last > values.first ? values.last : values.first + 1;
   }
 
   // ===========================================================
@@ -981,8 +1072,7 @@ class _ProductListPageState extends State<ProductListPage> {
 
   List<Map<String, dynamic>> get _visibleProducts {
     final products = _source.where((product) {
-      final category =
-          product['category']?.toString() ?? '';
+      final category = product['category']?.toString() ?? '';
 
       if (_selectedCategories.isNotEmpty &&
           !_selectedCategories.contains(category)) {
@@ -1002,9 +1092,7 @@ class _ProductListPageState extends State<ProductListPage> {
                 variant.price >= _appliedRange!.start &&
                 variant.price <= _appliedRange!.end &&
                 (_selectedWeights.isEmpty ||
-                    _selectedWeights.contains(
-                      variant.weight,
-                    )),
+                    _selectedWeights.contains(variant.weight)),
           )) {
         return false;
       }
@@ -1014,25 +1102,18 @@ class _ProductListPageState extends State<ProductListPage> {
 
     switch (_sort) {
       case 'Price: Low to High':
-        products.sort(
-          (a, b) => _price(a).compareTo(_price(b)),
-        );
+        products.sort((a, b) => _price(a).compareTo(_price(b)));
         break;
 
       case 'Price: High to Low':
-        products.sort(
-          (a, b) => _price(b).compareTo(_price(a)),
-        );
+        products.sort((a, b) => _price(b).compareTo(_price(a)));
         break;
 
       case 'Rating':
         products.sort(
-          (a, b) =>
-              (num.tryParse(b['rating'].toString()) ?? 0)
-                  .compareTo(
-                    num.tryParse(a['rating'].toString()) ??
-                        0,
-                  ),
+          (a, b) => (num.tryParse(b['rating'].toString()) ?? 0).compareTo(
+            num.tryParse(a['rating'].toString()) ?? 0,
+          ),
         );
         break;
     }
@@ -1072,15 +1153,11 @@ class _ProductListPageState extends State<ProductListPage> {
   // ===========================================================
 
   void _openFilters() {
-    final tempCategories =
-        Set<String>.from(_selectedCategories);
+    final tempCategories = Set<String>.from(_selectedCategories);
 
-    final tempWeights =
-        Set<String>.from(_selectedWeights);
+    final tempWeights = Set<String>.from(_selectedWeights);
 
-    RangeValues tempRange =
-        _appliedRange ??
-        RangeValues(_minPrice, _maxPrice);
+    RangeValues tempRange = _appliedRange ?? RangeValues(_minPrice, _maxPrice);
 
     final width = MediaQuery.sizeOf(context).width;
 
@@ -1090,11 +1167,9 @@ class _ProductListPageState extends State<ProductListPage> {
       barrierLabel: 'Close filters',
       barrierDismissible: true,
 
-      barrierColor:
-          HomeColors.black.withValues(alpha: 0.54),
+      barrierColor: HomeColors.black.withValues(alpha: 0.54),
 
-      transitionDuration:
-          const Duration(milliseconds: 280),
+      transitionDuration: const Duration(milliseconds: 280),
 
       pageBuilder: (dialogContext, _, __) {
         return Align(
@@ -1117,10 +1192,7 @@ class _ProductListPageState extends State<ProductListPage> {
                         // FILTER TITLE
 
                         Padding(
-                          padding:
-                              const EdgeInsets.fromLTRB(
-                                18, 20, 12, 16,
-                              ),
+                          padding: const EdgeInsets.fromLTRB(18, 20, 12, 16),
 
                           child: Row(
                             children: [
@@ -1128,20 +1200,15 @@ class _ProductListPageState extends State<ProductListPage> {
                                 child: Text(
                                   'Filters',
 
-                                  style: HomeTextStyles
-                                      .largePrice
-                                      .copyWith(
-                                        color: HomeColors
-                                            .textPrimary,
-                                      ),
+                                  style: HomeTextStyles.largePrice.copyWith(
+                                    color: HomeColors.textPrimary,
+                                  ),
                                 ),
                               ),
 
                               IconButton(
                                 onPressed: () {
-                                  Navigator.pop(
-                                    dialogContext,
-                                  );
+                                  Navigator.pop(dialogContext);
                                 },
 
                                 icon: const Icon(
@@ -1153,67 +1220,48 @@ class _ProductListPageState extends State<ProductListPage> {
                           ),
                         ),
 
-                        const Divider(
-                          height: 1,
-                          color: HomeColors.divider,
-                        ),
+                        const Divider(height: 1, color: HomeColors.divider),
 
                         Expanded(
                           child: ListView(
-                            padding:
-                                const EdgeInsets.all(18),
+                            padding: const EdgeInsets.all(18),
 
                             children: [
                               // CATEGORIES
 
-                              const _FilterHeading(
-                                'Categories',
-                              ),
+                              const _FilterHeading('Categories'),
 
-                              for (final category
-                                  in _categories)
+                              for (final category in _categories)
                                 CheckboxListTile(
-                                  contentPadding:
-                                      EdgeInsets.zero,
+                                  contentPadding: EdgeInsets.zero,
 
-                                  activeColor:
-                                      HomeColors.secondary,
+                                  activeColor: HomeColors.secondary,
 
-                                  checkColor:
-                                      HomeColors.white,
+                                  checkColor: HomeColors.white,
 
                                   controlAffinity:
-                                      ListTileControlAffinity
-                                          .trailing,
+                                      ListTileControlAffinity.trailing,
 
                                   title: Text(
                                     category,
 
-                                    style: HomeTextStyles.body
-                                        .copyWith(
-                                          color: HomeColors
-                                              .textPrimary,
-                                        ),
+                                    style: HomeTextStyles.body.copyWith(
+                                      color: HomeColors.textPrimary,
+                                    ),
                                   ),
 
                                   value: category == 'All'
                                       ? tempCategories.isEmpty
-                                      : tempCategories.contains(
-                                          category,
-                                        ),
+                                      : tempCategories.contains(category),
 
                                   onChanged: (value) {
                                     updateDialog(() {
                                       if (category == 'All') {
                                         tempCategories.clear();
                                       } else if (value == true) {
-                                        tempCategories.add(
-                                          category,
-                                        );
+                                        tempCategories.add(category);
                                       } else {
-                                        tempCategories.remove(
-                                          category,
-                                        );
+                                        tempCategories.remove(category);
                                       }
                                     });
                                   },
@@ -1222,10 +1270,7 @@ class _ProductListPageState extends State<ProductListPage> {
                               const SizedBox(height: 20),
 
                               // PRICE RANGE
-
-                              const _FilterHeading(
-                                'Price Range',
-                              ),
+                              const _FilterHeading('Price Range'),
 
                               RangeSlider(
                                 values: tempRange,
@@ -1233,11 +1278,9 @@ class _ProductListPageState extends State<ProductListPage> {
                                 min: _minPrice,
                                 max: _maxPrice,
 
-                                activeColor:
-                                    HomeColors.secondary,
+                                activeColor: HomeColors.secondary,
 
-                                inactiveColor:
-                                    HomeColors.secondaryLight,
+                                inactiveColor: HomeColors.secondaryLight,
 
                                 onChanged: (value) {
                                   updateDialog(() {
@@ -1248,28 +1291,23 @@ class _ProductListPageState extends State<ProductListPage> {
 
                               Row(
                                 mainAxisAlignment:
-                                    MainAxisAlignment
-                                        .spaceBetween,
+                                    MainAxisAlignment.spaceBetween,
 
                                 children: [
                                   Text(
                                     '₹${tempRange.start.round()}',
 
-                                    style: HomeTextStyles.body
-                                        .copyWith(
-                                          color: HomeColors
-                                              .textPrimary,
-                                        ),
+                                    style: HomeTextStyles.body.copyWith(
+                                      color: HomeColors.textPrimary,
+                                    ),
                                   ),
 
                                   Text(
                                     '₹${tempRange.end.round()}',
 
-                                    style: HomeTextStyles.body
-                                        .copyWith(
-                                          color: HomeColors
-                                              .textPrimary,
-                                        ),
+                                    style: HomeTextStyles.body.copyWith(
+                                      color: HomeColors.textPrimary,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -1277,48 +1315,35 @@ class _ProductListPageState extends State<ProductListPage> {
                               const SizedBox(height: 25),
 
                               // WEIGHT
-
-                              const _FilterHeading(
-                                'Weight',
-                              ),
+                              const _FilterHeading('Weight'),
 
                               for (final weight in _allWeights)
                                 CheckboxListTile(
-                                  contentPadding:
-                                      EdgeInsets.zero,
+                                  contentPadding: EdgeInsets.zero,
 
-                                  activeColor:
-                                      HomeColors.secondary,
+                                  activeColor: HomeColors.secondary,
 
-                                  checkColor:
-                                      HomeColors.white,
+                                  checkColor: HomeColors.white,
 
                                   title: Text(
                                     weight,
 
-                                    style: HomeTextStyles.body
-                                        .copyWith(
-                                          color: HomeColors
-                                              .textPrimary,
-                                        ),
+                                    style: HomeTextStyles.body.copyWith(
+                                      color: HomeColors.textPrimary,
+                                    ),
                                   ),
 
                                   controlAffinity:
-                                      ListTileControlAffinity
-                                          .trailing,
+                                      ListTileControlAffinity.trailing,
 
-                                  value: tempWeights.contains(
-                                    weight,
-                                  ),
+                                  value: tempWeights.contains(weight),
 
                                   onChanged: (value) {
                                     updateDialog(() {
                                       if (value == true) {
                                         tempWeights.add(weight);
                                       } else {
-                                        tempWeights.remove(
-                                          weight,
-                                        );
+                                        tempWeights.remove(weight);
                                       }
                                     });
                                   },
@@ -1328,20 +1353,15 @@ class _ProductListPageState extends State<ProductListPage> {
                         ),
 
                         // CLEAR AND APPLY
-
                         Container(
-                          padding:
-                              const EdgeInsets.fromLTRB(
-                                12, 14, 12, 18,
-                              ),
+                          padding: const EdgeInsets.fromLTRB(12, 14, 12, 18),
 
                           decoration: BoxDecoration(
                             color: HomeColors.surface,
 
                             boxShadow: [
                               BoxShadow(
-                                color: HomeColors.black
-                                    .withValues(alpha: 0.08),
+                                color: HomeColors.black.withValues(alpha: 0.08),
 
                                 blurRadius: 10,
 
@@ -1372,24 +1392,17 @@ class _ProductListPageState extends State<ProductListPage> {
                                     });
                                   },
 
-                                  style:
-                                      OutlinedButton.styleFrom(
-                                        foregroundColor:
-                                            HomeColors.secondary,
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: HomeColors.secondary,
 
-                                        textStyle:
-                                            HomeTextStyles
-                                                .compactButton,
+                                    textStyle: HomeTextStyles.compactButton,
 
-                                        padding:
-                                            const EdgeInsets
-                                                .symmetric(
-                                              vertical: 15,
-                                            ),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 15,
+                                    ),
 
-                                        shape:
-                                            const StadiumBorder(),
-                                      ),
+                                    shape: const StadiumBorder(),
+                                  ),
 
                                   child: const Text('CLEAR'),
                                 ),
@@ -1401,51 +1414,35 @@ class _ProductListPageState extends State<ProductListPage> {
                                 child: ElevatedButton(
                                   onPressed: () {
                                     setState(() {
-                                      _selectedCategories =
-                                          Set.from(
-                                            tempCategories,
-                                          );
+                                      _selectedCategories = Set.from(
+                                        tempCategories,
+                                      );
 
-                                      _selectedWeights =
-                                          Set.from(
-                                            tempWeights,
-                                          );
+                                      _selectedWeights = Set.from(tempWeights);
 
                                       _appliedRange =
-                                          tempRange.start <=
-                                                  _minPrice &&
-                                              tempRange.end >=
-                                                  _maxPrice
+                                          tempRange.start <= _minPrice &&
+                                              tempRange.end >= _maxPrice
                                           ? null
                                           : tempRange;
                                     });
 
-                                    Navigator.pop(
-                                      dialogContext,
-                                    );
+                                    Navigator.pop(dialogContext);
                                   },
 
-                                  style:
-                                      ElevatedButton.styleFrom(
-                                        backgroundColor:
-                                            HomeColors.secondary,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: HomeColors.secondary,
 
-                                        foregroundColor:
-                                            HomeColors.white,
+                                    foregroundColor: HomeColors.white,
 
-                                        textStyle:
-                                            HomeTextStyles
-                                                .caption,
+                                    textStyle: HomeTextStyles.caption,
 
-                                        padding:
-                                            const EdgeInsets
-                                                .symmetric(
-                                              vertical: 15,
-                                            ),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 15,
+                                    ),
 
-                                        shape:
-                                            const StadiumBorder(),
-                                      ),
+                                    shape: const StadiumBorder(),
+                                  ),
 
                                   child: const Text(
                                     'APPLY FILTER',
@@ -1466,22 +1463,16 @@ class _ProductListPageState extends State<ProductListPage> {
         );
       },
 
-      transitionBuilder:
-          (context, animation, _, child) {
-            return SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(1, 0),
-                end: Offset.zero,
-              ).animate(
-                CurvedAnimation(
-                  parent: animation,
-                  curve: Curves.easeOutCubic,
-                ),
+      transitionBuilder: (context, animation, _, child) {
+        return SlideTransition(
+          position: Tween<Offset>(begin: const Offset(1, 0), end: Offset.zero)
+              .animate(
+                CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
               ),
 
-              child: child,
-            );
-          },
+          child: child,
+        );
+      },
     );
   }
 
@@ -1499,7 +1490,6 @@ class _ProductListPageState extends State<ProductListPage> {
       // =======================================================
       // COMMON APP BAR
       // =======================================================
-
       appBar: CommonAppBar(
         automaticallyImplyLeading: false,
 
@@ -1512,8 +1502,7 @@ class _ProductListPageState extends State<ProductListPage> {
         title: widget.pageTitle,
 
         actions: [
-          ValueListenableBuilder<
-              List<CartNotificationItem>>(
+          ValueListenableBuilder<List<CartNotificationItem>>(
             valueListenable: CartService.items,
 
             builder: (context, items, _) {
@@ -1559,7 +1548,6 @@ class _ProductListPageState extends State<ProductListPage> {
       // =======================================================
       // BODY
       // =======================================================
-
       body: Column(
         children: [
           // PRODUCT COUNT, SORT, FILTER
@@ -1567,10 +1555,7 @@ class _ProductListPageState extends State<ProductListPage> {
           Container(
             color: HomeColors.surface,
 
-            padding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 12,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
 
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1610,7 +1595,6 @@ class _ProductListPageState extends State<ProductListPage> {
                   runSpacing: 4,
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-               
                     _sortChip('Popularity', 'Rating'),
                     _sortChip('Price: Low to High', 'Price: Low to High'),
                     _sortChip('Price: High to Low', 'Price: High to Low'),
@@ -1620,10 +1604,7 @@ class _ProductListPageState extends State<ProductListPage> {
             ),
           ),
 
-          const Divider(
-            height: 1,
-            color: HomeColors.divider,
-          ),
+          const Divider(height: 1, color: HomeColors.divider),
 
           if (_cartError != null)
             TextButton(
@@ -1632,16 +1613,13 @@ class _ProductListPageState extends State<ProductListPage> {
               child: Text(
                 'Cart unavailable — retry',
 
-                style: HomeTextStyles.body.copyWith(
-                  color: HomeColors.error,
-                ),
+                style: HomeTextStyles.body.copyWith(color: HomeColors.error),
               ),
             ),
 
           // ===================================================
           // PRODUCT GRID
           // ===================================================
-
           Expanded(
             child: Stack(
               children: [
@@ -1659,11 +1637,9 @@ class _ProductListPageState extends State<ProductListPage> {
                   GridView.builder(
                     controller: _scrollController,
 
-                    physics:
-                        const ClampingScrollPhysics(),
+                    physics: const ClampingScrollPhysics(),
 
-                    padding:
-                        const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(12),
 
                     itemCount: products.length,
 
@@ -1673,8 +1649,7 @@ class _ProductListPageState extends State<ProductListPage> {
                           crossAxisSpacing: 12,
                           mainAxisSpacing: 12,
 
-                          mainAxisExtent:
-                              ProductListStyle.cardHeight,
+                          mainAxisExtent: ProductListStyle.cardHeight,
                         ),
 
                     itemBuilder: (context, index) {
@@ -1682,8 +1657,10 @@ class _ProductListPageState extends State<ProductListPage> {
 
                       final key = _key(product);
                       final model = _model(product);
-                      final variant =
-                          _selectedVariant(product);
+                      final variant = _selectedVariant(product);
+                      final cartItem = variant == null
+                          ? null
+                          : _cartItem(product, variant);
 
                       return _ProductCard(
                         product: product,
@@ -1695,16 +1672,14 @@ class _ProductListPageState extends State<ProductListPage> {
                         selected: variant,
 
                         quantity: _getQuantity(product),
+                        inCart: cartItem != null,
 
-                        favorite: model != null &&
-                            WishlistService.contains(
-                              model,
-                            ),
+                        favorite:
+                            model != null && WishlistService.contains(model),
 
                         adding: _busy.contains(key),
 
-                        enabled:
-                            _cartReady && variant != null,
+                        enabled: _cartReady && variant != null,
 
                         onOpenDetails: () {
                           _openProductDetails(product);
@@ -1731,25 +1706,25 @@ class _ProductListPageState extends State<ProductListPage> {
                         },
 
                         onAdd: () {
-                          _addToCart(product);
+                          if (cartItem != null) {
+                            _openCart();
+                          } else {
+                            _addToCart(product);
+                          }
                         },
                       );
                     },
                   ),
 
                 // BACK TO TOP BUTTON
-
-                if (_showBackToTop &&
-                    products.isNotEmpty)
+                if (_showBackToTop && products.isNotEmpty)
                   Positioned(
                     top: 12,
                     left: 0,
                     right: 0,
 
                     child: Center(
-                      child: BackToTopButton(
-                        onPressed: _scrollToTop,
-                      ),
+                      child: BackToTopButton(onPressed: _scrollToTop),
                     ),
                   ),
               ],
@@ -1789,10 +1764,7 @@ class _FilterHeading extends StatelessWidget {
 
           const SizedBox(height: 12),
 
-          const Divider(
-            height: 1,
-            color: HomeColors.divider,
-          ),
+          const Divider(height: 1, color: HomeColors.divider),
         ],
       ),
     );
@@ -1808,11 +1780,7 @@ class _ListVariant {
   final double price;
   final double? mrp;
 
-  const _ListVariant(
-    this.weight,
-    this.price,
-    this.mrp,
-  );
+  const _ListVariant(this.weight, this.price, this.mrp);
 }
 
 // =============================================================
@@ -1829,6 +1797,7 @@ class _ProductCard extends StatelessWidget {
   final _ListVariant? selected;
 
   final int quantity;
+  final bool inCart;
 
   final bool favorite;
   final bool adding;
@@ -1848,6 +1817,7 @@ class _ProductCard extends StatelessWidget {
     required this.variants,
     required this.selected,
     required this.quantity,
+    required this.inCart,
     required this.favorite,
     required this.adding,
     required this.enabled,
@@ -1874,8 +1844,7 @@ class _ProductCard extends StatelessWidget {
       );
     }
 
-    if (url.startsWith('http://') ||
-        url.startsWith('https://')) {
+    if (url.startsWith('http://') || url.startsWith('https://')) {
       return Image.network(
         url,
 
@@ -1916,22 +1885,16 @@ class _ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final name =
-        product['name']?.toString() ?? 'Product';
+    final name = product['name']?.toString() ?? 'Product';
 
-    final url =
-        product['imageUrl']?.toString() ?? '';
+    final url = product['imageUrl']?.toString() ?? '';
 
-    final rating = double.tryParse(
-          product['rating']?.toString() ?? '',
-        ) ??
-        0;
+    final rating = double.tryParse(product['rating']?.toString() ?? '') ?? 0;
 
     final days = product['deliveryDays'];
 
     final options = <String, _ListVariant>{
-      for (final variant in variants)
-        variant.weight: variant,
+      for (final variant in variants) variant.weight: variant,
     };
 
     return GestureDetector(
@@ -1940,18 +1903,13 @@ class _ProductCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: HomeColors.surface,
 
-          borderRadius: BorderRadius.circular(
-            ProductListStyle.cardRadius,
-          ),
+          borderRadius: BorderRadius.circular(ProductListStyle.cardRadius),
 
-          border: Border.all(
-            color: HomeColors.border,
-          ),
+          border: Border.all(color: HomeColors.border),
 
           boxShadow: [
             BoxShadow(
-              color: HomeColors.black
-                  .withValues(alpha: 0.035),
+              color: HomeColors.black.withValues(alpha: 0.035),
 
               blurRadius: 5,
 
@@ -1965,470 +1923,418 @@ class _ProductCard extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(10),
 
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
 
-          children: [
-            // =================================================
-            // PRODUCT IMAGE
-            // =================================================
+            children: [
+              // =================================================
+              // PRODUCT IMAGE
+              // =================================================
 
-            Expanded(
-              child: Stack(
-                children: [
-                  Positioned.fill(
-                    child: Container(
-                      width: double.infinity,
+              Expanded(
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: Container(
+                        width: double.infinity,
 
-                      padding: const EdgeInsets.all(8),
+                        padding: const EdgeInsets.all(8),
 
-                      alignment: Alignment.center,
+                        alignment: Alignment.center,
 
-                      child: _buildImage(url),
-                    ),
-                  ),
-
-                  // WISHLIST HEART
-
-                  Positioned(
-                    top: 0,
-                    right: 0,
-
-                    child: IconButton(
-                      tooltip: favorite
-                          ? 'Remove from wishlist'
-                          : 'Add to wishlist',
-
-                      onPressed: onFavorite,
-
-                      icon: Icon(
-                        favorite
-                            ? Icons.favorite
-                            : Icons.favorite_border,
-
-                        color: favorite
-                            ? HomeColors.secondary
-                            : HomeColors.textHint,
-
-                        size: 25,
+                        child: _buildImage(url),
                       ),
                     ),
-                  ),
-                ],
+
+                    // WISHLIST HEART
+                    Positioned(
+                      top: 0,
+                      right: 0,
+
+                      child: IconButton(
+                        tooltip: favorite
+                            ? 'Remove from wishlist'
+                            : 'Add to wishlist',
+
+                        onPressed: onFavorite,
+
+                        icon: Icon(
+                          favorite ? Icons.favorite : Icons.favorite_border,
+
+                          color: favorite
+                              ? HomeColors.secondary
+                              : HomeColors.textHint,
+
+                          size: 25,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
 
-            const SizedBox(height: 8),
+              const SizedBox(height: 8),
 
-            // =================================================
-            // PRODUCT NAME
-            // =================================================
+              // =================================================
+              // PRODUCT NAME
+              // =================================================
+              SizedBox(
+                height: 38,
 
-            SizedBox(
-              height: 38,
+                width: double.infinity,
 
-              width: double.infinity,
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    name,
 
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  name,
+                    maxLines: 2,
 
-                  maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
 
-                  overflow: TextOverflow.ellipsis,
+                    style: HomeTextStyles.productCardTitle.copyWith(
+                      height: 1.3,
 
-                  style: HomeTextStyles.productCardTitle.copyWith(
-                    height: 1.3,
+                      fontWeight: HomeTextStyles.bold,
 
-                    fontWeight: HomeTextStyles.bold,
-
-                    color: HomeColors.textPrimary,
+                      color: HomeColors.textPrimary,
+                    ),
                   ),
                 ),
               ),
-            ),
 
-            // =================================================
-            // STAR RATING
-            // =================================================
+              // =================================================
+              // STAR RATING
+              // =================================================
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
 
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-
-              children: List.generate(
-                5,
-
-                (index) {
+                children: List.generate(5, (index) {
                   return Icon(
                     index < rating.floor()
                         ? Icons.star_rounded
                         : rating - index >= .5
-                            ? Icons.star_half_rounded
-                            : Icons.star_border_rounded,
+                        ? Icons.star_half_rounded
+                        : Icons.star_border_rounded,
 
                     color: HomeColors.accent,
 
                     size: 18,
                   );
-                },
-              ),
-            ),
-
-            const SizedBox(height: 10),
-
-            // =================================================
-            // WEIGHT AND PRICE DROPDOWN
-            // =================================================
-
-            Container(
-              width: double.infinity,
-
-              height: 38,
-
-              padding: const EdgeInsets.symmetric(
-                horizontal: 8,
+                }),
               ),
 
-              decoration: BoxDecoration(
-                color: HomeColors.surface,
+              const SizedBox(height: 10),
 
-                border: Border.all(
-                  color: HomeColors.border,
+              // =================================================
+              // WEIGHT AND PRICE DROPDOWN
+              // =================================================
+              Container(
+                width: double.infinity,
+
+                height: 38,
+
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+
+                decoration: BoxDecoration(
+                  color: HomeColors.surface,
+
+                  border: Border.all(color: HomeColors.border),
+
+                  borderRadius: BorderRadius.circular(6),
                 ),
 
-                borderRadius: BorderRadius.circular(6),
-              ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    isExpanded: true,
 
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<String>(
-                  isExpanded: true,
+                    value: options.containsKey(selected?.weight)
+                        ? selected?.weight
+                        : null,
 
-                  value: options.containsKey(
-                    selected?.weight,
-                  )
-                      ? selected?.weight
-                      : null,
+                    icon: const Icon(
+                      Icons.keyboard_arrow_down_rounded,
 
-                  icon: const Icon(
-                    Icons.keyboard_arrow_down_rounded,
+                      size: 20,
 
-                    size: 20,
-
-                    color: HomeColors.textPrimary,
-                  ),
-
-                  borderRadius:
-                      BorderRadius.circular(10),
-
-                  dropdownColor: HomeColors.surface,
-
-                  hint: Text(
-                    'No variant available',
-
-                    style: HomeTextStyles.caption.copyWith(
-                      color: HomeColors.textHint,
+                      color: HomeColors.textPrimary,
                     ),
-                  ),
 
-                  style: HomeTextStyles.caption.copyWith(
-                    color: HomeColors.textPrimary,
+                    borderRadius: BorderRadius.circular(10),
 
-                    fontWeight: HomeTextStyles.medium,
-                  ),
+                    dropdownColor: HomeColors.surface,
 
-                  items: options.values.map((variant) {
-                    return DropdownMenuItem<String>(
-                      value: variant.weight,
-
-                      child: Text(
-                        variant.weight.isEmpty
-                            ? money(variant.price)
-                            : '${variant.weight} - '
-                              '${money(variant.price)}',
-
-                        maxLines: 1,
-
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    );
-                  }).toList(),
-
-                  onChanged: adding || options.isEmpty
-                      ? null
-                      : onWeightChanged,
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 8),
-
-            // =================================================
-            // PRODUCT PRICE
-            // =================================================
-
-            Text(
-              selected == null
-                  ? 'Price unavailable'
-                  : money(selected!.price),
-
-              maxLines: 1,
-
-              overflow: TextOverflow.ellipsis,
-
-              style: HomeTextStyles.summaryTotalLabel.copyWith(
-                color: HomeColors.textPrimary,
-              ),
-            ),
-
-            // ORIGINAL PRICE
-
-            SizedBox(
-              height: 18,
-
-              child: selected?.mrp != null &&
-                      selected!.mrp! > selected!.price
-                  ? Text(
-                      money(selected!.mrp!),
+                    hint: Text(
+                      'No variant available',
 
                       style: HomeTextStyles.caption.copyWith(
-                        color: HomeColors.textSecondary,
-
-                        decoration:
-                            TextDecoration.lineThrough,
+                        color: HomeColors.textHint,
                       ),
-                    )
-                  : const SizedBox.shrink(),
-            ),
-
-            const SizedBox(height: 4),
-
-            // =================================================
-            // DELIVERY DETAILS
-            // =================================================
-
-            Row(
-              children: [
-                const Icon(
-                  Icons.local_shipping_outlined,
-
-                  size: 16,
-
-                  color: HomeColors.secondary,
-                ),
-
-                const SizedBox(width: 4),
-
-                Expanded(
-                  child: Text(
-                    days == null
-                        ? 'Delivery details at checkout'
-                        : 'Delivery in $days days',
-
-                    maxLines: 1,
-
-                    overflow: TextOverflow.ellipsis,
+                    ),
 
                     style: HomeTextStyles.caption.copyWith(
-                      color: HomeColors.secondary,
+                      color: HomeColors.textPrimary,
+
+                      fontWeight: HomeTextStyles.medium,
                     ),
+
+                    items: options.values.map((variant) {
+                      return DropdownMenuItem<String>(
+                        value: variant.weight,
+
+                        child: Text(
+                          variant.weight.isEmpty
+                              ? money(variant.price)
+                              : '${variant.weight} - '
+                                    '${money(variant.price)}',
+
+                          maxLines: 1,
+
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      );
+                    }).toList(),
+
+                    onChanged: adding || options.isEmpty
+                        ? null
+                        : onWeightChanged,
                   ),
                 ),
-              ],
-            ),
+              ),
 
-            const SizedBox(height: 12),
+              const SizedBox(height: 8),
 
-            // =================================================
-            // QUANTITY AND ADD BUTTON
-            // =================================================
+              // =================================================
+              // PRODUCT PRICE
+              // =================================================
+              Text(
+                selected == null ? 'Price unavailable' : money(selected!.price),
 
-            Row(
-              children: [
-                // LEFT SIDE QUANTITY CONTROL
+                maxLines: 1,
 
-                Expanded(
-                  flex: 5,
+                overflow: TextOverflow.ellipsis,
 
-                  child: Container(
-                    height: 38,
+                style: HomeTextStyles.summaryTotalLabel.copyWith(
+                  color: HomeColors.textPrimary,
+                ),
+              ),
 
-                    decoration: BoxDecoration(
-                      color: HomeColors.surface,
+              // ORIGINAL PRICE
+              SizedBox(
+                height: 18,
 
-                      border: Border.all(
-                        color: HomeColors.disabled,
+                child: selected?.mrp != null && selected!.mrp! > selected!.price
+                    ? Text(
+                        money(selected!.mrp!),
+
+                        style: HomeTextStyles.caption.copyWith(
+                          color: HomeColors.textSecondary,
+
+                          decoration: TextDecoration.lineThrough,
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+              ),
+
+              const SizedBox(height: 4),
+
+              // =================================================
+              // DELIVERY DETAILS
+              // =================================================
+              Row(
+                children: [
+                  const Icon(
+                    Icons.local_shipping_outlined,
+
+                    size: 16,
+
+                    color: HomeColors.secondary,
+                  ),
+
+                  const SizedBox(width: 4),
+
+                  Expanded(
+                    child: Text(
+                      days == null
+                          ? 'Delivery details at checkout'
+                          : 'Delivery in $days days',
+
+                      maxLines: 1,
+
+                      overflow: TextOverflow.ellipsis,
+
+                      style: HomeTextStyles.caption.copyWith(
+                        color: HomeColors.secondary,
                       ),
-
-                      borderRadius:
-                          BorderRadius.circular(6),
-                    ),
-
-                    child: Row(
-                      children: [
-                        // MINUS BUTTON
-
-                        Expanded(
-                          child: InkWell(
-                            onTap: !enabled ||
-                                    adding ||
-                                    quantity <= 1
-                                ? null
-                                : onMinus,
-
-                            child: SizedBox(
-                              height: 38,
-
-                              child: Center(
-                                child: Icon(
-                                  Icons.remove,
-
-                                  size: 17,
-
-                                  color: quantity <= 1 ||
-                                          !enabled ||
-                                          adding
-                                      ? HomeColors.textSecondary
-                                      : HomeColors.textPrimary,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        // QUANTITY TEXT
-
-                        Expanded(
-                          child: Center(
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-
-                              child: Text(
-                                '$quantity',
-
-                                style: HomeTextStyles
-                                    .bodySmall
-                                    .copyWith(
-                                      color: HomeColors
-                                          .textPrimary,
-
-                                      fontWeight:
-                                          HomeTextStyles.bold,
-                                    ),
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        // PLUS BUTTON
-
-                        Expanded(
-                          child: InkWell(
-                            onTap: !enabled ||
-                                    adding ||
-                                    quantity >= 99
-                                ? null
-                                : onPlus,
-
-                            child: SizedBox(
-                              height: 38,
-
-                              child: Center(
-                                child: Icon(
-                                  Icons.add,
-
-                                  size: 17,
-
-                                  color: !enabled ||
-                                          adding ||
-                                          quantity >= 99
-                                      ? HomeColors.textSecondary
-                                      : HomeColors.textPrimary,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
                     ),
                   ),
-                ),
+                ],
+              ),
 
-                const SizedBox(width: 5),
+              const SizedBox(height: 12),
 
-                // RIGHT SIDE ADD BUTTON
+              // =================================================
+              // QUANTITY AND ADD BUTTON
+              // =================================================
+              Row(
+                children: [
+                  // LEFT SIDE QUANTITY CONTROL
 
-                Expanded(
-                  flex: 4,
+                  Expanded(
+                    flex: 5,
 
-                  child: SizedBox(
-                    height: 38,
+                    child: Container(
+                      height: 38,
 
-                    child: ElevatedButton(
-                      onPressed: !enabled || adding
-                          ? null
-                          : onAdd,
+                      decoration: BoxDecoration(
+                        color: HomeColors.surface,
 
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            HomeColors.secondary,
+                        border: Border.all(color: HomeColors.disabled),
 
-                        foregroundColor:
-                            HomeColors.white,
-
-                        disabledBackgroundColor:
-                            HomeColors.secondary
-                                .withValues(alpha: 0.50),
-
-                        disabledForegroundColor:
-                            HomeColors.white,
-
-                        textStyle: HomeTextStyles
-                            .compactButton
-                            .copyWith(
-                              fontWeight:
-                                  HomeTextStyles.bold,
-                            ),
-
-                        elevation: 0,
-
-                        padding: EdgeInsets.zero,
-
-                        minimumSize: Size.zero,
-
-                        tapTargetSize:
-                            MaterialTapTargetSize.shrinkWrap,
-
-                        shape: RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.circular(6),
-                        ),
+                        borderRadius: BorderRadius.circular(6),
                       ),
 
-                      child: adding
-                          ? const SizedBox(
-                              height: 17,
+                      child: Row(
+                        children: [
+                          // MINUS BUTTON
 
-                              width: 17,
+                          Expanded(
+                            child: InkWell(
+                              onTap:
+                                  !enabled ||
+                                      adding ||
+                                      (!inCart && quantity <= 1)
+                                  ? null
+                                  : onMinus,
 
-                              child:
-                                  CircularProgressIndicator(
-                                    strokeWidth: 2,
+                              child: SizedBox(
+                                height: 38,
 
-                                    color: HomeColors.white,
+                                child: Center(
+                                  child: Icon(
+                                    Icons.remove,
+
+                                    size: 17,
+
+                                    color:
+                                        (!inCart && quantity <= 1) ||
+                                            !enabled ||
+                                            adding
+                                        ? HomeColors.textSecondary
+                                        : HomeColors.textPrimary,
                                   ),
-                            )
-                          : const Text(
-                              'ADD',
-                              maxLines: 1,
+                                ),
+                              ),
                             ),
+                          ),
+
+                          // QUANTITY TEXT
+                          Expanded(
+                            child: Center(
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+
+                                child: Text(
+                                  '$quantity',
+
+                                  style: HomeTextStyles.bodySmall.copyWith(
+                                    color: HomeColors.textPrimary,
+
+                                    fontWeight: HomeTextStyles.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          // PLUS BUTTON
+                          Expanded(
+                            child: InkWell(
+                              onTap: !enabled || adding || quantity >= 99
+                                  ? null
+                                  : onPlus,
+
+                              child: SizedBox(
+                                height: 38,
+
+                                child: Center(
+                                  child: Icon(
+                                    Icons.add,
+
+                                    size: 17,
+
+                                    color: !enabled || adding || quantity >= 99
+                                        ? HomeColors.textSecondary
+                                        : HomeColors.textPrimary,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          ],
-        ),
+
+                  const SizedBox(width: 5),
+
+                  // RIGHT SIDE ADD BUTTON
+                  Expanded(
+                    flex: 4,
+
+                    child: SizedBox(
+                      height: 38,
+
+                      child: ElevatedButton(
+                        onPressed: !enabled || adding ? null : onAdd,
+
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: HomeColors.secondary,
+
+                          foregroundColor: HomeColors.white,
+
+                          disabledBackgroundColor: HomeColors.secondary
+                              .withValues(alpha: 0.50),
+
+                          disabledForegroundColor: HomeColors.white,
+
+                          textStyle: HomeTextStyles.compactButton.copyWith(
+                            fontWeight: HomeTextStyles.bold,
+                          ),
+
+                          elevation: 0,
+
+                          padding: EdgeInsets.zero,
+
+                          minimumSize: Size.zero,
+
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                        ),
+
+                        child: adding
+                            ? const SizedBox(
+                                height: 17,
+
+                                width: 17,
+
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+
+                                  color: HomeColors.white,
+                                ),
+                              )
+                            : Text(inCart ? 'GO TO CART' : 'ADD', maxLines: 1),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -1,6 +1,8 @@
 
 import 'package:flutter/material.dart';
 
+import 'constantcolour.dart';
+
 class CommonAppBar extends StatelessWidget
     implements PreferredSizeWidget {
 
@@ -45,7 +47,7 @@ class CommonAppBar extends StatelessWidget
     this.titleWidget,
     this.leading,
     this.actions,
-    this.backgroundColor = const Color(0xFF008A58),
+    this.backgroundColor = HomeColors.secondary,
     this.titleColor = Colors.white,
     this.iconColor = Colors.white,
     this.height = 60,

@@ -2,9 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lalbaba_online/new_app/dashboard/new_about_us.dart';
-import 'package:lalbaba_online/new_app/dashboard/new_terms_of_use.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:lalbaba_online/new_app/policy/new_about_us.dart';
+import 'package:lalbaba_online/new_app/policy/new_terms_of_use.dart';
 
 import 'package:lalbaba_online/app/router/route_names.dart';
 import 'package:lalbaba_online/app/config/app_config.dart';
@@ -15,6 +14,9 @@ import 'package:lalbaba_online/new_app/constant/new_constant_text_styles.dart';
 
 import 'package:lalbaba_online/new_app/checkout/new_profile.dart';
 import 'package:lalbaba_online/new_app/dashboard/new_wishlist.dart';
+import 'package:lalbaba_online/new_app/policy/privacy_policy_page.dart';
+import 'package:lalbaba_online/new_app/policy/shipping_policy_page.dart';
+import 'package:lalbaba_online/new_app/policy/return_refund_policy_page.dart';
 
 // =============================================================
 // ACCOUNT PAGE STYLE
@@ -107,40 +109,10 @@ class _NewAccountPageState extends State<NewAccountPage> {
       );
   }
 
-  // ===========================================================
-  // OPEN EXTERNAL URL
-  // ===========================================================
-
-  Future<void> _openExternalUrl(
-    String urlString,
-  ) async {
-    try {
-      final Uri url = Uri.parse(urlString);
-
-      final bool launched = await launchUrl(
-        url,
-
-        mode: LaunchMode.externalApplication,
-      );
-
-      if (!launched && mounted) {
-        _showMessage(
-          'Unable to open page',
-
-          isError: true,
-        );
-      }
-    } catch (error) {
-      if (!mounted) return;
-
-      _showMessage(
-        'Unable to open page',
-
-        isError: true,
-      );
-
-      debugPrint('URL Error: $error');
-    }
+  void _openPolicyPage(Widget page) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => page),
+    );
   }
 
   // ===========================================================
@@ -428,6 +400,7 @@ class _NewAccountPageState extends State<NewAccountPage> {
 
             const _AccountSectionLabel(
               text: 'Account',
+              color: HomeColors.secondary,
             ),
 
             _AccountSectionCard(
@@ -491,6 +464,7 @@ _AccountMenuTile(
             // =================================================
             const _AccountSectionLabel(
               text: 'My Orders',
+              color: HomeColors.secondary,
             ),
 
             _AccountSectionCard(
@@ -533,7 +507,8 @@ _AccountMenuTile(
             ),
  const SizedBox(height: 20),
             const _AccountSectionLabel(
-              text: 'Policy',
+              text: 'Policies',
+              color: HomeColors.secondary,
             ),
  
             _AccountSectionCard(
@@ -562,11 +537,8 @@ _AccountMenuTile(
 
                   label: 'Privacy Policy',
 
-                  onTap: () {
-                    _openExternalUrl(
-                      'https://lalbabaonline.com/privacy-policy',
-                    );
-                  },
+                  onTap: () =>
+                      _openPolicyPage(const PrivacyPolicyPage()),
                 ),
 
                 // SHIPPING POLICY
@@ -576,11 +548,8 @@ _AccountMenuTile(
 
                   label: 'Shipping Policy',
 
-                  onTap: () {
-                    _openExternalUrl(
-                      'https://lalbabaonline.com/shipping-policy',
-                    );
-                  },
+                  onTap: () =>
+                      _openPolicyPage(const ShippingPolicyPage()),
                 ),
 
                 // FACTORY LOCATOR
@@ -590,11 +559,8 @@ _AccountMenuTile(
 
                   label: 'Returns & Refund',
 
-                  onTap: () {
-                    _openExternalUrl(
-                      'https://lalbabaonline.com/return-policy',
-                    );
-                  },
+                  onTap: () =>
+                      _openPolicyPage(const ReturnRefundPolicyPage()),
 
                   showDivider: false,
                 ),
@@ -607,48 +573,9 @@ _AccountMenuTile(
             // MY ORDERS SECTION
             // =================================================
 
-            const _AccountSectionLabel(
-              text: 'My Orders',
-            ),
+           
 
-            _AccountSectionCard(
-              children: [
-
-                // MY ORDERS
-
-                _AccountMenuTile(
-                  icon: Icons.local_shipping_outlined,
-
-                  label: 'My Orders',
-
-                  onTap: _openOrdersPage,
-                ),
-
-                // WISHLIST
-
-                _AccountMenuTile(
-                  icon: Icons.favorite_border,
-
-                  label: 'Wishlist',
-
-                  onTap: _openWishlistPage,
-                ),
-
-                // TRACK ORDER
-
-                _AccountMenuTile(
-                  icon: Icons.local_shipping_outlined,
-
-                  label: 'Track Order',
-
-                  onTap: _openTrackOrderPage,
-                ),
-
-                // RETURNS AND REFUND
-
-        
-              ],
-            ),
+          
 
             const SizedBox(height: 28),
 
@@ -963,9 +890,11 @@ class _AccountProfileHeader extends StatelessWidget {
 
 class _AccountSectionLabel extends StatelessWidget {
   final String text;
+  final Color color;
 
   const _AccountSectionLabel({
     required this.text,
+    required this.color,
   });
 
   @override
@@ -981,8 +910,8 @@ class _AccountSectionLabel extends StatelessWidget {
         text,
 
         style: HomeTextStyles.chip.copyWith(
-          color: HomeColors.textSecondary,
-
+          color: color,
+          fontSize: HomeTextStyles.sizeProduct,
           letterSpacing: 0.4,
         ),
       ),

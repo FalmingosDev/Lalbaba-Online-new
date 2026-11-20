@@ -17,7 +17,9 @@ import 'package:lalbaba_online/core/services/cart_service.dart';
 import 'package:lalbaba_online/core/widgets/app_shimmer.dart';
 
 class HomeNewPage extends ConsumerStatefulWidget {
-  const HomeNewPage({super.key});
+  final VoidCallback? onGoToCart;
+
+  const HomeNewPage({super.key, this.onGoToCart});
 
   @override
   ConsumerState<HomeNewPage> createState() => _HomeNewPageState();
@@ -378,9 +380,17 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
   Future<void> _openCartPage() async {
     if (!mounted) return;
 
-    await Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (context) => const NewCartPage()));
+    final onGoToCart = widget.onGoToCart;
+    if (onGoToCart != null) {
+      onGoToCart();
+      return;
+    }
+
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const NewCartPage(showBackButton: true),
+      ),
+    );
 
     _refreshHomeCart();
   }

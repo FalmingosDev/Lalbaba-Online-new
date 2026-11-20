@@ -8,6 +8,7 @@ import '../../core/services/cart_service.dart';
 import '../../core/services/wishlist_service.dart';
 import '../../features/product/presentation/model/product_models.dart';
 import '../constant/constantcolour.dart';
+import 'homenew.dart';
 
 class NewWishlistPage extends StatefulWidget {
   const NewWishlistPage({super.key});
@@ -354,7 +355,9 @@ class _EmptyWishlist extends StatelessWidget {
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
-                onPressed: () => Navigator.of(context).maybePop(),
+                onPressed: () => Navigator.of(context).push<void>(
+                  MaterialPageRoute<void>(builder: (_) => const HomeNewPage()),
+                ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: HomeColors.secondary,
                   foregroundColor: HomeColors.white,

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -5,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../app/router/route_names.dart';
 import '../../app/theme/app_colors.dart';
 import '../../core/services/cart_service.dart';
+import '../../core/services/cart_notification_item.dart';
 import '../../core/services/wishlist_service.dart';
 import '../../features/product/presentation/model/product_models.dart';
 import '../../features/product/presentation/widgets/product_details_widget/product_repository.dart';
@@ -24,6 +27,9 @@ class NewProductDetailsPage extends StatefulWidget {
 }
 
 class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
+  final GlobalKey<ScaffoldMessengerState> _scaffoldMessengerKey =
+      GlobalKey<ScaffoldMessengerState>();
+
   late final PageController _imageController;
   late final ScrollController _scrollController;
   late int _selectedImageIndex;
@@ -32,7 +38,9 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
   bool? _wasInCart;
   int _activeTab = 0;
   bool _isAddingToCart = false;
+  bool _isUpdatingCartQuantity = false;
   bool _showBackToTop = false;
+  Timer? _addToCartSnackBarTimer;
 
   static const double _backToTopThreshold = 500;
 
@@ -71,20 +79,26 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
 
   bool get _isWishlisted => WishlistService.contains(_product);
 
-  bool get _isInCart {
+  CartNotificationItem? get _cartItem {
     final variant = _selectedVariant;
-    if (variant == null) return false;
+    if (variant == null) return null;
 
     final productId = _product.id?.trim();
     final weight = variant.weight.trim().toLowerCase();
-    return CartService.items.value.any((item) {
+    for (final item in CartService.items.value) {
       final sameProduct = productId != null && productId.isNotEmpty
           ? item.productId?.trim() == productId
           : item.name.trim().toLowerCase() ==
                 _product.name.trim().toLowerCase();
-      return sameProduct && (item.weight?.trim().toLowerCase() ?? '') == weight;
-    });
+      if (sameProduct && (item.weight?.trim().toLowerCase() ?? '') == weight) {
+        return item;
+      }
+    }
+    return null;
   }
+
+  bool get _isInCart => _cartItem != null;
+  int get _displayQuantity => _cartItem?.quantity ?? _quantity;
 
   void _onWishlistChanged() {
     if (mounted) setState(() {});
@@ -138,6 +152,7 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
 
   @override
   void dispose() {
+    _addToCartSnackBarTimer?.cancel();
     WishlistService.productsNotifier.removeListener(_onWishlistChanged);
     CartService.items.removeListener(_onCartChanged);
     _imageController.dispose();
@@ -151,18 +166,43 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
     final added = WishlistService.toggle(_product);
     if (!mounted) return;
 
-    ScaffoldMessenger.of(context)
+    _showSnackBar(
+      SnackBar(
+        content: Text(added ? 'Saved to wishlist.' : 'Removed from wishlist.'),
+        duration: const Duration(seconds: 5),
+        action: added
+            ? SnackBarAction(label: 'VIEW ALL', onPressed: _openWishlist)
+            : null,
+      ),
+    );
+  }
+
+  void _showSnackBar(SnackBar snackBar) {
+    _addToCartSnackBarTimer?.cancel();
+    final messenger = _scaffoldMessengerKey.currentState;
+    if (messenger == null) return;
+
+    messenger
       ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(
-            added ? 'Saved to wishlist.' : 'Removed from wishlist.',
-          ),
-          action: added
-              ? SnackBarAction(label: 'VIEW ALL', onPressed: _openWishlist)
-              : null,
-        ),
-      );
+      ..showSnackBar(snackBar);
+  }
+
+  void _showAddedToCartSnackBar() {
+    final messenger = _scaffoldMessengerKey.currentState;
+    if (messenger == null) return;
+
+    _showSnackBar(
+      SnackBar(
+        content: Text('${_product.name} added to cart'),
+        duration: const Duration(seconds: 5),
+        action: SnackBarAction(label: 'GO TO CART', onPressed: _openNewCart),
+      ),
+    );
+    _addToCartSnackBarTimer = Timer(const Duration(seconds: 5), () {
+      if (mounted && _scaffoldMessengerKey.currentState == messenger) {
+        messenger.hideCurrentSnackBar();
+      }
+    });
   }
 
   void _openWishlist() {
@@ -172,6 +212,9 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
   }
 
   void _openNewCart() {
+    _addToCartSnackBarTimer?.cancel();
+    if (!mounted) return;
+    _scaffoldMessengerKey.currentState?.hideCurrentSnackBar();
     context.push(RouteNames.newCart);
   }
 
@@ -199,27 +242,46 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
       if (openCart) {
         _openNewCart();
       } else {
-        ScaffoldMessenger.of(context)
-          ..hideCurrentSnackBar()
-          ..showSnackBar(
-            SnackBar(
-              content: Text('${_product.name} added to cart'),
-              duration: const Duration(seconds: 2),
-              action: SnackBarAction(
-                label: 'GO TO CART',
-                onPressed: _openNewCart,
-              ),
-            ),
-          );
+        _showAddedToCartSnackBar();
       }
     } catch (error) {
       if (!mounted) return;
       setState(() => _isAddingToCart = false);
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(content: Text('Unable to add product to cart')),
-        );
+      _showSnackBar(
+        const SnackBar(content: Text('Unable to add product to cart')),
+      );
+    }
+  }
+
+  Future<void> _changeQuantity(int change) async {
+    if (_isAddingToCart || _isUpdatingCartQuantity) return;
+
+    final item = _cartItem;
+    if (item == null) {
+      setState(() {
+        _quantity = (_quantity + change).clamp(1, 99).toInt();
+      });
+      return;
+    }
+
+    if (change > 0 && item.quantity >= 99) return;
+
+    setState(() => _isUpdatingCartQuantity = true);
+    try {
+      if (change > 0) {
+        await CartService.increaseItemQuantity(item);
+      } else {
+        await CartService.decreaseItemQuantity(item);
+      }
+    } catch (error) {
+      if (!mounted) return;
+      _showSnackBar(
+        const SnackBar(content: Text('Unable to update cart quantity')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isUpdatingCartQuantity = false);
+      }
     }
   }
 
@@ -238,51 +300,54 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
   Widget build(BuildContext context) {
     final ProductVariant? variant = _selectedVariant;
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: CommonAppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: HomeColors.secondary,
-        titleColor: HomeColors.white,
-        iconColor: HomeColors.white,
-        elevation: 0,
-        height: kToolbarHeight,
-        title: _product.name,
-        subtitle: variant == null
-            ? null
-            : '₹${variant.price.toStringAsFixed(0)}  |  ${variant.weight}',
-        titleFontSize: HomeTextStyles.sizeProduct,
-        subtitleFontSize: HomeTextStyles.sizeSmall,
-        showBackButton: true,
-      ),
-      body: Stack(
-        children: [
-          ListView(
-            controller: _scrollController,
-            padding: EdgeInsets.zero,
-            children: [
-              _buildImageCarousel(),
-              _buildProductSummary(variant),
-              _buildPackSizes(),
-              const _DeliveryPincodeCheck(),
-              _buildBrandBanner(),
-              _buildProductRail('People also bought'),
-              _buildProductRail('Similar Products'),
-              _buildDetailTabs(),
-              _buildRatingsAndReviews(),
-              const SizedBox(height: 18),
-            ],
-          ),
-          if (_showBackToTop)
-            Positioned(
-              top: 12,
-              left: 0,
-              right: 0,
-              child: Center(child: BackToTopButton(onPressed: _scrollToTop)),
+    return ScaffoldMessenger(
+      key: _scaffoldMessengerKey,
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: CommonAppBar(
+          automaticallyImplyLeading: false,
+          backgroundColor: HomeColors.secondary,
+          titleColor: HomeColors.white,
+          iconColor: HomeColors.white,
+          elevation: 0,
+          height: kToolbarHeight,
+          title: _product.name,
+          subtitle: variant == null
+              ? null
+              : '₹${variant.price.toStringAsFixed(0)}  |  ${variant.weight}',
+          titleFontSize: HomeTextStyles.sizeProduct,
+          subtitleFontSize: HomeTextStyles.sizeSmall,
+          showBackButton: true,
+        ),
+        body: Stack(
+          children: [
+            ListView(
+              controller: _scrollController,
+              padding: EdgeInsets.zero,
+              children: [
+                _buildImageCarousel(),
+                _buildProductSummary(variant),
+                _buildPackSizes(),
+                const _DeliveryPincodeCheck(),
+                _buildBrandBanner(),
+                _buildProductRail('People also bought'),
+                _buildProductRail('Similar Products'),
+                _buildDetailTabs(),
+                _buildRatingsAndReviews(),
+                const SizedBox(height: 18),
+              ],
             ),
-        ],
+            if (_showBackToTop)
+              Positioned(
+                top: 12,
+                left: 0,
+                right: 0,
+                child: Center(child: BackToTopButton(onPressed: _scrollToTop)),
+              ),
+          ],
+        ),
+        bottomNavigationBar: _buildStickyActions(),
       ),
-      bottomNavigationBar: _buildStickyActions(),
     );
   }
 
@@ -985,17 +1050,28 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
                     children: [
                       IconButton(
                         visualDensity: VisualDensity.compact,
-                        onPressed: variant != null && _quantity > 1
-                            ? () => setState(() => _quantity--)
+                        onPressed:
+                            variant != null &&
+                                !_isAddingToCart &&
+                                !_isUpdatingCartQuantity &&
+                                (_isInCart || _quantity > 1)
+                            ? () => _changeQuantity(-1)
                             : null,
                         icon: const Icon(Icons.remove, size: 18),
                       ),
-                      Text('$_quantity', style: HomeTextStyles.productTitle),
+                      Text(
+                        '$_displayQuantity',
+                        style: HomeTextStyles.productTitle,
+                      ),
                       IconButton(
                         visualDensity: VisualDensity.compact,
-                        onPressed: variant == null
+                        onPressed:
+                            variant == null ||
+                                _isAddingToCart ||
+                                _isUpdatingCartQuantity ||
+                                _displayQuantity >= 99
                             ? null
-                            : () => setState(() => _quantity++),
+                            : () => _changeQuantity(1),
                         icon: const Icon(Icons.add, size: 18),
                       ),
                     ],
@@ -1116,8 +1192,7 @@ class _DeliveryPincodeCheckState extends State<_DeliveryPincodeCheck> {
       await Future<void>.delayed(const Duration(milliseconds: 300));
       if (!mounted) return;
       setState(() {
-        _message =
-            'PIN format is valid.';
+        _message = 'PIN format is valid.';
         _isPincodeValid = true;
       });
     } finally {
