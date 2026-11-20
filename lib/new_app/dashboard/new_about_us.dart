@@ -3,6 +3,8 @@ import 'package:lalbaba_online/new_app/constant/constantappbar.dart';
 import 'package:lalbaba_online/new_app/constant/constantcolour.dart';
 import 'package:lalbaba_online/new_app/constant/new_constant_text_styles.dart';
 
+const Color _aboutBodyTextColor = Color(0xFF555555);
+
 
 
 // ============================================================
@@ -509,7 +511,8 @@ class _AboutParagraph extends StatelessWidget {
       softWrap: true,
 
       style: HomeTextStyles.body.copyWith(
-        color: HomeColors.textSecondary,
+        color: _aboutBodyTextColor,
+        fontSize: HomeTextStyles.sizeProduct,
         height: 1.75,
       ),
     );
@@ -602,7 +605,8 @@ class _AboutFeatureCard extends StatelessWidget {
                   softWrap: true,
 
                   style: HomeTextStyles.bodySmall.copyWith(
-                    color: HomeColors.textSecondary,
+                    color: _aboutBodyTextColor,
+                    fontSize: HomeTextStyles.sizeBody,
                     height: 1.6,
                   ),
                 ),

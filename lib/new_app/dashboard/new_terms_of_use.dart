@@ -304,7 +304,8 @@ class _TermsParagraph extends StatelessWidget {
       textAlign: TextAlign.start,
       softWrap: true,
       style: HomeTextStyles.body.copyWith(
-        color: HomeColors.textSecondary,
+        color: const Color(0xFF555555),
+        fontSize: HomeTextStyles.sizeProduct,
         height: 1.75,
       ),
     );
