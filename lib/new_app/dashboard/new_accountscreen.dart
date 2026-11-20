@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lalbaba_online/new_app/dashboard/new_about_us.dart';
+import 'package:lalbaba_online/new_app/dashboard/new_terms_of_use.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:lalbaba_online/app/router/route_names.dart';
@@ -453,17 +455,20 @@ class _NewAccountPageState extends State<NewAccountPage> {
 
                 // ABOUT US
 
-                _AccountMenuTile(
-                  icon: Icons.info_outline,
-
-                  label: 'About Us',
-
-                  onTap: () {
-                    _openExternalUrl(
-                      'https://lalbabaonline.com/about-us',
-                    );
-                  },
-                ),
+_AccountMenuTile(
+  icon: Icons.info_outline,
+  label: 'About Us',
+  onTap: () {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => const NewAboutUsPage(
+          imageUrl:
+              'https://www.lalbabaonline.com/public/uploads/all/bGGGE26rwRBuaSOAcGyhqKN99wkkAfEttcudNtOb.webp',
+        ),
+      ),
+    );
+  },
+),
 
                 // CONTACT US
 
@@ -484,11 +489,53 @@ class _NewAccountPageState extends State<NewAccountPage> {
             // =================================================
             // TERMS AND POLICIES SECTION
             // =================================================
-
             const _AccountSectionLabel(
-              text: 'Terms of Use',
+              text: 'My Orders',
             ),
 
+            _AccountSectionCard(
+              children: [
+
+                // MY ORDERS
+
+                _AccountMenuTile(
+                  icon: Icons.local_shipping_outlined,
+
+                  label: 'My Orders',
+
+                  onTap: _openOrdersPage,
+                ),
+
+                // WISHLIST
+
+                _AccountMenuTile(
+                  icon: Icons.favorite_border,
+
+                  label: 'Wishlist',
+
+                  onTap: _openWishlistPage,
+                ),
+
+                // TRACK ORDER
+
+                _AccountMenuTile(
+                  icon: Icons.local_shipping_outlined,
+
+                  label: 'Track Order',
+
+                  onTap: _openTrackOrderPage,
+                ),
+
+                // RETURNS AND REFUND
+
+        
+              ],
+            ),
+ const SizedBox(height: 20),
+            const _AccountSectionLabel(
+              text: 'Policy',
+            ),
+ 
             _AccountSectionCard(
               children: [
 
@@ -500,8 +547,10 @@ class _NewAccountPageState extends State<NewAccountPage> {
                   label: 'Terms of Use',
 
                   onTap: () {
-                    _openExternalUrl(
-                      'https://lalbabaonline.com/terms',
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const NewTermsOfUsePage(),
+                      ),
                     );
                   },
                 ),
@@ -539,11 +588,11 @@ class _NewAccountPageState extends State<NewAccountPage> {
                 _AccountMenuTile(
                   icon: Icons.factory_outlined,
 
-                  label: 'Factory Locator',
+                  label: 'Returns & Refund',
 
                   onTap: () {
                     _openExternalUrl(
-                      'https://lalbabaonline.com/factory-locator',
+                      'https://lalbabaonline.com/return-policy',
                     );
                   },
 
@@ -597,19 +646,7 @@ class _NewAccountPageState extends State<NewAccountPage> {
 
                 // RETURNS AND REFUND
 
-                _AccountMenuTile(
-                  icon: Icons.replay_outlined,
-
-                  label: 'Returns & Refund',
-
-                  onTap: () {
-                    _openExternalUrl(
-                      'https://lalbabaonline.com/return-policy',
-                    );
-                  },
-
-                  showDivider: false,
-                ),
+        
               ],
             ),
 
