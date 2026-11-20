@@ -16,12 +16,6 @@ import 'package:lalbaba_online/core/services/cart_notification_item.dart';
 import 'package:lalbaba_online/core/services/cart_service.dart';
 import 'package:lalbaba_online/core/widgets/app_shimmer.dart';
 
-// Home layout dimensions. Colours and typography come from shared constants.
-
-// ==========================================================================
-// HOME PAGE
-// ==========================================================================
-
 class HomeNewPage extends ConsumerStatefulWidget {
   const HomeNewPage({super.key});
 
@@ -37,12 +31,17 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
   bool _showBackToTop = false;
   bool _hideAppBar = false;
   // Cart state shared between Trending and Best Seller cards.
-  Set<String> get _addedProductNames => CartService.items.value.map((item) =>
-      HomeProductPacks.cartKey(item.productId, item.name, item.weight)).toSet();
+  Set<String> get _addedProductNames => CartService.items.value
+      .map(
+        (item) =>
+            HomeProductPacks.cartKey(item.productId, item.name, item.weight),
+      )
+      .toSet();
 
   void _refreshHomeCart() {
     if (mounted) setState(() {});
   }
+
   final Set<String> _addingProductNames = <String>{};
 
   void _handleHomeScroll() {
@@ -79,7 +78,7 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
   // HOME CATEGORY TABS
   // ===========================================================================
 
-  final List<String> _categoryNames = ['For Youu', 'Rice', 'Spices'];
+  final List<String> _categoryNames = ['For You', 'Rice', 'Spices'];
 
   // ===========================================================================
   // SEARCH CATEGORIES
@@ -223,11 +222,18 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
   List<Map<String, dynamic>> get _searchProducts {
     final Map<String, Map<String, dynamic>> unique = {};
 
-    for (final product in [..._trendingProducts, ..._bestSellers, ..._popularSearch]) {
+    for (final product in [
+      ..._trendingProducts,
+      ..._bestSellers,
+      ..._popularSearch,
+    ]) {
       final String name = product['name']?.toString().trim() ?? '';
 
       if (name.isNotEmpty) {
-        unique.putIfAbsent(HomeProductPacks.productCartKey(product), () => product);
+        unique.putIfAbsent(
+          HomeProductPacks.productCartKey(product),
+          () => product,
+        );
       }
     }
 
@@ -319,7 +325,9 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
 
   Future<void> _handleAddToCart(Map<String, dynamic> product) async {
     final model = product['_model'];
-    final String productName = model is ProductItem ? model.name : (product['name']?.toString().trim() ?? 'Product');
+    final String productName = model is ProductItem
+        ? model.name
+        : (product['name']?.toString().trim() ?? 'Product');
     final key = HomeProductPacks.productCartKey(product);
     final weight = product['weight']?.toString().trim() ?? '';
     if (weight.isEmpty || _parseProductPrice(product['price']) == null) {
@@ -329,8 +337,7 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
       );
       return;
     }
-    if (_addedProductNames.contains(key) ||
-        _addingProductNames.contains(key))
+    if (_addedProductNames.contains(key) || _addingProductNames.contains(key))
       return;
 
     setState(() => _addingProductNames.add(key));
@@ -367,17 +374,16 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
     );
     _refreshHomeCart();
   }
-Future<void> _openCartPage() async {
-  if (!mounted) return;
 
-  await Navigator.of(context).push(
-    MaterialPageRoute(
-      builder: (context) => const NewCartPage(),
-    ),
-  );
+  Future<void> _openCartPage() async {
+    if (!mounted) return;
 
-  _refreshHomeCart();
-}
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => const NewCartPage()));
+
+    _refreshHomeCart();
+  }
   // ===========================================================================
   // SEARCH CATEGORY
   // ===========================================================================
@@ -405,7 +411,9 @@ Future<void> _openCartPage() async {
     final String imageUrl = product['imageUrl']?.toString() ?? '';
     final String discountLabel = product['discountLabel']?.toString() ?? '';
     final model = product['_model'];
-    final String name = model is ProductItem ? model.name : (product['name']?.toString().trim() ?? 'Product');
+    final String name = model is ProductItem
+        ? model.name
+        : (product['name']?.toString().trim() ?? 'Product');
     final double? price = _parseProductPrice(product['price']);
     final double? originalPrice = _parseProductPrice(product['originalPrice']);
     final dynamic ratingValue = product['rating'];
@@ -416,16 +424,31 @@ Future<void> _openCartPage() async {
     final variants = <ProductVariant>[];
     final rawVariants = product['variants'];
     if (price != null && weight.isNotEmpty) {
-      variants.add(ProductVariant(weight: weight, price: price, mrp: originalPrice));
+      variants.add(
+        ProductVariant(weight: weight, price: price, mrp: originalPrice),
+      );
     }
     if (rawVariants is List) {
       for (final option in rawVariants) {
         if (option is! Map) continue;
         final optionWeight = option['weight']?.toString().trim() ?? '';
         final optionPrice = _parseProductPrice(option['price']);
-        if (optionWeight.isEmpty || optionPrice == null || optionPrice <= 0 ||
-            variants.any((v) => HomeProductPacks.normalize(v.weight) == HomeProductPacks.normalize(optionWeight))) continue;
-        variants.add(ProductVariant(weight: optionWeight, price: optionPrice, mrp: _parseProductPrice(option['mrp'])));
+        if (optionWeight.isEmpty ||
+            optionPrice == null ||
+            optionPrice <= 0 ||
+            variants.any(
+              (v) =>
+                  HomeProductPacks.normalize(v.weight) ==
+                  HomeProductPacks.normalize(optionWeight),
+            ))
+          continue;
+        variants.add(
+          ProductVariant(
+            weight: optionWeight,
+            price: optionPrice,
+            mrp: _parseProductPrice(option['mrp']),
+          ),
+        );
         if (variants.length == 3) break;
       }
     }
@@ -510,18 +533,18 @@ Future<void> _openCartPage() async {
                       child: _hideAppBar
                           ? const SizedBox(width: double.infinity)
                           : SizedBox(
-                              height: kToolbarHeight,
+                              height: 72,
                               child: CommonAppBar(
                                 automaticallyImplyLeading: false,
 
-                                height: kToolbarHeight,
+                                height: 72,
                                 backgroundColor: HomeColors.secondary,
                                 titleWidget: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     SizedBox(
-                                      width: 50,
-                                      height: 50,
+                                      width: 64,
+                                      height: 64,
                                       child: Image.asset(
                                         AssetConstants.logo,
                                         fit: BoxFit.contain,
@@ -530,7 +553,7 @@ Future<void> _openCartPage() async {
                                                 const Icon(
                                                   Icons.rice_bowl_rounded,
                                                   color: HomeColors.surface,
-                                                  size: 34,
+                                                  size: 40,
                                                 ),
                                       ),
                                     ),
@@ -547,61 +570,30 @@ Future<void> _openCartPage() async {
                                             overflow: TextOverflow.ellipsis,
                                             style: TextStyle(
                                               color: HomeColors.surface,
-                                              fontSize: HomeTextStyles
-                                                  .sizeSectionLarge,
+                                              fontSize:
+                                                  HomeTextStyles.sizePriceLarge,
                                               fontWeight: HomeTextStyles.bold,
                                               height: 1.1,
                                             ),
                                           ),
-                                          SizedBox(height: 2),
-                                          Text(
-                                            'Quality You Trust',
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                              color: HomeColors.white
-                                                  .withValues(alpha: 0.70),
-                                              fontSize:
-                                                  HomeTextStyles.sizeCaption,
-                                              fontWeight: HomeTextStyles.medium,
-                                            ),
-                                          ),
+                                          // SizedBox(height: 2),
+                                          // Text(
+                                          //   'Quality You Trust',
+                                          //   maxLines: 1,
+                                          //   overflow: TextOverflow.ellipsis,
+                                          //   style: TextStyle(
+                                          //     color: HomeColors.white
+                                          //         .withValues(alpha: 0.70),
+                                          //     fontSize:
+                                          //         HomeTextStyles.sizeCaption,
+                                          //     fontWeight: HomeTextStyles.medium,
+                                          //   ),
+                                          // ),
                                         ],
                                       ),
                                     ),
                                   ],
                                 ),
-                                actions: [
-                                  ValueListenableBuilder<int>(
-                                    valueListenable: CartService.count,
-                                    builder: (context, count, _) {
-                                      return IconButton(
-                                        tooltip: 'Notifications',
-                                        onPressed: _openCartNotificationPage,
-                                        icon: Badge(
-                                          isLabelVisible: count > 0,
-                                          backgroundColor: HomeColors.error,
-                                          textColor: HomeColors.white,
-                                          label: Text(
-                                            count > 99 ? '99+' : '$count',
-                                            style: const TextStyle(
-                                              fontSize:
-                                                  HomeTextStyles.sizeCaption,
-                                              fontWeight: HomeTextStyles.bold,
-                                              color: HomeColors.white,
-                                            ),
-                                          ),
-                                          child: const Icon(
-                                            Icons.notifications_none_rounded,
-                                            color: HomeColors.white,
-                                            size: 27,
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                  const SizedBox(width: 8),
-                                ],
                               ),
                             ),
                     ),
@@ -2091,8 +2083,6 @@ class _BannerWidgetState extends State<BannerWidget> {
 
   static const Color _primary = HomeColors.secondary;
 
-  static const Color _black = HomeColors.textPrimary;
-
   static const Color _grey = HomeColors.textSecondary;
 
   // ===========================================================================
@@ -2104,6 +2094,13 @@ class _BannerWidgetState extends State<BannerWidget> {
     'https://lalbabaonline.com/public/uploads/all/ih7h1OcLwu13H3TVKBdIOyNVgIp4pP3PoQa9coxj.webp',
     'https://lalbabaonline.com/public/uploads/all/96hqz7NNM37PLDfGpg3fNEm4joTpvgftraurkNVR.webp',
     'https://lalbabaonline.com/public/uploads/all/EryH9j4ylQ7qtbZM5iyUuUvTvn6gUwoy7WOluwe9.webp',
+  ];
+
+  static const List<double> _bannerAspectRatios = [
+    1424 / 630,
+    1424 / 630,
+    1424 / 630,
+    1424 / 636,
   ];
 
   // ===========================================================================
@@ -2138,7 +2135,7 @@ class _BannerWidgetState extends State<BannerWidget> {
     // Fake infinite page system completely removed.
     // -------------------------------------------------------------------------
 
-    _pageController = PageController(initialPage: 0, viewportFraction: 0.92);
+    _pageController = PageController(initialPage: 0);
 
     // -------------------------------------------------------------------------
     // AUTO SCROLL
@@ -2222,9 +2219,8 @@ class _BannerWidgetState extends State<BannerWidget> {
         // BANNER CAROUSEL
         // =====================================================================
 
-        SizedBox(
-          height: 150,
-          width: double.infinity,
+        AspectRatio(
+          aspectRatio: _bannerAspectRatios[_currentIndex],
           child: PageView.builder(
             controller: _pageController,
 
@@ -2283,35 +2279,16 @@ class _BannerWidgetState extends State<BannerWidget> {
                   return Transform.scale(scale: scale, child: child);
                 },
 
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                child: GestureDetector(
+                  // ---------------------------------------------------------
+                  // BANNER TAP
+                  // ---------------------------------------------------------
 
-                  child: GestureDetector(
-                    // ---------------------------------------------------------
-                    // BANNER TAP
-                    // ---------------------------------------------------------
+                  onTap: () {
+                    widget.onBannerTap?.call(index);
+                  },
 
-                    onTap: () {
-                      widget.onBannerTap?.call(index);
-                    },
-
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: _black.withValues(alpha: 0.08),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-
-                      clipBehavior: Clip.antiAlias,
-
-                      child: _BannerImage(imageUrl: imageUrl),
-                    ),
-                  ),
+                  child: _BannerImage(imageUrl: imageUrl),
                 ),
               );
             },
@@ -2375,7 +2352,7 @@ class _BannerImage extends StatelessWidget {
 
       height: double.infinity,
 
-      fit: BoxFit.cover,
+      fit: BoxFit.contain,
 
       // =======================================================================
       // IMAGE LOADING

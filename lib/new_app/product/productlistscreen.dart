@@ -14,6 +14,7 @@ import 'package:lalbaba_online/new_app/constant/new_constant_text_styles.dart';
 import 'package:lalbaba_online/new_app/dashboard/new_cart.dart';
 import 'package:lalbaba_online/new_app/dashboard/new_wishlist.dart';
 import 'package:lalbaba_online/new_app/constant/new_back_to_top_button.dart';
+import 'new_product_details.dart';
 
 
 // Shared pack data for Home and Product List. Demo prices are for development only.
@@ -326,7 +327,7 @@ class _ProductListPageState extends State<ProductListPage> {
 
   RangeValues? _appliedRange;
 
-  String _sort = 'Default';
+  String _sort = 'Rating';
 
   // ===========================================================
   // INIT STATE
@@ -805,6 +806,53 @@ class _ProductListPageState extends State<ProductListPage> {
     );
   }
 
+  void _openProductDetails(Map<String, dynamic> product) {
+    final catalogProduct = _model(product);
+    final variants = _variants(product)
+        .map(
+          (variant) => ProductVariant(
+            weight: variant.weight,
+            price: variant.price,
+            mrp: variant.mrp,
+          ),
+        )
+        .toList();
+    final selectedWeight =
+        _chosenWeights[_selectionKey(product)] ??
+        product['weight']?.toString();
+    final selectedVariant = variants.indexWhere(
+      (variant) => variant.weight == selectedWeight,
+    );
+    final rawRating = product['rating'];
+    final rating = rawRating is num
+        ? rawRating.toDouble()
+        : double.tryParse(rawRating?.toString() ?? '') ?? 0;
+    final rawDeliveryDays = product['deliveryDays'];
+    final deliveryDays = rawDeliveryDays is num
+        ? rawDeliveryDays.toInt()
+        : int.tryParse(rawDeliveryDays?.toString() ?? '') ?? 3;
+    final detailProduct =
+        catalogProduct ??
+        ProductItem(
+          id: product['id']?.toString(),
+          name: product['name']?.toString().trim().isNotEmpty == true
+              ? product['name'].toString().trim()
+              : 'Product',
+          imageUrl: product['imageUrl']?.toString() ?? '',
+          rating: rating,
+          deliveryDays: deliveryDays,
+          variants: variants,
+          discountLabel: product['discountLabel']?.toString() ?? '',
+          selectedVariant: selectedVariant < 0 ? 0 : selectedVariant,
+        );
+
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => NewProductDetailsPage(product: detailProduct),
+      ),
+    );
+  }
+
   // ===========================================================
   // WISHLIST
   // ===========================================================
@@ -992,73 +1040,29 @@ class _ProductListPageState extends State<ProductListPage> {
     return products;
   }
 
-  // ===========================================================
-  // SORT BY
-  // ===========================================================
+  Widget _sortChip(String label, String value) {
+    final isSelected = _sort == value;
 
-  void _openSort() {
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: HomeColors.surface,
-
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(18),
-        ),
+    return ChoiceChip(
+      label: Text(label),
+      selected: isSelected,
+      showCheckmark: false,
+      visualDensity: VisualDensity.compact,
+      labelPadding: const EdgeInsets.symmetric(horizontal: 6),
+      backgroundColor: HomeColors.background,
+      selectedColor: HomeColors.secondary,
+      side: BorderSide(
+        color: isSelected ? HomeColors.secondary : HomeColors.border,
       ),
-
-      builder: (sheetContext) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-
-              children: [
-                Text(
-                  'Sort By',
-                  style: HomeTextStyles.pageTitle.copyWith(
-                    color: HomeColors.textPrimary,
-                  ),
-                ),
-
-                const SizedBox(height: 10),
-
-                for (final option in [
-                  'Default',
-                  'Price: Low to High',
-                  'Price: High to Low',
-                  'Rating',
-                ])
-                  RadioListTile<String>(
-                    activeColor: HomeColors.secondary,
-
-                    title: Text(
-                      option,
-                      style: HomeTextStyles.body.copyWith(
-                        color: HomeColors.textPrimary,
-                      ),
-                    ),
-
-                    value: option,
-                    groupValue: _sort,
-
-                    onChanged: (value) {
-                      if (value != null) {
-                        setState(() {
-                          _sort = value;
-                        });
-                      }
-
-                      Navigator.pop(sheetContext);
-                    },
-                  ),
-              ],
-            ),
-          ),
-        );
+      shape: const StadiumBorder(),
+      labelStyle: HomeTextStyles.caption.copyWith(
+        color: isSelected ? HomeColors.white : HomeColors.textPrimary,
+        fontWeight: isSelected ? HomeTextStyles.bold : HomeTextStyles.medium,
+      ),
+      onSelected: (_) {
+        setState(() {
+          _sort = value;
+        });
       },
     );
   }
@@ -1568,72 +1572,49 @@ class _ProductListPageState extends State<ProductListPage> {
               vertical: 12,
             ),
 
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Expanded(
-                  child: Text(
-                    '${widget.pageTitle} (${products.length})',
-
-                    maxLines: 2,
-
-                    overflow: TextOverflow.ellipsis,
-
-                    style: HomeTextStyles.price.copyWith(
-                      color: HomeColors.textPrimary,
-                    ),
-                  ),
-                ),
-
-                TextButton.icon(
-                  onPressed: _openSort,
-
-                  icon: const Icon(
-                    Icons.sort,
-                    color: HomeColors.textPrimary,
-                    size: 22,
-                  ),
-
-                  label: Text(
-                    'Sort By',
-
-                    style: HomeTextStyles.bodySmall.copyWith(
-                      color: HomeColors.textPrimary,
-                    ),
-                  ),
-                ),
-
-                OutlinedButton.icon(
-                  onPressed: _openFilters,
-
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor:
-                        HomeColors.textPrimary,
-
-                    textStyle: HomeTextStyles.bodySmall,
-
-                    minimumSize: const Size(0, 44),
-
-                    padding:
-                        const EdgeInsets.symmetric(
-                          horizontal: 9,
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '${widget.pageTitle} (${products.length})',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: HomeTextStyles.price.copyWith(
+                          color: HomeColors.textPrimary,
                         ),
-
-                    side: const BorderSide(
-                      color: HomeColors.border,
+                      ),
                     ),
-
-                    shape: RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.circular(7),
+                    OutlinedButton.icon(
+                      onPressed: _openFilters,
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: HomeColors.textPrimary,
+                        textStyle: HomeTextStyles.bodySmall,
+                        minimumSize: const Size(0, 40),
+                        padding: const EdgeInsets.symmetric(horizontal: 9),
+                        side: const BorderSide(color: HomeColors.border),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(7),
+                        ),
+                      ),
+                      icon: const Icon(Icons.filter_list, size: 20),
+                      label: const Text('Filter'),
                     ),
-                  ),
-
-                  icon: const Icon(
-                    Icons.filter_list,
-                    size: 20,
-                  ),
-
-                  label: const Text('Filter'),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+               
+                    _sortChip('Popularity', 'Rating'),
+                    _sortChip('Price: Low to High', 'Price: Low to High'),
+                    _sortChip('Price: High to Low', 'Price: High to Low'),
+                  ],
                 ),
               ],
             ),
@@ -1724,6 +1705,10 @@ class _ProductListPageState extends State<ProductListPage> {
 
                         enabled:
                             _cartReady && variant != null,
+
+                        onOpenDetails: () {
+                          _openProductDetails(product);
+                        },
 
                         onWeightChanged: (value) {
                           if (value == null) return;
@@ -1852,6 +1837,7 @@ class _ProductCard extends StatelessWidget {
   final ValueChanged<String?> onWeightChanged;
 
   final VoidCallback onFavorite;
+  final VoidCallback onOpenDetails;
   final VoidCallback onMinus;
   final VoidCallback onPlus;
   final VoidCallback onAdd;
@@ -1867,6 +1853,7 @@ class _ProductCard extends StatelessWidget {
     required this.enabled,
     required this.onWeightChanged,
     required this.onFavorite,
+    required this.onOpenDetails,
     required this.onMinus,
     required this.onPlus,
     required this.onAdd,
@@ -1947,34 +1934,36 @@ class _ProductCard extends StatelessWidget {
         variant.weight: variant,
     };
 
-    return Container(
-      decoration: BoxDecoration(
-        color: HomeColors.surface,
+    return GestureDetector(
+      onTap: onOpenDetails,
+      child: Container(
+        decoration: BoxDecoration(
+          color: HomeColors.surface,
 
-        borderRadius: BorderRadius.circular(
-          ProductListStyle.cardRadius,
-        ),
-
-        border: Border.all(
-          color: HomeColors.border,
-        ),
-
-        boxShadow: [
-          BoxShadow(
-            color: HomeColors.black
-                .withValues(alpha: 0.035),
-
-            blurRadius: 5,
-
-            offset: const Offset(0, 2),
+          borderRadius: BorderRadius.circular(
+            ProductListStyle.cardRadius,
           ),
-        ],
-      ),
 
-      clipBehavior: Clip.antiAlias,
+          border: Border.all(
+            color: HomeColors.border,
+          ),
 
-      child: Padding(
-        padding: const EdgeInsets.all(10),
+          boxShadow: [
+            BoxShadow(
+              color: HomeColors.black
+                  .withValues(alpha: 0.035),
+
+              blurRadius: 5,
+
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+
+        clipBehavior: Clip.antiAlias,
+
+        child: Padding(
+          padding: const EdgeInsets.all(10),
 
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -2040,19 +2029,22 @@ class _ProductCard extends StatelessWidget {
 
               width: double.infinity,
 
-              child: Text(
-                name,
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  name,
 
-                maxLines: 2,
+                  maxLines: 2,
 
-                overflow: TextOverflow.ellipsis,
+                  overflow: TextOverflow.ellipsis,
 
-                style: HomeTextStyles.productCardTitle.copyWith(
-                  height: 1.3,
+                  style: HomeTextStyles.productCardTitle.copyWith(
+                    height: 1.3,
 
-                  fontWeight: HomeTextStyles.bold,
+                    fontWeight: HomeTextStyles.bold,
 
-                  color: HomeColors.textPrimary,
+                    color: HomeColors.textPrimary,
+                  ),
                 ),
               ),
             ),
@@ -2436,6 +2428,7 @@ class _ProductCard extends StatelessWidget {
               ],
             ),
           ],
+        ),
         ),
       ),
     );
