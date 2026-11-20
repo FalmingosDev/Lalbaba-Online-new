@@ -5,8 +5,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:lalbaba_online/features/account/presentation/widgets/app_string.dart';
 
 import '../../../../app/theme/app_sizes.dart';
-import '../../../../new_app/constantappbar.dart';
-import '../../../../new_app/constantcolour.dart';
+import '../../../../new_app/constant/constantappbar.dart';
+import '../../../../new_app/constant/constantcolour.dart';
 import '../../data/models/address_model.dart';
 import '../../data/models/location_model.dart';
 import '../../data/services/location_service.dart';

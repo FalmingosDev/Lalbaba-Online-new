@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../app/router/route_names.dart';
-import '../../../../core/network/connectivity_service.dart';
-import '../../../../core/services/app_update_service.dart';
-import '../../../../core/services/auth_service.dart';
+import '../../../../../app/router/route_names.dart';
+import '../../../../../core/network/connectivity_service.dart';
+import '../../../../../core/services/app_update_service.dart';
+import '../../../../../core/services/auth_service.dart';
 
 class NewSplashScreen extends StatefulWidget {
   const NewSplashScreen({super.key});

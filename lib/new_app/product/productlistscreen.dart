@@ -8,12 +8,12 @@ import 'package:lalbaba_online/core/services/wishlist_service.dart';
 import 'package:lalbaba_online/features/product/presentation/model/product_models.dart';
 import 'package:lalbaba_online/features/product/presentation/widgets/product_details_widget/product_repository.dart';
 
-import 'package:lalbaba_online/new_app/constantappbar.dart';
-import 'package:lalbaba_online/new_app/constantcolour.dart';
-import 'package:lalbaba_online/new_app/new_constant_text_styles.dart';
-import 'package:lalbaba_online/new_app/new_cart.dart';
-import 'package:lalbaba_online/new_app/new_wishlist.dart';
-import 'package:lalbaba_online/new_app/new_back_to_top_button.dart';
+import 'package:lalbaba_online/new_app/constant/constantappbar.dart';
+import 'package:lalbaba_online/new_app/constant/constantcolour.dart';
+import 'package:lalbaba_online/new_app/constant/new_constant_text_styles.dart';
+import 'package:lalbaba_online/new_app/dashboard/new_cart.dart';
+import 'package:lalbaba_online/new_app/dashboard/new_wishlist.dart';
+import 'package:lalbaba_online/new_app/constant/new_back_to_top_button.dart';
 
 
 // Shared pack data for Home and Product List. Demo prices are for development only.

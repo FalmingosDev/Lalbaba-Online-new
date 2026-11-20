@@ -227,8 +227,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lalbaba_online/features/account/presentation/widgets/app_string.dart';
 
-import '../../../../new_app/constantappbar.dart';
-import '../../../../new_app/constantcolour.dart';
+import '../../../../new_app/constant/constantappbar.dart';
+import '../../../../new_app/constant/constantcolour.dart';
 import '../../data/models/address_model.dart';
 import '../../data/services/address_storage.dart';
 import '../widgets/address_card.dart';

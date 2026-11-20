@@ -3,9 +3,9 @@
 import 'package:go_router/go_router.dart';
 import 'package:lalbaba_online/features/address/presentation/page/address_list_page.dart';
 import 'package:lalbaba_online/features/address/data/models/address_model.dart';
-import 'package:lalbaba_online/new_app/new_delivery_page.dart';
-import 'package:lalbaba_online/new_app/new_payment.dart';
-import 'package:lalbaba_online/new_app/new_shipping.dart';
+import 'package:lalbaba_online/new_app/checkout/new_delivery_page.dart';
+import 'package:lalbaba_online/new_app/checkout/new_payment.dart';
+import 'package:lalbaba_online/new_app/checkout/new_shipping.dart';
 
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/cart/presentation/pages/cart_page.dart';
@@ -17,9 +17,10 @@ import '../../features/account/presentation/page/account_widget.dart';
 import '../../features/network/presentation/pages/no_internet_page.dart';
 import '../../features/splash/presentation/pages/splash_page.dart';
 import '../../features/update/presentation/pages/update_page.dart';
-import '../../new_app/bottomnavigation.dart';
-import '../../new_app/new_order.dart';
-import '../../new_app/new_splash.dart';
+import '../../new_app/new_auth/bottomnavigation.dart';
+import '../../new_app/new_auth/new_login.dart';
+import '../../new_app/dashboard/new_order.dart';
+import '../../new_app/dashboard/new_splash.dart';
 import '../../webView/lalbabaWebView.dart';
 import 'route_guards.dart';
 import 'route_names.dart';
@@ -61,6 +62,10 @@ final appRouter = GoRouter(
         final redirectUrl = state.uri.queryParameters['redirect'];
         return LoginPage(redirectUrl: redirectUrl);
       },
+    ),
+    GoRoute(
+      path: RouteNames.newLogin,
+      builder: (_, __) => const NewCheckoutLoginPopup(),
     ),
     GoRoute(
       path: RouteNames.bottomnavigation,
@@ -111,30 +116,30 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: RouteNames.newShipping,
-      redirect: (context, state) async {
-        if (await RouteGuards.isAuthenticated()) {
-          return null;
-        }
+      // redirect: (context, state) async {
+      //   if (await RouteGuards.isAuthenticated()) {
+      //     return null;
+      //   }
 
-        return Uri(
-          path: RouteNames.login,
-          queryParameters: {'redirect': state.uri.toString()},
-        ).toString();
-      },
+      //   return Uri(
+      //     path: RouteNames.login,
+      //     queryParameters: {'redirect': state.uri.toString()},
+      //   ).toString();
+      // },
       builder: (_, __) => const NewShippingPage(),
     ),
     GoRoute(
       path: RouteNames.newDelivery,
-      redirect: (context, state) async {
-        if (await RouteGuards.isAuthenticated()) {
-          return null;
-        }
+      // redirect: (context, state) async {
+      //   if (await RouteGuards.isAuthenticated()) {
+      //     return null;
+      //   }
 
-        return Uri(
-          path: RouteNames.login,
-          queryParameters: {'redirect': state.uri.toString()},
-        ).toString();
-      },
+      //   return Uri(
+      //     path: RouteNames.login,
+      //     queryParameters: {'redirect': state.uri.toString()},
+      //   ).toString();
+      // },
       builder: (_, state) {
         final extra = state.extra;
         return NewDeliveryPage(
@@ -144,16 +149,16 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: RouteNames.newPayment,
-      redirect: (context, state) async {
-        if (await RouteGuards.isAuthenticated()) {
-          return null;
-        }
+      // redirect: (context, state) async {
+      //   if (await RouteGuards.isAuthenticated()) {
+      //     return null;
+      //   }
 
-        return Uri(
-          path: RouteNames.login,
-          queryParameters: {'redirect': state.uri.toString()},
-        ).toString();
-      },
+      //   return Uri(
+      //     path: RouteNames.login,
+      //     queryParameters: {'redirect': state.uri.toString()},
+      //   ).toString();
+      // },
       builder: (_, __) => const NewPaymentPage(),
     ),
     GoRoute(

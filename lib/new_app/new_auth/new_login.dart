@@ -1,9 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:lalbaba_online/new_app/checkout/new_shipping.dart';
 
-import 'constantcolour.dart';
-import 'new_constant_text_styles.dart';
+import '../constant/constantcolour.dart';
+import '../constant/new_constant_text_styles.dart';
 
 // ============================================================
 // CHECKOUT LOGIN POPUP
@@ -78,64 +79,67 @@ class _NewCheckoutLoginPopupState
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
+    return Scaffold(
 
-      child: Container(
-        width: double.infinity,
-
-        constraints: BoxConstraints(
-          maxHeight:
-              MediaQuery.of(context).size.height * 0.75,
+      body: Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
         ),
-
-        decoration: const BoxDecoration(
-          color: HomeColors.surface,
-
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(26),
-            topRight: Radius.circular(26),
+      
+        child: Container(
+          width: double.infinity,
+      
+          constraints: BoxConstraints(
+            maxHeight:
+                MediaQuery.of(context).size.height * 0.75,
           ),
-        ),
-
-        child: SafeArea(
-          top: false,
-
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(
-              24, 12, 24, 24,
+      
+          decoration: const BoxDecoration(
+            color: HomeColors.surface,
+      
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(26),
+              topRight: Radius.circular(26),
             ),
-
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
-
-              children: [
-                _buildDragHandle(),
-
-                _buildTopSection(),
-
-                _buildHeader(),
-
-                const SizedBox(height: 28),
-
-                if (_showOtp)
-                  _buildOtpSection()
-                else
-                  _buildMobileSection(),
-
-                const SizedBox(height: 24),
-
-                _buildContinueButton(),
-
-                const SizedBox(height: 20),
-
-                _buildFooter(),
-              ],
+          ),
+      
+          child: SafeArea(
+            top: false,
+      
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(
+                24, 12, 24, 24,
+              ),
+      
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+      
+                crossAxisAlignment:
+                    CrossAxisAlignment.start,
+      
+                children: [
+                  _buildDragHandle(),
+      
+                  _buildTopSection(),
+      
+                  _buildHeader(),
+      
+                  const SizedBox(height: 28),
+      
+                  if (_showOtp)
+                    _buildOtpSection()
+                  else
+                    _buildMobileSection(),
+      
+                  const SizedBox(height: 24),
+      
+                  _buildContinueButton(),
+      
+                  const SizedBox(height: 20),
+      
+                  _buildFooter(),
+                ],
+              ),
             ),
           ),
         ),
@@ -385,6 +389,7 @@ class _NewCheckoutLoginPopupState
                   ),
                 ),
               ),
+            
             ],
           ),
         ),
@@ -559,8 +564,14 @@ Widget _buildContinueButton() {
           // PAYMENT PAGE UI TESTING ONLY
 
           if (kDebugMode) {
-            Navigator.of(context).pop(true);
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => NewShippingPage(),
+              ),
+            );
           }
+
 
           // TODO: Connect actual OTP API.
         }

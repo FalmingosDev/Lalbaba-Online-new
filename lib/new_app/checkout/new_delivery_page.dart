@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import 'bottomnavigation.dart';
-import 'constantcolour.dart';
-import 'new_constant_checkout_page.dart';
-import 'new_constant_text_styles.dart';
+import '../new_auth/bottomnavigation.dart';
+import '../constant/constantcolour.dart';
+import '../constant/new_constant_checkout_page.dart';
+import '../constant/new_constant_text_styles.dart';
 
-import '../app/router/route_names.dart';
-import '../features/address/data/models/address_model.dart';
-import '../core/services/cart_notification_item.dart';
-import '../core/services/cart_service.dart';
-import '../core/widgets/app_shimmer.dart';
+import '../../app/router/route_names.dart';
+import '../../features/address/data/models/address_model.dart';
+import '../../core/services/cart_notification_item.dart';
+import '../../core/services/cart_service.dart';
+import '../../core/widgets/app_shimmer.dart';
 
 // ============================================================
 // DELIVERY TYPE

@@ -7,12 +7,12 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:lalbaba_online/app/router/route_names.dart';
 import 'package:lalbaba_online/app/config/app_config.dart';
 
-import 'package:lalbaba_online/new_app/constantappbar.dart';
-import 'package:lalbaba_online/new_app/constantcolour.dart';
-import 'package:lalbaba_online/new_app/new_constant_text_styles.dart';
+import 'package:lalbaba_online/new_app/constant/constantappbar.dart';
+import 'package:lalbaba_online/new_app/constant/constantcolour.dart';
+import 'package:lalbaba_online/new_app/constant/new_constant_text_styles.dart';
 
-import 'package:lalbaba_online/new_app/new_profile.dart';
-import 'package:lalbaba_online/new_app/new_wishlist.dart';
+import 'package:lalbaba_online/new_app/checkout/new_profile.dart';
+import 'package:lalbaba_online/new_app/dashboard/new_wishlist.dart';
 
 // =============================================================
 // ACCOUNT PAGE STYLE

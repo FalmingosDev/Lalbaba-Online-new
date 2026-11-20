@@ -312,18 +312,18 @@
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lalbaba_online/new_app/new_constant_checkout_page.dart';
+import 'package:lalbaba_online/new_app/constant/new_constant_checkout_page.dart';
 
-import 'constantcolour.dart';
-import 'new_constant_text_styles.dart';
+import '../constant/constantcolour.dart';
+import '../constant/new_constant_text_styles.dart';
 
-import '../app/router/route_names.dart';
-import '../core/services/cart_service.dart';
-import '../core/services/cart_notification_item.dart';
+import '../../app/router/route_names.dart';
+import '../../core/services/cart_service.dart';
+import '../../core/services/cart_notification_item.dart';
 
-import '../features/address/data/models/address_model.dart';
-import '../features/address/data/services/address_storage.dart';
-import '../features/address/presentation/page/address_form_page.dart';
+import '../../features/address/data/models/address_model.dart';
+import '../../features/address/data/services/address_storage.dart';
+import '../../features/address/presentation/page/address_form_page.dart';
 
 // ============================================================
 // NEW SHIPPING PAGE
@@ -730,7 +730,8 @@ class _NewShippingPageState extends State<NewShippingPage> {
                           _loadError == null &&
                           _selectedAddress != null &&
                           items.isNotEmpty
-                      ? _continueToDelivery
+                      ?
+                       _continueToDelivery
                       : null,
                 );
               },

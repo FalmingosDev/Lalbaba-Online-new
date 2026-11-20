@@ -3,9 +3,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
-import 'package:lalbaba_online/new_app/constantappbar.dart';
-import 'package:lalbaba_online/new_app/constantcolour.dart';
-import 'package:lalbaba_online/new_app/new_constant_text_styles.dart';
+import 'package:lalbaba_online/new_app/constant/constantappbar.dart';
+import 'package:lalbaba_online/new_app/constant/constantcolour.dart';
+import 'package:lalbaba_online/new_app/constant/new_constant_text_styles.dart';
 
 // =============================================================
 // NEW PROFILE DATA

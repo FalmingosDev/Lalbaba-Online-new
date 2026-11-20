@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lalbaba_online/new_app/new_constant_text_styles.dart';
+import 'package:lalbaba_online/new_app/constant/new_constant_text_styles.dart';
 
-import '../app/router/route_names.dart';
-import '../core/services/cart_notification_item.dart';
-import '../core/services/cart_service.dart';
-import '../core/services/wishlist_service.dart';
-import '../features/product/presentation/model/product_models.dart';
-import 'constantcolour.dart';
+import '../../app/router/route_names.dart';
+import '../../core/services/cart_notification_item.dart';
+import '../../core/services/cart_service.dart';
+import '../../core/services/wishlist_service.dart';
+import '../../features/product/presentation/model/product_models.dart';
+import '../constant/constantcolour.dart';
 
 class NewWishlistPage extends StatefulWidget {
   const NewWishlistPage({super.key});

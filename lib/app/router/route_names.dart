@@ -11,6 +11,7 @@ class RouteNames {
   static const update = '/update';
 
   static const login = '/login';
+  static const newLogin = '/new-login';
 
   static const bottomnavigation = '/bottomnavigation';
   static const home = '/homepage';

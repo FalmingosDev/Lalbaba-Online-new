@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
-import '../app/router/route_names.dart';
-import '../app/theme/app_colors.dart';
-import '../core/services/cart_service.dart';
-import '../core/services/wishlist_service.dart';
-import '../features/product/presentation/model/product_models.dart';
-import '../features/product/presentation/widgets/product_details_widget/product_repository.dart';
-import 'constantappbar.dart';
-import 'new_back_to_top_button.dart';
-import 'constantcolour.dart';
-import 'new_constant_text_styles.dart';
-import 'new_wishlist.dart';
+import '../../app/router/route_names.dart';
+import '../../app/theme/app_colors.dart';
+import '../../core/services/cart_service.dart';
+import '../../core/services/wishlist_service.dart';
+import '../../features/product/presentation/model/product_models.dart';
+import '../../features/product/presentation/widgets/product_details_widget/product_repository.dart';
+import '../constant/constantappbar.dart';
+import '../constant/new_back_to_top_button.dart';
+import '../constant/constantcolour.dart';
+import '../constant/new_constant_text_styles.dart';
+import '../dashboard/new_wishlist.dart';
 
 class NewProductDetailsPage extends StatefulWidget {
   final ProductItem product;

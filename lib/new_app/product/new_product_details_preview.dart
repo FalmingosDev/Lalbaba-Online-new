@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../app/theme/app_colors.dart';
-import '../core/services/cart_service.dart';
-import '../features/product/presentation/widgets/product_details_widget/product_repository.dart';
-import 'bottomnavigation.dart';
+import '../../app/theme/app_colors.dart';
+import '../../core/services/cart_service.dart';
+import '../../features/product/presentation/widgets/product_details_widget/product_repository.dart';
+import '../new_auth/bottomnavigation.dart';
 import 'new_product_details.dart';
 
 Future<void> main() async {

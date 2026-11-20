@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../core/constants/app_sizes.dart';
-import '../../../../../new_app/constantappbar.dart';
-import '../../../../../new_app/constantcolour.dart';
+import '../../../../new_app/constant/constantappbar.dart';
+import '../../../../new_app/constant/constantcolour.dart';
 import '../../../account/presentation/widgets/app_string.dart';
 import 'create_ticket_form.dart';
 import 'ticket_list_view.dart';

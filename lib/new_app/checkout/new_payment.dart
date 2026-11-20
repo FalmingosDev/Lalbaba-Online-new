@@ -664,11 +664,11 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../core/services/cart_notification_item.dart';
-import '../core/services/cart_service.dart';
+import '../../core/services/cart_notification_item.dart';
+import '../../core/services/cart_service.dart';
 
-import 'constantcolour.dart';
-import 'new_constant_checkout_page.dart';
+import '../constant/constantcolour.dart';
+import '../constant/new_constant_checkout_page.dart';
 
 // ============================================================
 // PAYMENT METHOD

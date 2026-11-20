@@ -197,13 +197,13 @@
 // }
 
 import 'package:flutter/material.dart';
-import 'package:lalbaba_online/new_app/homenew.dart';
-import 'package:lalbaba_online/new_app/new_accountscreen.dart';
-import 'package:lalbaba_online/new_app/new_category.dart';
-import 'package:lalbaba_online/new_app/new_cart.dart';
-import 'package:lalbaba_online/new_app/new_order.dart';
-import 'package:lalbaba_online/new_app/constantcolour.dart';
-import 'package:lalbaba_online/new_app/new_constant_text_styles.dart';
+import 'package:lalbaba_online/new_app/dashboard/homenew.dart';
+import 'package:lalbaba_online/new_app/dashboard/new_accountscreen.dart';
+import 'package:lalbaba_online/new_app/dashboard/new_category.dart';
+import 'package:lalbaba_online/new_app/dashboard/new_cart.dart';
+import 'package:lalbaba_online/new_app/dashboard/new_order.dart';
+import 'package:lalbaba_online/new_app/constant/constantcolour.dart';
+import 'package:lalbaba_online/new_app/constant/new_constant_text_styles.dart';
 
 class BottomNavigationScreen extends StatefulWidget {
   final int initialIndex;
@@ -245,7 +245,7 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
       _showCartBackButton = false;
       _pages[2] = const NewCartPage();
     });
-  }
+  }  
 
   @override
   Widget build(BuildContext context) => Scaffold(

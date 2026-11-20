@@ -1027,20 +1027,20 @@
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lalbaba_online/new_app/new_constant_checkout_page.dart';
+import 'package:lalbaba_online/new_app/constant/new_constant_checkout_page.dart';
 
-import '../app/router/route_guards.dart';
-import '../app/router/route_names.dart';
-import '../core/services/cart_notification_item.dart';
-import '../core/services/cart_service.dart';
-import '../core/services/wishlist_service.dart';
-import '../features/product/presentation/model/product_models.dart';
-import '../features/product/presentation/widgets/product_details_widget/product_repository.dart';
+import '../../app/router/route_guards.dart';
+import '../../app/router/route_names.dart';
+import '../../core/services/cart_notification_item.dart';
+import '../../core/services/cart_service.dart';
+import '../../core/services/wishlist_service.dart';
+import '../../features/product/presentation/model/product_models.dart';
+import '../../features/product/presentation/widgets/product_details_widget/product_repository.dart';
 
-import 'new_back_to_top_button.dart';
-import 'constantcolour.dart';
-import 'new_constant_text_styles.dart';
-import 'new_product_details.dart';
+import '../constant/new_back_to_top_button.dart';
+import '../constant/constantcolour.dart';
+import '../constant/new_constant_text_styles.dart';
+import '../product/new_product_details.dart';
 import 'new_wishlist.dart';
 
 // ============================================================
@@ -1173,15 +1173,15 @@ class _NewCartPageState extends State<NewCartPage> {
             valueListenable: CartService.items,
 
             builder: (context, cartItems, child) {
-              const delivery = 40.0;
+              //const delivery = 40.0;
 
               final total =
                   cartItems.fold<double>(
                     0,
                     (sum, item) =>
                         sum + _parsePrice(item.price) * item.quantity,
-                  ) +
-                  delivery;
+                  ) ;
+                 // delivery;
 
               return Stack(
                 children: [
@@ -2245,8 +2245,8 @@ class _CartCheckoutBar extends StatelessWidget {
         if (!context.mounted) return;
 
         final loginLocation = Uri(
-          path: RouteNames.login,
-          queryParameters: {'redirect': RouteNames.newShipping},
+          path: RouteNames.newLogin,
+          // queryParameters: {'redirect': RouteNames.newShipping},
         ).toString();
         await context.push<void>(loginLocation);
       },
