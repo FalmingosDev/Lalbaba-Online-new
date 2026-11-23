@@ -34,29 +34,20 @@ class NewCheckoutLoginPopup extends StatefulWidget {
   }
 
   @override
-  State<NewCheckoutLoginPopup> createState() =>
-      _NewCheckoutLoginPopupState();
+  State<NewCheckoutLoginPopup> createState() => _NewCheckoutLoginPopupState();
 }
 
-class _NewCheckoutLoginPopupState
-    extends State<NewCheckoutLoginPopup> {
-
+class _NewCheckoutLoginPopupState extends State<NewCheckoutLoginPopup> {
   bool _showOtp = false;
 
-  final TextEditingController _phoneController =
-      TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
 
-  final List<TextEditingController> _otpControllers =
-      List.generate(
-        6,
-        (_) => TextEditingController(),
-      );
+  final List<TextEditingController> _otpControllers = List.generate(
+    6,
+    (_) => TextEditingController(),
+  );
 
-  final List<FocusNode> _otpFocusNodes =
-      List.generate(
-        6,
-        (_) => FocusNode(),
-      );
+  final List<FocusNode> _otpFocusNodes = List.generate(6, (_) => FocusNode());
 
   @override
   void dispose() {
@@ -80,63 +71,55 @@ class _NewCheckoutLoginPopupState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
       body: Padding(
         padding: EdgeInsets.only(
           bottom: MediaQuery.of(context).viewInsets.bottom,
         ),
-      
+
         child: Container(
           width: double.infinity,
-      
+
           constraints: BoxConstraints(
-            maxHeight:
-                MediaQuery.of(context).size.height * 0.75,
+            maxHeight: MediaQuery.of(context).size.height * 0.75,
           ),
-      
+
           decoration: const BoxDecoration(
             color: HomeColors.surface,
-      
+
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(26),
               topRight: Radius.circular(26),
             ),
           ),
-      
+
           child: SafeArea(
             top: false,
-      
+
             child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(
-                24, 12, 24, 24,
-              ),
-      
+              padding: const EdgeInsets.fromLTRB(30, 30, 30, 30),
+
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-      
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
-      
+
+                crossAxisAlignment: CrossAxisAlignment.start,
+
                 children: [
                   _buildDragHandle(),
-      
+
                   _buildTopSection(),
-      
+
                   _buildHeader(),
-      
+
                   const SizedBox(height: 28),
-      
-                  if (_showOtp)
-                    _buildOtpSection()
-                  else
-                    _buildMobileSection(),
-      
+
+                  if (_showOtp) _buildOtpSection() else _buildMobileSection(),
+
                   const SizedBox(height: 24),
-      
+
                   _buildContinueButton(),
-      
+
                   const SizedBox(height: 20),
-      
+
                   _buildFooter(),
                 ],
               ),
@@ -170,45 +153,45 @@ class _NewCheckoutLoginPopupState
   // ==========================================================
 
   Widget _buildTopSection() {
-    return Row(
-      children: [
-        if (_showOtp)
-          IconButton(
-            onPressed: () {
-              FocusScope.of(context).unfocus();
+    return Padding(
+      padding: const EdgeInsets.only(top: 15),
+      child: Row(
+        children: [
+          if (_showOtp)
+            IconButton(
+              onPressed: () {
+                FocusScope.of(context).unfocus();
 
-              setState(() {
-                _showOtp = false;
-              });
-            },
+                setState(() {
+                  _showOtp = false;
+                });
+              },
 
-            icon: const Icon(
-              Icons.arrow_back,
-              color: HomeColors.textPrimary,
+              icon: const Icon(Icons.arrow_back, color: HomeColors.textPrimary),
+            ),
+
+          const Spacer(),
+
+          Container(
+            decoration: const BoxDecoration(
+              color: HomeColors.background,
+              shape: BoxShape.circle,
+            ),
+
+            child: IconButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+
+              icon: const Icon(
+                Icons.close_rounded,
+                color: HomeColors.textPrimary,
+                size: 23,
+              ),
             ),
           ),
-
-        const Spacer(),
-
-        Container(
-          decoration: const BoxDecoration(
-            color: HomeColors.background,
-            shape: BoxShape.circle,
-          ),
-
-          child: IconButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-
-            icon: const Icon(
-              Icons.close_rounded,
-              color: HomeColors.textPrimary,
-              size: 23,
-            ),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -243,9 +226,7 @@ class _NewCheckoutLoginPopupState
           const SizedBox(height: 18),
 
           Text(
-            _showOtp
-                ? 'Verify OTP'
-                : 'Login to Continue',
+            _showOtp ? 'Verify OTP' : 'Login to Continue',
 
             textAlign: TextAlign.center,
 
@@ -269,8 +250,7 @@ class _NewCheckoutLoginPopupState
             ),
           ),
 
-          if (_showOtp &&
-              _phoneController.text.isNotEmpty) ...[
+          if (_showOtp && _phoneController.text.isNotEmpty) ...[
             const SizedBox(height: 6),
 
             Text(
@@ -313,42 +293,28 @@ class _NewCheckoutLoginPopupState
 
             borderRadius: BorderRadius.circular(10),
 
-            border: Border.all(
-              color: HomeColors.border,
-            ),
+            border: Border.all(color: HomeColors.border),
           ),
 
           child: Row(
             children: [
               const SizedBox(width: 14),
 
-              const Text(
-                '🇮🇳',
-
-                style: TextStyle(
-                  fontSize: 22,
-                ),
-              ),
+              const Text('🇮🇳', style: TextStyle(fontSize: 22)),
 
               const SizedBox(width: 8),
 
               Text(
                 '+91',
 
-                style:
-                    HomeTextStyles.bodyEmphasis.copyWith(
+                style: HomeTextStyles.bodyEmphasis.copyWith(
                   color: HomeColors.textPrimary,
                 ),
               ),
 
               const SizedBox(width: 12),
 
-              Container(
-                width: 1,
-                height: 26,
-
-                color: HomeColors.border,
-              ),
+              Container(width: 1, height: 26, color: HomeColors.border),
 
               const SizedBox(width: 12),
 
@@ -362,9 +328,7 @@ class _NewCheckoutLoginPopupState
 
                   maxLength: 10,
 
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                  ],
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
 
                   style: HomeTextStyles.body.copyWith(
                     color: HomeColors.textPrimary,
@@ -383,13 +347,10 @@ class _NewCheckoutLoginPopupState
                     enabledBorder: InputBorder.none,
                     focusedBorder: InputBorder.none,
 
-                    contentPadding: const EdgeInsets.only(
-                      right: 12,
-                    ),
+                    contentPadding: const EdgeInsets.only(right: 12),
                   ),
                 ),
               ),
-            
             ],
           ),
         ),
@@ -422,9 +383,7 @@ class _NewCheckoutLoginPopupState
 
             (index) => Expanded(
               child: Padding(
-                padding: EdgeInsets.only(
-                  right: index == 5 ? 0 : 8,
-                ),
+                padding: EdgeInsets.only(right: index == 5 ? 0 : 8),
 
                 child: _buildOtpBox(index),
               ),
@@ -455,8 +414,7 @@ class _NewCheckoutLoginPopupState
                 child: Text(
                   'Resend OTP',
 
-                  style:
-                      HomeTextStyles.bodyEmphasis.copyWith(
+                  style: HomeTextStyles.bodyEmphasis.copyWith(
                     color: HomeColors.secondary,
                   ),
                 ),
@@ -489,9 +447,7 @@ class _NewCheckoutLoginPopupState
 
         cursorColor: HomeColors.secondary,
 
-        inputFormatters: [
-          FilteringTextInputFormatter.digitsOnly,
-        ],
+        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
 
         onChanged: (value) {
           if (value.isNotEmpty) {
@@ -514,18 +470,14 @@ class _NewCheckoutLoginPopupState
 
           hintText: '-',
 
-          hintStyle: HomeTextStyles.body.copyWith(
-            color: HomeColors.textHint,
-          ),
+          hintStyle: HomeTextStyles.body.copyWith(color: HomeColors.textHint),
 
           contentPadding: EdgeInsets.zero,
 
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
 
-            borderSide: const BorderSide(
-              color: HomeColors.border,
-            ),
+            borderSide: const BorderSide(color: HomeColors.border),
           ),
 
           focusedBorder: OutlineInputBorder(
@@ -546,72 +498,61 @@ class _NewCheckoutLoginPopupState
   // UI ONLY
   // ==========================================================
 
-Widget _buildContinueButton() {
-  return SizedBox(
-    width: double.infinity,
-    height: 52,
+  Widget _buildContinueButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: 52,
 
-    child: ElevatedButton(
-      onPressed: () {
-        FocusScope.of(context).unfocus();
+      child: ElevatedButton(
+        onPressed: () {
+          FocusScope.of(context).unfocus();
 
-        if (!_showOtp) {
-          setState(() {
-            _showOtp = true;
-          });
+          if (!_showOtp) {
+            setState(() {
+              _showOtp = true;
+            });
+          } else {
+            // PAYMENT PAGE UI TESTING ONLY
 
-        } else {
-          // PAYMENT PAGE UI TESTING ONLY
+            if (kDebugMode) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => NewShippingPage()),
+              );
+            }
 
-          if (kDebugMode) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => NewShippingPage(),
-              ),
-            );
+            // TODO: Connect actual OTP API.
           }
+        },
 
+        style: ElevatedButton.styleFrom(
+          backgroundColor: HomeColors.secondary,
+          foregroundColor: HomeColors.white,
+          elevation: 0,
 
-          // TODO: Connect actual OTP API.
-        }
-      },
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(28),
+          ),
+        ),
 
-      style: ElevatedButton.styleFrom(
-        backgroundColor: HomeColors.secondary,
-        foregroundColor: HomeColors.white,
-        elevation: 0,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
 
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(28),
+          children: [
+            Text(
+              _showOtp ? 'Verify & Continue' : 'Send OTP',
+
+              style: HomeTextStyles.button.copyWith(color: HomeColors.white),
+            ),
+
+            const SizedBox(width: 8),
+
+            const Icon(Icons.arrow_forward, size: 18),
+          ],
         ),
       ),
-
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-
-        children: [
-          Text(
-            _showOtp
-                ? 'Verify & Continue'
-                : 'Send OTP',
-
-            style: HomeTextStyles.button.copyWith(
-              color: HomeColors.white,
-            ),
-          ),
-
-          const SizedBox(width: 8),
-
-          const Icon(
-            Icons.arrow_forward,
-            size: 18,
-          ),
-        ],
-      ),
-    ),
-  );
-}
+    );
+  }
   // ==========================================================
   // SECURE CHECKOUT FOOTER
   // ==========================================================
