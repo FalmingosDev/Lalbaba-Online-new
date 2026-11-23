@@ -2327,7 +2327,7 @@ class _ProductCard extends StatelessWidget {
                                   color: HomeColors.white,
                                 ),
                               )
-                            : Text(inCart ? 'GO TO CART' : 'ADD', maxLines: 1),
+                            : Text(inCart ? 'View' : 'ADD', maxLines: 1),
                       ),
                     ),
                   ),

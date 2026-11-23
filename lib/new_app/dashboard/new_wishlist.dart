@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lalbaba_online/new_app/constant/new_constant_text_styles.dart';
+import 'package:lalbaba_online/new_app/new_auth/bottomnavigation.dart';
 
 import '../../app/router/route_names.dart';
 import '../../core/services/cart_notification_item.dart';
@@ -355,9 +356,15 @@ class _EmptyWishlist extends StatelessWidget {
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
-                onPressed: () => Navigator.of(context).push<void>(
-                  MaterialPageRoute<void>(builder: (_) => const HomeNewPage()),
-                ),
+                onPressed: () {
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute<void>(
+                      builder: (_) =>
+                          const BottomNavigationScreen(initialIndex: 0),
+                    ),
+                    (route) => false,
+                  );
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: HomeColors.secondary,
                   foregroundColor: HomeColors.white,

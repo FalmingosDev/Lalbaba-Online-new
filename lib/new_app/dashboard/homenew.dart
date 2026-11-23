@@ -80,7 +80,7 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
   // HOME CATEGORY TABS
   // ===========================================================================
 
-  final List<String> _categoryNames = ['For You', 'Rice', 'Spices'];
+  final List<String> _categoryNames = ['For You', 'Rice', 'Spices','Shop All'];
 
   // ===========================================================================
   // SEARCH CATEGORIES
@@ -518,6 +518,7 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
   // ===========================================================================
 
   @override
+  @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Theme(
@@ -535,7 +536,10 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
               ? _buildShimmerBody()
               : Column(
                   children: [
-                    // AppBar collapses on downward scrolling and returns at top.
+                    // =====================================================
+                    // APP BAR - LALBABA LOGO LEFT ALIGNED
+                    // =====================================================
+
                     AnimatedSize(
                       duration: const Duration(milliseconds: 200),
                       curve: Curves.easeInOut,
@@ -546,83 +550,60 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
                               height: 72,
                               child: CommonAppBar(
                                 automaticallyImplyLeading: false,
-
                                 height: 72,
                                 backgroundColor: HomeColors.secondary,
-                                titleWidget: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    SizedBox(
-                                      width: 64,
-                                      height: 64,
-                                      child: Image.asset(
-                                        AssetConstants.logo,
-                                        fit: BoxFit.contain,
-                                        errorBuilder:
-                                            (context, error, stackTrace) =>
-                                                const Icon(
-                                                  Icons.rice_bowl_rounded,
-                                                  color: HomeColors.surface,
-                                                  size: 40,
-                                                ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Flexible(
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            'LalBaba',
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
+
+                                titleWidget: Transform.translate(
+                                  // Logo আরও বাম দিকে সরানো হয়েছে
+                                  offset: const Offset(-16, 0),
+                                  child: SizedBox(
+                                    width: 350,
+                                    height: 68,
+                                    child: Image.asset(
+                                      AssetConstants.logo,
+                                      fit: BoxFit.contain,
+                                      alignment: Alignment.centerLeft,
+                                      filterQuality: FilterQuality.high,
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                            return const Icon(
+                                              Icons.rice_bowl_rounded,
                                               color: HomeColors.surface,
-                                              fontSize:
-                                                  HomeTextStyles.sizePriceLarge,
-                                              fontWeight: HomeTextStyles.bold,
-                                              height: 1.1,
-                                            ),
-                                          ),
-                                          // SizedBox(height: 2),
-                                          // Text(
-                                          //   'Quality You Trust',
-                                          //   maxLines: 1,
-                                          //   overflow: TextOverflow.ellipsis,
-                                          //   style: TextStyle(
-                                          //     color: HomeColors.white
-                                          //         .withValues(alpha: 0.70),
-                                          //     fontSize:
-                                          //         HomeTextStyles.sizeCaption,
-                                          //     fontWeight: HomeTextStyles.medium,
-                                          //   ),
-                                          // ),
-                                        ],
-                                      ),
+                                              size: 40,
+                                            );
+                                          },
                                     ),
-                                  ],
+                                  ),
                                 ),
                               ),
                             ),
                     ),
-                    // FIXED: search, including its existing autocomplete UI.
+
+                    // =====================================================
+                    // SEARCH BAR
+                    // =====================================================
                     const SizedBox(height: 10),
+
                     SearchWidget(
                       categories: _searchCategories,
                       products: _searchProducts,
                       onCategoryTap: _handleSearchCategoryTap,
                       onProductTap: _handleSearchProductTap,
                     ),
-                    // FIXED: horizontal home categories.
+
+                    // =====================================================
+                    // HORIZONTAL CATEGORIES
+                    // =====================================================
                     CategoryWidget(
                       names: _categoryNames,
                       onCategoryTap: (name) {
                         _openProductListPage(title: name);
                       },
                     ),
-                    // Only the content below search/category scrolls.
+
+                    // =====================================================
+                    // SCROLLABLE HOME CONTENT
+                    // =====================================================
                     Expanded(
                       child: Stack(
                         children: [
@@ -637,34 +618,28 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
                                   children: [
                                     const SizedBox(height: 8),
 
-                                    // =====================================================
+                                    // =====================================
                                     // BANNER
-                                    // =====================================================
+                                    // =====================================
                                     const BannerWidget(),
 
-                                    // =====================================================
+                                    // =====================================
                                     // TRENDING
-                                    // =====================================================
+                                    // =====================================
                                     AnimatedBuilder(
                                       animation: AppLanguageConstants.instance,
-
                                       builder: (context, child) {
                                         return TrendingWidget(
                                           products: _trendingProducts,
-
                                           onProductTap: _openProductDetails,
-
                                           onAddToCart: _handleAddToCart,
                                           onGoToCart: _openCartPage,
-                                          // onGoToCart: _openCartNotificationPage,
                                           addedProductNames: _addedProductNames,
                                           addingProductNames:
                                               _addingProductNames,
-
                                           onViewAllTap: () {
                                             _openProductListPage(
                                               sectionType: 'trending',
-
                                               title:
                                                   AppStrings.trendingThisWeek,
                                               products: _trendingProducts,
@@ -674,16 +649,14 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
                                       },
                                     ),
 
-                                    // =====================================================
+                                    // =====================================
                                     // POPULAR SEARCH
-                                    // =====================================================
+                                    // =====================================
                                     AnimatedBuilder(
                                       animation: AppLanguageConstants.instance,
-
                                       builder: (context, child) {
                                         return PopularSearchWidget(
                                           products: _popularSearch,
-
                                           onProductTap: _handleSearchProductTap,
                                           onViewAllTap: () {
                                             _openProductListPage(
@@ -696,29 +669,23 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
                                       },
                                     ),
 
-                                    // =====================================================
+                                    // =====================================
                                     // BEST SELLER
-                                    // =====================================================
+                                    // =====================================
                                     AnimatedBuilder(
                                       animation: AppLanguageConstants.instance,
-
                                       builder: (context, child) {
                                         return BestSellerWidget(
                                           products: _bestSellers,
-
                                           onProductTap: _openProductDetails,
-
                                           onAddToCart: _handleAddToCart,
                                           onGoToCart: _openCartPage,
-                                          // onGoToCart: _openCartNotificationPage,
                                           addedProductNames: _addedProductNames,
                                           addingProductNames:
                                               _addingProductNames,
-
                                           onViewAllTap: () {
                                             _openProductListPage(
                                               sectionType: 'bestSeller',
-
                                               title: AppStrings.bestSeller,
                                               products: _bestSellers,
                                             );
@@ -727,32 +694,31 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
                                       },
                                     ),
 
-                                    // =====================================================
+                                    // =====================================
                                     // RECIPE
-                                    // =====================================================
+                                    // =====================================
                                     RecipeWidget(onRecipeTap: _handleRecipeTap),
 
-                                    // =====================================================
+                                    // =====================================
                                     // HAPPY HOME CHEFS
-                                    // =====================================================
+                                    // =====================================
                                     TestimonialWidget(
                                       onReviewTap: _handleReviewTap,
                                     ),
 
-                                    // =====================================================
-                                    // SMALL BOTTOM GAP
-                                    //
-                                    // Age 110 chilo.
-                                    // Ekhon 24 kora holo.
-                                    // =====================================================
+                                    // =====================================
+                                    // BOTTOM GAP
+                                    // =====================================
                                     const SizedBox(height: 24),
                                   ],
                                 ),
                               ),
                             ],
                           ),
-                          // BigBasket-style floating control in the middle,
-                          // just below the pinned search and category strip.
+
+                          // =============================================
+                          // FLOATING BACK TO TOP BUTTON
+                          // =============================================
                           Positioned(
                             top: 24,
                             left: 0,
@@ -811,8 +777,8 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
                     ),
                   ],
                 ),
-        ), // Scaffold
-      ), // Theme
+        ),
+      ),
     );
   }
 
@@ -1267,6 +1233,7 @@ class _SearchWidgetState extends State<SearchWidget> {
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
     final bool hasText = _controller.text.trim().isNotEmpty;
 
@@ -1277,15 +1244,15 @@ class _SearchWidgetState extends State<SearchWidget> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // ===================================================================
+          // =========================================================
           // SEARCH BAR
-          // ===================================================================
+          // =========================================================
 
           Container(
-            height: 52,
+            height: 60,
             decoration: BoxDecoration(
               color: HomeColors.disabledBackground,
-              borderRadius: BorderRadius.circular(28),
+              borderRadius: BorderRadius.circular(30),
               border: Border.all(color: HomeColors.border, width: 1),
               boxShadow: [
                 BoxShadow(
@@ -1297,17 +1264,19 @@ class _SearchWidgetState extends State<SearchWidget> {
             ),
             child: Row(
               children: [
-                const SizedBox(width: 10),
+                const SizedBox(width: 6),
 
-                // =============================================================
-                // LOGO
-                // =============================================================
+                // ===================================================
+                // BIG LALBABA LOGO
+                // ===================================================
                 SizedBox(
-                  width: 24,
-                  height: 24,
+                  width: 50,
+                  height: 50,
                   child: Image.asset(
                     AssetConstants.logo,
                     fit: BoxFit.contain,
+                    alignment: Alignment.center,
+                    filterQuality: FilterQuality.high,
                     frameBuilder:
                         (
                           BuildContext context,
@@ -1321,9 +1290,9 @@ class _SearchWidgetState extends State<SearchWidget> {
 
                           if (frame == null) {
                             return const AppShimmer(
-                              width: 24,
-                              height: 24,
-                              radius: 6,
+                              width: 50,
+                              height: 50,
+                              radius: 8,
                             );
                           }
 
@@ -1338,32 +1307,35 @@ class _SearchWidgetState extends State<SearchWidget> {
                           return const Icon(
                             Icons.rice_bowl_rounded,
                             color: HomeColors.secondary,
-                            size: 20,
+                            size: 32,
                           );
                         },
                   ),
                 ),
 
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
 
-                Container(width: 1, height: 20, color: HomeColors.border),
+                // ===================================================
+                // DIVIDER
+                // ===================================================
+                Container(width: 1, height: 24, color: HomeColors.border),
 
-                const SizedBox(width: 8),
+                const SizedBox(width: 10),
 
-                // =============================================================
+                // ===================================================
                 // SEARCH ICON
-                // =============================================================
+                // ===================================================
                 const Icon(
                   Icons.search_rounded,
                   color: HomeColors.textSecondary,
                   size: 22,
                 ),
 
-                const SizedBox(width: 6),
+                const SizedBox(width: 8),
 
-                // =============================================================
+                // ===================================================
                 // TEXT FIELD
-                // =============================================================
+                // ===================================================
                 Expanded(
                   child: Stack(
                     alignment: Alignment.centerLeft,
@@ -1390,16 +1362,16 @@ class _SearchWidgetState extends State<SearchWidget> {
                           enabledBorder: InputBorder.none,
                           focusedBorder: InputBorder.none,
                           isDense: true,
-                          contentPadding: EdgeInsets.symmetric(vertical: 13),
+                          contentPadding: EdgeInsets.symmetric(vertical: 15),
                         ),
                       ),
                     ],
                   ),
                 ),
 
-                // =============================================================
-                // CLEAR
-                // =============================================================
+                // ===================================================
+                // CLEAR BUTTON
+                // ===================================================
                 if (hasText)
                   IconButton(
                     splashRadius: 18,
@@ -1416,9 +1388,9 @@ class _SearchWidgetState extends State<SearchWidget> {
             ),
           ),
 
-          // ===================================================================
-          // SEARCH RESULT
-          // ===================================================================
+          // =========================================================
+          // SEARCH RESULTS
+          // =========================================================
           if (_showResult && hasText) ...[
             const SizedBox(height: 5),
 
