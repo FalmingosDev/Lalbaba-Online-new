@@ -1638,8 +1638,8 @@ class _ProductListPageState extends State<ProductListPage> {
                     controller: _scrollController,
 
                     physics: const ClampingScrollPhysics(),
-
-                    padding: const EdgeInsets.all(12),
+padding: const EdgeInsets.fromLTRB(12, 12, 12, 32),
+                    //padding: const EdgeInsets.all(12),
 
                     itemCount: products.length,
 
@@ -1989,14 +1989,10 @@ class _ProductCard extends StatelessWidget {
                     name,
 
                     maxLines: 2,
-
                     overflow: TextOverflow.ellipsis,
-
                     style: HomeTextStyles.productCardTitle.copyWith(
                       height: 1.3,
-
                       fontWeight: HomeTextStyles.bold,
-
                       color: HomeColors.textPrimary,
                     ),
                   ),
