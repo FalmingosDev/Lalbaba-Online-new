@@ -7,9 +7,11 @@ import '../../app/router/route_names.dart';
 import '../../core/services/cart_notification_item.dart';
 import '../../core/services/cart_service.dart';
 import '../../core/services/wishlist_service.dart';
+import '../../features/cart/presentation/pages/cart_page.dart';
 import '../../features/product/presentation/model/product_models.dart';
 import '../constant/constantcolour.dart';
 import 'homenew.dart';
+import 'new_cart.dart';
 
 class NewWishlistPage extends StatefulWidget {
   const NewWishlistPage({super.key});
@@ -253,7 +255,7 @@ class _WishlistProductCard extends StatelessWidget {
                   onPressed: variant == null
                       ? null
                       : inCart
-                      ? () => context.push(RouteNames.cart)
+                      ? () => Navigator.push(context, MaterialPageRoute(builder: (context) => const NewCartPage()))
                       : () => _addToCart(context, variant),
                   icon: Icon(
                     inCart

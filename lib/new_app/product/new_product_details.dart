@@ -330,10 +330,10 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
                 _buildPackSizes(),
                 const _DeliveryPincodeCheck(),
                 _buildBrandBanner(),
-                _buildProductRail('People also bought'),
-                _buildProductRail('Similar Products'),
                 _buildDetailTabs(),
                 _buildRatingsAndReviews(),
+                _buildProductRail('People also bought'),
+                _buildProductRail('Similar Products'),
                 const SizedBox(height: 18),
               ],
             ),
@@ -658,109 +658,6 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
     );
   }
 
-  Widget _buildProductRail(String title) {
-    final products = ProductRepository.relatedTo(_product);
-    if (products.isEmpty) return const SizedBox.shrink();
-
-    return Padding(
-      padding: const EdgeInsets.only(top: 18, bottom: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 18),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    title,
-                    style: HomeTextStyles.sectionTitle.copyWith(
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ),
-                const Icon(Icons.chevron_right, color: AppColors.grey),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            height: 260,
-            child: ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 18),
-              scrollDirection: Axis.horizontal,
-              itemCount: products.length,
-              separatorBuilder: (context, index) => const SizedBox(width: 12),
-              itemBuilder: (context, index) {
-                final product = products[index];
-                final variant = product.variants.isEmpty
-                    ? null
-                    : product.variants[product.selectedVariant
-                          .clamp(0, product.variants.length - 1)
-                          .toInt()];
-                return GestureDetector(
-                  onTap: () => _openProduct(product),
-                  child: SizedBox(
-                    width: 148,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          height: 154,
-                          width: 148,
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: AppColors.surface,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: AppColors.divider),
-                          ),
-                          child: product.imageUrl.isEmpty
-                              ? const Icon(
-                                  Icons.image_not_supported_outlined,
-                                  color: AppColors.grey,
-                                )
-                              : Image.network(
-                                  product.imageUrl,
-                                  fit: BoxFit.contain,
-                                  errorBuilder: (context, error, stackTrace) =>
-                                      const Icon(
-                                        Icons.broken_image_outlined,
-                                        color: AppColors.grey,
-                                      ),
-                                ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          product.name,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: HomeTextStyles.bodyEmphasis.copyWith(
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        if (variant != null)
-                          Text(
-                            '₹${variant.price.toStringAsFixed(0)}  ·  ${variant.weight}',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: HomeTextStyles.bodySmall.copyWith(
-                              fontWeight: HomeTextStyles.bold,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildDetailTabs() {
     const labels = ['Description', 'Additional information', 'Reviews'];
     return Container(
@@ -944,6 +841,109 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
           ),
         );
       }).toList(),
+    );
+  }
+
+  Widget _buildProductRail(String title) {
+    final products = ProductRepository.relatedTo(_product);
+    if (products.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 18, bottom: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 18),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    title,
+                    style: HomeTextStyles.sectionTitle.copyWith(
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ),
+                const Icon(Icons.chevron_right, color: AppColors.grey),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 260,
+            child: ListView.separated(
+              padding: const EdgeInsets.symmetric(horizontal: 18),
+              scrollDirection: Axis.horizontal,
+              itemCount: products.length,
+              separatorBuilder: (context, index) => const SizedBox(width: 12),
+              itemBuilder: (context, index) {
+                final product = products[index];
+                final variant = product.variants.isEmpty
+                    ? null
+                    : product.variants[product.selectedVariant
+                          .clamp(0, product.variants.length - 1)
+                          .toInt()];
+                return GestureDetector(
+                  onTap: () => _openProduct(product),
+                  child: SizedBox(
+                    width: 148,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          height: 154,
+                          width: 148,
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: AppColors.surface,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: AppColors.divider),
+                          ),
+                          child: product.imageUrl.isEmpty
+                              ? const Icon(
+                                  Icons.image_not_supported_outlined,
+                                  color: AppColors.grey,
+                                )
+                              : Image.network(
+                                  product.imageUrl,
+                                  fit: BoxFit.contain,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      const Icon(
+                                        Icons.broken_image_outlined,
+                                        color: AppColors.grey,
+                                      ),
+                                ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          product.name,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: HomeTextStyles.bodyEmphasis.copyWith(
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        if (variant != null)
+                          Text(
+                            '₹${variant.price.toStringAsFixed(0)}  ·  ${variant.weight}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: HomeTextStyles.bodySmall.copyWith(
+                              fontWeight: HomeTextStyles.bold,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1221,7 +1221,7 @@ class _DeliveryPincodeCheckState extends State<_DeliveryPincodeCheck> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Delivery',
+            'Check Delivery Availability',
             style: HomeTextStyles.bodyEmphasis.copyWith(
               color: AppColors.textPrimary,
             ),

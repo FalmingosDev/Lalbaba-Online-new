@@ -909,7 +909,7 @@ class _AccountSectionLabel extends StatelessWidget {
       child: Text(
         text,
 
-        style: HomeTextStyles.chip.copyWith(
+        style: HomeTextStyles.chip.copyWith(  
           color: color,
           fontSize: HomeTextStyles.sizeProduct,
           letterSpacing: 0.4,

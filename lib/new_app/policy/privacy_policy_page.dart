@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../constant/constantappbar.dart';
 import '../constant/constantcolour.dart';
@@ -12,6 +13,101 @@ class PrivacyPolicyPage extends StatefulWidget {
 }
 
 class _PrivacyPolicyPageState extends State<PrivacyPolicyPage> {
+  Future<void> _launchExternal(Uri uri) async {
+    final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+
+    if (!launched && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to open the requested app')),
+      );
+    }
+  }
+
+  Widget _contactBullet({
+    required String label,
+    required String value,
+    required Uri uri,
+  }) => Padding(
+    padding: const EdgeInsets.only(left: 4, bottom: 9),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 7, right: 10),
+          child: Container(
+            width: 7,
+            height: 7,
+            decoration: const BoxDecoration(
+              color: HomeColors.secondary,
+              shape: BoxShape.circle,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Text.rich(
+            TextSpan(
+              style: HomeTextStyles.body.copyWith(
+                color: HomeColors.textSecondary,
+                height: 1.55,
+              ),
+              children: [
+                TextSpan(text: '$label '),
+                WidgetSpan(
+                  alignment: PlaceholderAlignment.baseline,
+                  baseline: TextBaseline.alphabetic,
+                  child: GestureDetector(
+                    onTap: () => _launchExternal(uri),
+                    child: Text(
+                      value,
+                      style: HomeTextStyles.body.copyWith(
+                        color: HomeColors.secondary,
+                        height: 1.55,
+                        decoration: TextDecoration.none,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+
+  Widget _emailPara(String before, String after) => Padding(
+    padding: const EdgeInsets.only(bottom: 10),
+    child: Text.rich(
+      TextSpan(
+        style: HomeTextStyles.body.copyWith(
+          color: HomeColors.textSecondary,
+          height: 1.6,
+        ),
+        children: [
+          TextSpan(text: before),
+          WidgetSpan(
+            alignment: PlaceholderAlignment.baseline,
+            baseline: TextBaseline.alphabetic,
+            child: GestureDetector(
+              onTap: () => _launchExternal(
+                Uri(scheme: 'mailto', path: 'support@lalbabaonline.com'),
+              ),
+              child: Text(
+                'support@lalbabaonline.com',
+                style: HomeTextStyles.body.copyWith(
+                  color: HomeColors.secondary,
+                  height: 1.6,
+                  decoration: TextDecoration.none,
+                ),
+              ),
+            ),
+          ),
+          TextSpan(text: after),
+        ],
+      ),
+    ),
+  );
+
   Widget _heading(String text) => Padding(
     padding: const EdgeInsets.only(top: 18, bottom: 8),
     child: Container(
@@ -387,15 +483,15 @@ class _PrivacyPolicyPageState extends State<PrivacyPolicyPage> {
                 'secured behind a firewall; access to the servers is password-protected and is '
                 'strictly limited.',
               ),
-              _para(
+              _emailPara(
                 'However, as effective as our security measures are, no security system is '
-                'impenetrable. We cannot guarantee the security of our database, nor can we '
-                'guarantee that information you supply will not be intercepted while being '
-                'transmitted to us over the Internet. Any information you include in a posting to '
-                'the discussion areas is available to anyone with Internet access. If you have any '
-                'questions, doubts or confusion in regard to any of the terms set out in this '
-                'Privacy Policy, please seek clarifications from us through email at '
-                'support@lalbabaonline.com. We assure to get back to you within reasonable time.',
+                    'impenetrable. We cannot guarantee the security of our database, nor can we '
+                    'guarantee that information you supply will not be intercepted while being '
+                    'transmitted to us over the Internet. Any information you include in a posting to '
+                    'the discussion areas is available to anyone with Internet access. If you have any '
+                    'questions, doubts or confusion in regard to any of the terms set out in this '
+                    'Privacy Policy, please seek clarifications from us through email at ',
+                '. We assure to get back to you within reasonable time.',
               ),
 
               // 3
@@ -426,12 +522,13 @@ class _PrivacyPolicyPageState extends State<PrivacyPolicyPage> {
                 'we process your personal data and whether we can achieve those purposes through '
                 'other means, and the applicable legal requirements.',
               ),
-              _para(
+              _emailPara(
                 'If you wish to delete your account or request that we no longer use your '
-                'information to provide you services, contact us at support@lalbabaonline.com. We '
-                'will respond to your request within reasonable time. We will retain and use your '
-                'information as necessary to comply with our legal obligations, resolve disputes '
-                'and enforce our agreements.',
+                    'information to provide you services, contact us at ',
+                '. We '
+                    'will respond to your request within reasonable time. We will retain and use your '
+                    'information as necessary to comply with our legal obligations, resolve disputes '
+                    'and enforce our agreements.',
               ),
 
               // 5
@@ -465,8 +562,16 @@ class _PrivacyPolicyPageState extends State<PrivacyPolicyPage> {
                 'have any apprehension that your privacy is compromised in the web/mobile '
                 'application, then please address your complaint/concerns to:',
               ),
-              _bullet('Phone Number: 9933346117'),
-              _bullet('Email ID: support@lalbabaonline.com'),
+              _contactBullet(
+                label: 'Phone Number:',
+                value: '9933346117',
+                uri: Uri(scheme: 'tel', path: '9933346117'),
+              ),
+              _contactBullet(
+                label: 'Email ID:',
+                value: 'support@lalbabaonline.com',
+                uri: Uri(scheme: 'mailto', path: 'support@lalbabaonline.com'),
+              ),
               const SizedBox(height: 8),
               _para(
                 'We request you to please provide the following information in your complaint:',

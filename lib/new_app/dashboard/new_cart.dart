@@ -177,7 +177,7 @@ class _NewCartPageState extends State<NewCartPage> {
                                 title: 'Your basket',
 
                                 trailing:
-                                    '${cartItems.length} ${cartItems.length == 1 ? 'product' : 'products'}',
+                                    '${cartItems.length} ${cartItems.length == 1 ? 'Product' : 'Products'}',
                               ),
 
                               const SizedBox(height: 12),
