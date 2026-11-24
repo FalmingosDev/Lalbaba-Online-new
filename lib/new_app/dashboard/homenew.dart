@@ -4,11 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lalbaba_online/features/account/presentation/widgets/app_string.dart';
 import 'package:lalbaba_online/features/account/presentation/widgets/languange_constant.dart';
 import 'package:lalbaba_online/features/product/presentation/model/product_models.dart';
+import 'package:lalbaba_online/new_app/checkout/new_notification.dart';
+import 'package:lalbaba_online/new_app/checkout/new_profile.dart';
 import 'package:lalbaba_online/new_app/constant/constantappbar.dart';
 import 'package:lalbaba_online/new_app/dashboard/new_cart.dart';
 import 'package:lalbaba_online/new_app/product/new_product_details.dart';
 import 'package:lalbaba_online/new_app/product/productlistscreen.dart';
-
 import 'package:lalbaba_online/new_app/constant/constantcolour.dart';
 import 'package:lalbaba_online/new_app/constant/new_constant_text_styles.dart';
 import 'package:lalbaba_online/core/constants/asset_constants.dart';
@@ -19,7 +20,15 @@ import 'package:lalbaba_online/core/widgets/app_shimmer.dart';
 class HomeNewPage extends ConsumerStatefulWidget {
   final VoidCallback? onGoToCart;
 
-  const HomeNewPage({super.key, this.onGoToCart});
+  final NewProfileData? profileData;
+  final ValueChanged<NewProfileData>? onProfileSaved;
+
+  const HomeNewPage({
+    super.key,
+    this.onGoToCart,
+    this.profileData,
+    this.onProfileSaved,
+  });
 
   @override
   ConsumerState<HomeNewPage> createState() => _HomeNewPageState();
@@ -27,6 +36,51 @@ class HomeNewPage extends ConsumerStatefulWidget {
 
 class _HomeNewPageState extends ConsumerState<HomeNewPage> {
   bool _isLoading = true;
+
+  NewProfileData? _currentProfileData;
+
+Future<void> _openProfilePage() async {
+  final profile = _currentProfileData ?? widget.profileData;
+
+  await Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      builder: (_) => NewProfilePage(
+        name: profile?.name.isNotEmpty == true
+            ? profile!.name
+            : 'John Doe',
+
+        email: profile?.email.isNotEmpty == true
+            ? profile!.email
+            : 'john.doe@example.com',
+
+        phoneNumber: profile?.phoneNumber ?? '',
+
+        avatarUrl: profile?.avatarUrl ?? '',
+
+        selectedImagePath: profile?.selectedImagePath,
+
+        onSaved: (updatedProfile) {
+          if (mounted) {
+            setState(() {
+              _currentProfileData = updatedProfile;
+            });
+          }
+
+          widget.onProfileSaved?.call(updatedProfile);
+        },
+      ),
+    ),
+  );
+}
+
+  @override
+  void didUpdateWidget(covariant HomeNewPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (widget.profileData != oldWidget.profileData) {
+      _currentProfileData = widget.profileData;
+    }
+  }
 
   // Controls the scrollable home content (not the pinned top controls).
   final ScrollController _homeScrollController = ScrollController();
@@ -80,7 +134,12 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
   // HOME CATEGORY TABS
   // ===========================================================================
 
-  final List<String> _categoryNames = ['For You', 'Rice', 'Spices','Shop All'];
+  final List<String> _categoryNames = [
+    'For You',
+    'Rice',
+    'Spices',
+    'All Products',
+  ];
 
   // ===========================================================================
   // SEARCH CATEGORIES
@@ -540,6 +599,21 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
                     // APP BAR - LALBABA LOGO LEFT ALIGNED
                     // =====================================================
 
+                    // =====================================================
+                    // APP BAR - COMPACT HEIGHT, LEFT ALIGNED LOGO
+                    // =====================================================
+
+                    // =====================================================
+                    // APP BAR - SAME LOGO SIZE, MINIMUM TOP/BOTTOM GAP
+                    // =====================================================
+
+                    // =====================================================
+                    // HOME APP BAR - COMPACT HEIGHT, SAME LOGO SIZE
+                    // =====================================================
+
+                    // =====================================================
+                    // HOME APP BAR - LOGO LEFT + NOTIFICATION + PROFILE
+                    // =====================================================
                     AnimatedSize(
                       duration: const Duration(milliseconds: 200),
                       curve: Curves.easeInOut,
@@ -547,37 +621,180 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
                       child: _hideAppBar
                           ? const SizedBox(width: double.infinity)
                           : SizedBox(
-                              height: 72,
+                              height: 50,
                               child: CommonAppBar(
                                 automaticallyImplyLeading: false,
-                                height: 72,
+                                height: 50,
+                                centerTitle: false,
                                 backgroundColor: HomeColors.secondary,
 
+                                // =================================================
+                                // LEFT SIDE LOGO
+                                // =================================================
                                 titleWidget: Transform.translate(
-                                  // Logo আরও বাম দিকে সরানো হয়েছে
-                                  offset: const Offset(-16, 0),
-                                  child: SizedBox(
-                                    width: 350,
-                                    height: 68,
-                                    child: Image.asset(
-                                      AssetConstants.logo,
-                                      fit: BoxFit.contain,
-                                      alignment: Alignment.centerLeft,
-                                      filterQuality: FilterQuality.high,
-                                      errorBuilder:
-                                          (context, error, stackTrace) {
-                                            return const Icon(
-                                              Icons.rice_bowl_rounded,
-                                              color: HomeColors.surface,
-                                              size: 40,
-                                            );
-                                          },
+                                  offset: const Offset(-14, 0),
+                                  child: ClipRect(
+                                    child: SizedBox(
+                                      width:
+                                          MediaQuery.sizeOf(context).width > 320
+                                          ? MediaQuery.sizeOf(context).width -
+                                                130
+                                          : MediaQuery.sizeOf(context).width -
+                                                115,
+                                      height: 42,
+                                      child: OverflowBox(
+                                        alignment: Alignment.centerLeft,
+                                        minWidth: 350,
+                                        maxWidth: 350,
+                                        minHeight: 68,
+                                        maxHeight: 68,
+                                        child: SizedBox(
+                                          width: 350,
+                                          height: 68,
+                                          child: Image.asset(
+                                            AssetConstants.logo,
+                                            fit: BoxFit.contain,
+                                            alignment: Alignment.centerLeft,
+                                            filterQuality: FilterQuality.high,
+                                            errorBuilder:
+                                                (context, error, stackTrace) {
+                                                  return const Icon(
+                                                    Icons.rice_bowl_rounded,
+                                                    color: HomeColors.surface,
+                                                    size: 36,
+                                                  );
+                                                },
+                                          ),
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ),
+
+                                // =================================================
+                                // RIGHT SIDE ICONS
+                                // =================================================
+                        
+actions: [
+  // =====================================================
+  // NOTIFICATION ICON
+  // =====================================================
+Tooltip(
+  message: 'Notifications',
+  child: Padding(
+    padding: const EdgeInsets.only(right: 8),
+    child: Material(
+      color: Colors.white.withValues(alpha: 0.13),
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => const NewNotificationPage(),
+            ),
+          );
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          width: 38,
+          height: 38,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.28),
+              width: 1,
+            ),
+          ),
+          child: const Icon(
+            Icons.notifications_none_rounded,
+            size: 22,
+            color: HomeColors.white,
+          ),
+        ),
+      ),
+    ),
+  ),
+),
+
+  // =====================================================
+  // PROFILE ICON
+  // =====================================================
+  Tooltip(
+    message: 'My Profile',
+    child: Padding(
+      padding: const EdgeInsets.only(right: 12),
+      child: Material(
+        color: Colors.white.withValues(alpha: 0.13),
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          onTap: _openProfilePage,
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            width: 38,
+            height: 38,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.28),
+                width: 1,
+              ),
+            ),
+            child: const Icon(
+              Icons.person_outline_rounded,
+              size: 22,
+              color: HomeColors.white,
+            ),
+          ),
+        ),
+      ),
+    ),
+  ),
+],
+
                               ),
                             ),
                     ),
+
+                    // AnimatedSize(
+                    //   duration: const Duration(milliseconds: 200),
+                    //   curve: Curves.easeInOut,
+                    //   alignment: Alignment.topCenter,
+                    //   child: _hideAppBar
+                    //       ? const SizedBox(width: double.infinity)
+                    //       : SizedBox(
+                    //           height: 72,
+                    //           child: CommonAppBar(
+                    //             automaticallyImplyLeading: false,
+                    //             height: 72,
+                    //             backgroundColor: HomeColors.secondary,
+
+                    //             titleWidget: Transform.translate(
+                    //               // Logo আরও বাম দিকে সরানো হয়েছে
+                    //               offset: const Offset(-16, 0),
+                    //               child: SizedBox(
+                    //                 width: 350,
+                    //                 height: 68,
+                    //                 child: Image.asset(
+                    //                   AssetConstants.logo,
+                    //                   fit: BoxFit.contain,
+                    //                   alignment: Alignment.centerLeft,
+                    //                   filterQuality: FilterQuality.high,
+                    //                   errorBuilder:
+                    //                       (context, error, stackTrace) {
+                    //                         return const Icon(
+                    //                           Icons.rice_bowl_rounded,
+                    //                           color: HomeColors.surface,
+                    //                           size: 40,
+                    //                         );
+                    //                       },
+                    //                 ),
+                    //               ),
+                    //             ),
+                    //           ),
+                    //         ),
+                    // ),
 
                     // =====================================================
                     // SEARCH BAR

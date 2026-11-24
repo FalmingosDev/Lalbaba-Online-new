@@ -158,7 +158,7 @@ class CommonAppBar extends StatelessWidget
 
       automaticallyImplyLeading: false,
       centerTitle: centerTitle,
-      titleSpacing: 14,
+      titleSpacing: 0,
 
       leading: leading ??
           (showBackButton
