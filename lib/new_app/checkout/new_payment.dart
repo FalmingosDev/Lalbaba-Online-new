@@ -674,7 +674,7 @@ import '../constant/new_constant_checkout_page.dart';
 // PAYMENT METHOD
 // ============================================================
 
-enum _PaymentMethod { worldline, cashOnDelivery }
+enum _PaymentMethod { razorpay, cashOnDelivery }
 
 // ============================================================
 // NEW PAYMENT PAGE
@@ -698,7 +698,7 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
 
   final TextEditingController _pincodeController = TextEditingController();
 
-  _PaymentMethod _paymentMethod = _PaymentMethod.worldline;
+  _PaymentMethod _paymentMethod = _PaymentMethod.razorpay;
 
   bool _isSavingInstructions = false;
   bool _instructionsSaved = false;
@@ -1104,21 +1104,21 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
 
           children: [
             // ================================================
-            // WORLDLINE PAYMENT
+            // RAZORPAY PAYMENT
             // ================================================
 
             _PaymentMethodOption(
-              value: _PaymentMethod.worldline,
+              value: _PaymentMethod.razorpay,
 
-              selected: _paymentMethod == _PaymentMethod.worldline,
+              selected: _paymentMethod == _PaymentMethod.razorpay,
 
-              title: 'WORLDLINE',
+              title: 'RAZORPAY',
 
               icon: Icons.language,
 
               onSelected: () {
                 setState(() {
-                  _paymentMethod = _PaymentMethod.worldline;
+                  _paymentMethod = _PaymentMethod.razorpay;
                 });
               },
             ),

@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lalbaba_online/new_app/checkout/new_shipping.dart';
@@ -512,14 +511,11 @@ class _NewCheckoutLoginPopupState extends State<NewCheckoutLoginPopup> {
               _showOtp = true;
             });
           } else {
-            // PAYMENT PAGE UI TESTING ONLY
-
-            if (kDebugMode) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => NewShippingPage()),
-              );
-            }
+            Navigator.of(context).push<void>(
+              MaterialPageRoute<void>(
+                builder: (_) => const NewShippingPage(),
+              ),
+            );
 
             // TODO: Connect actual OTP API.
           }
