@@ -702,7 +702,7 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
 
   bool _isSavingInstructions = false;
   bool _instructionsSaved = false;
-  bool _agreedToTerms = false;
+  bool _agreedToTerms = true;
   bool _isCheckingPincode = false;
   bool _isPincodeValid = false;
 
@@ -1112,9 +1112,13 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
 
               selected: _paymentMethod == _PaymentMethod.razorpay,
 
-              title: 'RAZORPAY',
+              title: '',
 
-              icon: Icons.language,
+              image: Image.asset(
+                'lib/assets/Razorpay_logo.png',
+                height: 30,
+                fit: BoxFit.contain,
+              ),
 
               onSelected: () {
                 setState(() {
@@ -1133,7 +1137,11 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
 
               title: 'Cash on Delivery',
 
-              icon: Icons.local_shipping_outlined,
+              image: const Icon(
+                Icons.local_shipping_outlined,
+                size: 30,
+                color: HomeColors.secondary,
+              ),
 
               onSelected: () {
                 setState(() {
@@ -1189,77 +1197,76 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
           // DELIVERY PIN CODE FIELD
           // ==================================================
 
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _pincodeController,
+          // Row(
+          //   children: [
+          //     Expanded(
+          //       child: TextField(
+          //         controller: _pincodeController,
 
-                  keyboardType: TextInputType.number,
+          //         keyboardType: TextInputType.number,
 
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
+          //         inputFormatters: [
+          //           FilteringTextInputFormatter.digitsOnly,
 
-                    LengthLimitingTextInputFormatter(6),
-                  ],
+          //           LengthLimitingTextInputFormatter(6),
+          //         ],
 
-                  onChanged: _onPincodeChanged,
+          //         onChanged: _onPincodeChanged,
 
-                  decoration: const InputDecoration(
-                    hintText: 'Enter 6-digit delivery PIN code',
+          //         decoration: const InputDecoration(
+          //           hintText: 'Enter 6-digit delivery PIN code',
 
-                    isDense: true,
+          //           isDense: true,
 
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-              ),
+          //           border: OutlineInputBorder(),
+          //         ),
+          //       ),
+          //     ),
 
-              const SizedBox(width: 8),
+          //     const SizedBox(width: 8),
 
-              // CHECK PIN CODE BUTTON
-              ElevatedButton(
-                onPressed: _isCheckingPincode ? null : _checkPincode,
+          //     // CHECK PIN CODE BUTTON
+          //     ElevatedButton(
+          //       onPressed: _isCheckingPincode ? null : _checkPincode,
 
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: HomeColors.secondary,
+          //       style: ElevatedButton.styleFrom(
+          //         backgroundColor: HomeColors.secondary,
 
-                  foregroundColor: HomeColors.white,
+          //         foregroundColor: HomeColors.white,
 
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                ),
+          //         padding: const EdgeInsets.symmetric(horizontal: 14),
+          //       ),
 
-                child: _isCheckingPincode
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
+          //       child: _isCheckingPincode
+          //           ? const SizedBox(
+          //               width: 18,
+          //               height: 18,
 
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
+          //               child: CircularProgressIndicator(
+          //                 strokeWidth: 2,
 
-                          color: HomeColors.white,
-                        ),
-                      )
-                    : const Text('Check'),
-              ),
-            ],
-          ),
+          //                 color: HomeColors.white,
+          //               ),
+          //             )
+          //           : const Text('Check'),
+          //     ),
+          //   ],
+          // ),
 
           // PIN CODE MESSAGE
-          if (_pincodeMessage != null) ...[
-            const SizedBox(height: 8),
+          // if (_pincodeMessage != null) ...[
+          //   const SizedBox(height: 8),
 
-            Text(
-              _pincodeMessage!,
+          //   Text(
+          //     _pincodeMessage!,
 
-              style: TextStyle(
-                color: _isPincodeValid ? HomeColors.success : HomeColors.error,
+          //     style: TextStyle(
+          //       color: _isPincodeValid ? HomeColors.success : HomeColors.error,
 
-                fontSize: 12,
-              ),
-            ),
-          ],
-
+          //       fontSize: 12,
+          //     ),
+          //   ),
+          // ],
           const SizedBox(height: 16),
 
           // ==================================================
@@ -1364,7 +1371,7 @@ class _NewPaymentPageState extends State<NewPaymentPage> {
 
               onChanged: (value) {
                 setState(() {
-                  _agreedToTerms = value ?? false;
+                  _agreedToTerms = value ?? true;
                 });
               },
 
@@ -1503,7 +1510,7 @@ class _PaymentMethodOption extends StatelessWidget {
     required this.value,
     required this.selected,
     required this.title,
-    required this.icon,
+    required this.image,
     required this.onSelected,
   });
 
@@ -1513,7 +1520,7 @@ class _PaymentMethodOption extends StatelessWidget {
 
   final String title;
 
-  final IconData icon;
+  final Widget image;
 
   final VoidCallback onSelected;
 
@@ -1547,7 +1554,11 @@ class _PaymentMethodOption extends StatelessWidget {
           children: [
             // PAYMENT ICON
 
-            Icon(icon, size: 30, color: HomeColors.secondary),
+            SizedBox(
+              height: 30,
+              width: double.infinity,
+              child: Center(child: image),
+            ),
 
             const SizedBox(height: 6),
 
@@ -1568,7 +1579,7 @@ class _PaymentMethodOption extends StatelessWidget {
               ),
             ),
 
-            const Spacer(),
+            const SizedBox(height: 8),
 
             // PAYMENT RADIO BUTTON
             Radio<_PaymentMethod>(

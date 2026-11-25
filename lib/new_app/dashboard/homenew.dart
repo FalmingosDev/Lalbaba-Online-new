@@ -1,4 +1,3 @@
-
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -40,39 +39,37 @@ class _HomeNewPageState extends ConsumerState<HomeNewPage> {
 
   NewProfileData? _currentProfileData;
 
-Future<void> _openProfilePage() async {
-  final profile = _currentProfileData ?? widget.profileData;
+  Future<void> _openProfilePage() async {
+    final profile = _currentProfileData ?? widget.profileData;
 
-  await Navigator.of(context).push(
-    MaterialPageRoute<void>(
-      builder: (_) => NewProfilePage(
-        name: profile?.name.isNotEmpty == true
-            ? profile!.name
-            : 'John Doe',
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => NewProfilePage(
+          name: profile?.name.isNotEmpty == true ? profile!.name : 'John Doe',
 
-        email: profile?.email.isNotEmpty == true
-            ? profile!.email
-            : 'john.doe@example.com',
+          email: profile?.email.isNotEmpty == true
+              ? profile!.email
+              : 'john.doe@example.com',
 
-        phoneNumber: profile?.phoneNumber ?? '',
+          phoneNumber: profile?.phoneNumber ?? '',
 
-        avatarUrl: profile?.avatarUrl ?? '',
+          avatarUrl: profile?.avatarUrl ?? '',
 
-        selectedImagePath: profile?.selectedImagePath,
+          selectedImagePath: profile?.selectedImagePath,
 
-        onSaved: (updatedProfile) {
-          if (mounted) {
-            setState(() {
-              _currentProfileData = updatedProfile;
-            });
-          }
+          onSaved: (updatedProfile) {
+            if (mounted) {
+              setState(() {
+                _currentProfileData = updatedProfile;
+              });
+            }
 
-          widget.onProfileSaved?.call(updatedProfile);
-        },
+            widget.onProfileSaved?.call(updatedProfile);
+          },
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   @override
   void didUpdateWidget(covariant HomeNewPage oldWidget) {
@@ -550,6 +547,7 @@ Future<void> _openProfilePage() async {
             deliveryDays: 3,
             variants: variants,
           ),
+          isOutOfStock: HomeProductPacks.isOutOfStock(product),
         ),
       ),
     );
@@ -681,85 +679,98 @@ Future<void> _openProfilePage() async {
                                 // =================================================
                                 // RIGHT SIDE ICONS
                                 // =================================================
-                        
-actions: [
-  // =====================================================
-  // NOTIFICATION ICON
-  // =====================================================
-Tooltip(
-  message: 'Notifications',
-  child: Padding(
-    padding: const EdgeInsets.only(right: 8),
-    child: Material(
-      color: Colors.white.withValues(alpha: 0.13),
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute<void>(
-              builder: (_) => const NewNotificationPage(),
-            ),
-          );
-        },
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          width: 38,
-          height: 38,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.28),
-              width: 1,
-            ),
-          ),
-          child: const Icon(
-            Icons.notifications_none_rounded,
-            size: 22,
-            color: HomeColors.white,
-          ),
-        ),
-      ),
-    ),
-  ),
-),
+                                actions: [
+                                  // =====================================================
+                                  // NOTIFICATION ICON
+                                  // =====================================================
+                                  Tooltip(
+                                    message: 'Notifications',
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(right: 8),
+                                      child: Material(
+                                        color: Colors.white.withValues(
+                                          alpha: 0.13,
+                                        ),
+                                        borderRadius: BorderRadius.circular(12),
+                                        child: InkWell(
+                                          onTap: () {
+                                            Navigator.of(context).push(
+                                              MaterialPageRoute<void>(
+                                                builder: (_) =>
+                                                    const NewNotificationPage(),
+                                              ),
+                                            );
+                                          },
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          child: Container(
+                                            width: 38,
+                                            height: 38,
+                                            alignment: Alignment.center,
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              border: Border.all(
+                                                color: Colors.white.withValues(
+                                                  alpha: 0.28,
+                                                ),
+                                                width: 1,
+                                              ),
+                                            ),
+                                            child: const Icon(
+                                              Icons.notifications_none_rounded,
+                                              size: 22,
+                                              color: HomeColors.white,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
 
-  // =====================================================
-  // PROFILE ICON
-  // =====================================================
-  Tooltip(
-    message: 'My Profile',
-    child: Padding(
-      padding: const EdgeInsets.only(right: 12),
-      child: Material(
-        color: Colors.white.withValues(alpha: 0.13),
-        borderRadius: BorderRadius.circular(12),
-        child: InkWell(
-          onTap: _openProfilePage,
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            width: 38,
-            height: 38,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.28),
-                width: 1,
-              ),
-            ),
-            child: const Icon(
-              Icons.person_outline_rounded,
-              size: 22,
-              color: HomeColors.white,
-            ),
-          ),
-        ),
-      ),
-    ),
-  ),
-],
-
+                                  // =====================================================
+                                  // PROFILE ICON
+                                  // =====================================================
+                                  Tooltip(
+                                    message: 'My Profile',
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(right: 12),
+                                      child: Material(
+                                        color: Colors.white.withValues(
+                                          alpha: 0.13,
+                                        ),
+                                        borderRadius: BorderRadius.circular(12),
+                                        child: InkWell(
+                                          onTap: _openProfilePage,
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          child: Container(
+                                            width: 38,
+                                            height: 38,
+                                            alignment: Alignment.center,
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              border: Border.all(
+                                                color: Colors.white.withValues(
+                                                  alpha: 0.28,
+                                                ),
+                                                width: 1,
+                                              ),
+                                            ),
+                                            child: const Icon(
+                                              Icons.person_outline_rounded,
+                                              size: 22,
+                                              color: HomeColors.white,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                     ),
@@ -2801,7 +2812,8 @@ class SectionCardWidget extends StatelessWidget {
                       ),
                       onGoToCart: onGoToCart,
                       onTap: () => onProductTap?.call(product),
-                      onAddToCart: onAddToCart == null ||
+                      onAddToCart:
+                          onAddToCart == null ||
                               HomeProductPacks.isOutOfStock(product)
                           ? null
                           : () => onAddToCart!(product),
@@ -3348,7 +3360,8 @@ class _PopularSearchTile extends StatelessWidget {
                       child: _buildImage(),
                     ),
 
-                    if (!isOutOfStock && discountLabel != null &&
+                    if (!isOutOfStock &&
+                        discountLabel != null &&
                         discountLabel!.trim().isNotEmpty)
                       Positioned(
                         top: 6,
@@ -3763,6 +3776,9 @@ class _RecipeWidgetState extends State<RecipeWidget> {
                   clipBehavior: Clip.hardEdge,
 
                   onPageChanged: (index) {
+                    if (!mounted) {
+                      return;
+                    }
                     _currentPage = index;
                   },
 

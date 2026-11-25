@@ -75,6 +75,7 @@ class _ProductImageZoomPageState extends State<_ProductImageZoomPage> {
               controller: _pageController,
               itemCount: widget.images.length,
               onPageChanged: (index) {
+                if (!mounted) return;
                 setState(() => _currentIndex = index);
               },
               itemBuilder: (context, index) {

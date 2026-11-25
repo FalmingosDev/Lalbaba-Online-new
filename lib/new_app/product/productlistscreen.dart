@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:lalbaba_online/core/constants/asset_constants.dart';
 
@@ -1032,27 +1030,42 @@ class _ProductListPageState extends State<ProductListPage> {
     final deliveryDays = rawDeliveryDays is num
         ? rawDeliveryDays.toInt()
         : int.tryParse(rawDeliveryDays?.toString() ?? '') ?? 3;
-    final detailProduct =
-        catalogProduct ??
-        ProductItem(
-          id: product['id']?.toString(),
-          name: product['name']?.toString().trim().isNotEmpty == true
+    final detailProduct = ProductItem(
+      id: catalogProduct?.id ?? product['id']?.toString(),
+      name:
+          catalogProduct?.name ??
+          (product['name']?.toString().trim().isNotEmpty == true
               ? product['name'].toString().trim()
-              : 'Product',
-          imageUrl: product['imageUrl']?.toString() ?? '',
-          rating: rating,
-          deliveryDays: deliveryDays,
-          variants: variants,
-          discountLabel: product['discountLabel']?.toString() ?? '',
-          selectedVariant: selectedVariant < 0 ? 0 : selectedVariant,
-        );
+              : 'Product'),
+      images: catalogProduct?.images,
+      imageUrl:
+          catalogProduct?.imageUrl ?? product['imageUrl']?.toString() ?? '',
+      rating: catalogProduct?.rating ?? rating,
+      reviewCount: catalogProduct?.reviewCount ?? 0,
+      deliveryDays: catalogProduct?.deliveryDays ?? deliveryDays,
+      variants: variants.isNotEmpty
+          ? variants
+          : catalogProduct?.variants ?? const [],
+      discountLabel:
+          product['discountLabel']?.toString() ??
+          catalogProduct?.discountLabel ??
+          '',
+      processedAt: catalogProduct?.processedAt ?? '',
+      shortTagline: catalogProduct?.shortTagline ?? '',
+      description: catalogProduct?.description ?? '',
+      specifications: catalogProduct?.specifications ?? const [],
+      reviews: catalogProduct?.reviews ?? const [],
+      faqs: catalogProduct?.faqs ?? const [],
+      selectedVariant: selectedVariant < 0 ? 0 : selectedVariant,
+    );
+    final isOutOfStock = HomeProductPacks.isOutOfStock(product);
 
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        settings: RouteSettings(
-          arguments: {'isOutOfStock': HomeProductPacks.isOutOfStock(product)},
+        builder: (_) => NewProductDetailsPage(
+          product: detailProduct,
+          isOutOfStock: isOutOfStock,
         ),
-        builder: (_) => NewProductDetailsPage(product: detailProduct),
       ),
     );
   }

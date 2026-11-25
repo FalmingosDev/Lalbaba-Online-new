@@ -1,6 +1,3 @@
-
-
-
 // // // import 'dart:async';
 
 // // // import 'package:flutter/material.dart';
@@ -1130,62 +1127,48 @@ import '../../../account/presentation/widgets/languange_constant.dart';
 class RecipeWidget extends StatefulWidget {
   final ValueChanged<int>? onRecipeTap;
 
-  const RecipeWidget({
-    super.key,
-    this.onRecipeTap,
-  });
+  const RecipeWidget({super.key, this.onRecipeTap});
 
   @override
-  State<RecipeWidget> createState() =>
-      _RecipeWidgetState();
+  State<RecipeWidget> createState() => _RecipeWidgetState();
 }
 
-class _RecipeWidgetState
-    extends State<RecipeWidget> {
-  static const Color _primary =
-      Color(0xFFF70707);
+class _RecipeWidgetState extends State<RecipeWidget> {
+  static const Color _primary = Color(0xFFF70707);
 
-  static const Color _black =
-      Color(0xFF212121);
+  static const Color _black = Color(0xFF212121);
 
-  static const Color _grey =
-      Color(0xFF777777);
+  static const Color _grey = Color(0xFF777777);
 
   // ===========================================================================
   // RECIPE DATA
   // ===========================================================================
 
-  static const List<Map<String, String>>
-      _recipes = [
+  static const List<Map<String, String>> _recipes = [
     {
       'imageUrl':
           'https://lalbabaonline.com/public/uploads/all/y4NE0in0SBidT7FjYc9OkOWMDt9PelZi9U4wEHA6.webp',
-      'title':
-          'Basmati Mixed Fried Rice (Indo-Chinese Style)',
+      'title': 'Basmati Mixed Fried Rice (Indo-Chinese Style)',
     },
     {
       'imageUrl':
           'https://lalbabaonline.com/public/uploads/all/tyyWmiCV2vMtiFKPeYq43STzLh6LhjGAuPakXxGo.webp',
-      'title':
-          'Vegetable Pulao (Light & Fragrant)',
+      'title': 'Vegetable Pulao (Light & Fragrant)',
     },
     {
       'imageUrl':
           'https://lalbabaonline.com/public/uploads/all/00D3pqgepFevSrA9fvG42scBArhC8QkSU41HmDQJ.webp',
-      'title':
-          'Classic Chicken Biryani',
+      'title': 'Classic Chicken Biryani',
     },
     {
       'imageUrl':
           'https://lalbabaonline.com/public/uploads/all/SuNZxBfg7s4Mx4XxK6N4wqcG9qCrOYxDmuPdm6td.webp',
-      'title':
-          'Lemon Rice (South Indian Style)',
+      'title': 'Lemon Rice (South Indian Style)',
     },
     {
       'imageUrl':
           'https://lalbabaonline.com/public/uploads/all/dS7re1Qz0FvnooB5aLCN1HumVF5qwmOcaHnnuN10.webp',
-      'title':
-          'Coconut Rice (Kerala Style)',
+      'title': 'Coconut Rice (Kerala Style)',
     },
   ];
 
@@ -1199,8 +1182,7 @@ class _RecipeWidgetState
 
   int _currentPage = 0;
 
-  int get _recipeCount =>
-      _recipes.length;
+  int get _recipeCount => _recipes.length;
 
   // ===========================================================================
   // INIT
@@ -1210,8 +1192,7 @@ class _RecipeWidgetState
   void initState() {
     super.initState();
 
-    _pageController =
-        PageController(
+    _pageController = PageController(
       initialPage: 0,
 
       // Next card-er halka preview dekhabe
@@ -1220,15 +1201,9 @@ class _RecipeWidgetState
     );
 
     if (_recipeCount > 1) {
-      _autoScrollTimer =
-          Timer.periodic(
-        const Duration(
-          seconds: 4,
-        ),
-        (_) {
-          _goToNext();
-        },
-      );
+      _autoScrollTimer = Timer.periodic(const Duration(seconds: 4), (_) {
+        _goToNext();
+      });
     }
   }
 
@@ -1237,8 +1212,11 @@ class _RecipeWidgetState
   // ===========================================================================
 
   void _goToNext() {
-    if (!_pageController
-        .hasClients) {
+    if (!mounted) {
+      return;
+    }
+
+    if (!_pageController.hasClients) {
       return;
     }
 
@@ -1246,23 +1224,17 @@ class _RecipeWidgetState
       return;
     }
 
-    int nextPage =
-        _currentPage + 1;
+    int nextPage = _currentPage + 1;
 
     // Last recipe-er por abar first recipe
-    if (nextPage >=
-        _recipeCount) {
+    if (nextPage >= _recipeCount) {
       nextPage = 0;
     }
 
     _pageController.animateToPage(
       nextPage,
-      duration:
-          const Duration(
-        milliseconds: 500,
-      ),
-      curve:
-          Curves.easeInOutCubic,
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeInOutCubic,
     );
   }
 
@@ -1272,11 +1244,9 @@ class _RecipeWidgetState
 
   @override
   void dispose() {
-    _autoScrollTimer
-        ?.cancel();
+    _autoScrollTimer?.cancel();
 
-    _pageController
-        .dispose();
+    _pageController.dispose();
 
     super.dispose();
   }
@@ -1286,51 +1256,31 @@ class _RecipeWidgetState
   // ===========================================================================
 
   @override
-  Widget build(
-    BuildContext context,
-  ) {
+  Widget build(BuildContext context) {
     if (_recipes.isEmpty) {
-      return const SizedBox
-          .shrink();
+      return const SizedBox.shrink();
     }
 
     return AnimatedBuilder(
-      animation:
-          AppLanguageConstants
-              .instance,
-      builder: (
-        context,
-        child,
-      ) {
+      animation: AppLanguageConstants.instance,
+      builder: (context, child) {
         return Container(
-          width:
-              double.infinity,
+          width: double.infinity,
 
           // Recipe section-er nijer space
-          margin:
-              const EdgeInsets.only(
-            top: 20,
-          ),
+          margin: const EdgeInsets.only(top: 20),
 
           child: Column(
-            crossAxisAlignment:
-                CrossAxisAlignment
-                    .start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // ===============================================================
               // RECIPE HEADER
               // ===============================================================
 
               Padding(
-                padding:
-                    const EdgeInsets
-                        .symmetric(
-                  horizontal: 16,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
-                  crossAxisAlignment:
-                      CrossAxisAlignment
-                          .center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     // ---------------------------------------------------------
                     // RED LINE
@@ -1339,39 +1289,24 @@ class _RecipeWidgetState
                     Container(
                       width: 4,
                       height: 34,
-                      decoration:
-                          BoxDecoration(
-                        color:
-                            _primary,
-                        borderRadius:
-                            BorderRadius
-                                .circular(
-                          10,
-                        ),
+                      decoration: BoxDecoration(
+                        color: _primary,
+                        borderRadius: BorderRadius.circular(10),
                       ),
                     ),
 
-                    const SizedBox(
-                      width: 10,
-                    ),
+                    const SizedBox(width: 10),
 
                     // ---------------------------------------------------------
                     // TITLE
                     // ---------------------------------------------------------
-
                     Expanded(
                       child: Text(
-                        AppStrings
-                            .recipesYoullLove,
-                        style:
-                            const TextStyle(
-                          fontSize:
-                              17,
-                          fontWeight:
-                              FontWeight
-                                  .bold,
-                          color:
-                              _black,
+                        AppStrings.recipesYoullLove,
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                          color: _black,
                         ),
                       ),
                     ),
@@ -1379,108 +1314,62 @@ class _RecipeWidgetState
                     // ---------------------------------------------------------
                     // ICON
                     // ---------------------------------------------------------
-
                     Container(
                       width: 36,
                       height: 36,
-                      decoration:
-                          BoxDecoration(
-                        color:
-                            _primary
-                                .withValues(
-                          alpha:
-                              0.08,
-                        ),
-                        shape:
-                            BoxShape
-                                .circle,
+                      decoration: BoxDecoration(
+                        color: _primary.withValues(alpha: 0.08),
+                        shape: BoxShape.circle,
                       ),
-                      alignment:
-                          Alignment
-                              .center,
-                      child:
-                          const Icon(
-                        Icons
-                            .restaurant_menu_rounded,
+                      alignment: Alignment.center,
+                      child: const Icon(
+                        Icons.restaurant_menu_rounded,
                         size: 20,
-                        color:
-                            _primary,
+                        color: _primary,
                       ),
                     ),
                   ],
                 ),
               ),
 
-              const SizedBox(
-                height: 14,
-              ),
+              const SizedBox(height: 14),
 
               // ===============================================================
               // RECIPE CAROUSEL
               // ===============================================================
-
               SizedBox(
                 height: 210,
-                width:
-                    double.infinity,
-                child:
-                    PageView.builder(
-                  controller:
-                      _pageController,
+                width: double.infinity,
+                child: PageView.builder(
+                  controller: _pageController,
 
-                  itemCount:
-                      _recipeCount,
+                  itemCount: _recipeCount,
 
                   // Card section-er baire berobe na
-                  clipBehavior:
-                      Clip.hardEdge,
+                  clipBehavior: Clip.hardEdge,
 
-                  onPageChanged:
-                      (
-                    index,
-                  ) {
-                    _currentPage =
-                        index;
+                  onPageChanged: (index) {
+                    if (!mounted) {
+                      return;
+                    }
+                    _currentPage = index;
                   },
 
-                  itemBuilder:
-                      (
-                    context,
-                    index,
-                  ) {
-                    final recipe =
-                        _recipes[
-                            index];
+                  itemBuilder: (context, index) {
+                    final recipe = _recipes[index];
 
                     return Padding(
-                      padding:
-                          EdgeInsets
-                              .only(
-                        left:
-                            index == 0
-                                ? 16
-                                : 6,
-                        right:
-                            10,
+                      padding: EdgeInsets.only(
+                        left: index == 0 ? 16 : 6,
+                        right: 10,
                       ),
-                      child:
-                          GestureDetector(
-                        onTap:
-                            () {
-                          widget
-                              .onRecipeTap
-                              ?.call(
-                            index,
-                          );
+                      child: GestureDetector(
+                        onTap: () {
+                          widget.onRecipeTap?.call(index);
                         },
-                        child:
-                            _RecipeCard(
-                          imageUrl:
-                              recipe[
-                                  'imageUrl']!,
-                          title:
-                              recipe[
-                                  'title']!,
+                        child: _RecipeCard(
+                          imageUrl: recipe['imageUrl']!,
+                          title: recipe['title']!,
                         ),
                       ),
                     );
@@ -1488,36 +1377,22 @@ class _RecipeWidgetState
                 ),
               ),
 
-              const SizedBox(
-                height: 28,
-              ),
+              const SizedBox(height: 28),
 
               // ===============================================================
               // SECTION DIVIDER
               // Recipe ar Happy Home Chef clearly separate korbe
               // ===============================================================
-
               Padding(
-                padding:
-                    const EdgeInsets
-                        .symmetric(
-                  horizontal: 16,
-                ),
-                child:
-                    Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Container(
                   height: 1,
-                  width:
-                      double.infinity,
-                  color:
-                      const Color(
-                    0xFFE8E8E8,
-                  ),
+                  width: double.infinity,
+                  color: const Color(0xFFE8E8E8),
                 ),
               ),
 
-              const SizedBox(
-                height: 4,
-              ),
+              const SizedBox(height: 4),
             ],
           ),
         );
@@ -1530,100 +1405,55 @@ class _RecipeWidgetState
 // RECIPE CARD
 // =============================================================================
 
-class _RecipeCard
-    extends StatelessWidget {
+class _RecipeCard extends StatelessWidget {
   final String imageUrl;
   final String title;
 
-  const _RecipeCard({
-    required this.imageUrl,
-    required this.title,
-  });
+  const _RecipeCard({required this.imageUrl, required this.title});
 
   @override
-  Widget build(
-    BuildContext context,
-  ) {
+  Widget build(BuildContext context) {
     return Container(
-      decoration:
-          BoxDecoration(
-        color:
-            Colors.white,
+      decoration: BoxDecoration(
+        color: Colors.white,
 
-        borderRadius:
-            BorderRadius
-                .circular(
-          16,
-        ),
+        borderRadius: BorderRadius.circular(16),
 
         boxShadow: [
           BoxShadow(
-            color:
-                Colors.black
-                    .withValues(
-              alpha:
-                  0.08,
-            ),
-            blurRadius:
-                10,
-            offset:
-                const Offset(
-              0,
-              4,
-            ),
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
 
-      clipBehavior:
-          Clip.antiAlias,
+      clipBehavior: Clip.antiAlias,
 
-      child:
-          Stack(
-        fit:
-            StackFit.expand,
+      child: Stack(
+        fit: StackFit.expand,
         children: [
           // ===================================================================
           // IMAGE
           // ===================================================================
 
-          _RecipeImage(
-            imageUrl:
-                imageUrl,
-          ),
+          _RecipeImage(imageUrl: imageUrl),
 
           // ===================================================================
           // DARK GRADIENT
           // ===================================================================
-
           const Positioned.fill(
-            child:
-                DecoratedBox(
-              decoration:
-                  BoxDecoration(
-                gradient:
-                    LinearGradient(
-                  begin:
-                      Alignment
-                          .topCenter,
-                  end:
-                      Alignment
-                          .bottomCenter,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
                   colors: [
-                    Colors
-                        .transparent,
-                    Color(
-                      0x18000000,
-                    ),
-                    Color(
-                      0xD9000000,
-                    ),
+                    Colors.transparent,
+                    Color(0x18000000),
+                    Color(0xD9000000),
                   ],
-                  stops: [
-                    0,
-                    0.55,
-                    1,
-                  ],
+                  stops: [0, 0.55, 1],
                 ),
               ),
             ),
@@ -1632,41 +1462,24 @@ class _RecipeCard
           // ===================================================================
           // RECIPE TITLE
           // ===================================================================
-
           Positioned(
             left: 16,
             right: 16,
             bottom: 16,
-            child:
-                Text(
+            child: Text(
               title,
-              maxLines:
-                  2,
-              overflow:
-                  TextOverflow
-                      .ellipsis,
-              style:
-                  const TextStyle(
-                color:
-                    Colors.white,
-                fontSize:
-                    14,
-                fontWeight:
-                    FontWeight
-                        .w800,
-                height:
-                    1.3,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+                height: 1.3,
                 shadows: [
                   Shadow(
-                    color:
-                        Colors.black45,
-                    blurRadius:
-                        4,
-                    offset:
-                        Offset(
-                      0,
-                      1,
-                    ),
+                    color: Colors.black45,
+                    blurRadius: 4,
+                    offset: Offset(0, 1),
                   ),
                 ],
               ),
@@ -1682,105 +1495,58 @@ class _RecipeCard
 // RECIPE IMAGE
 // =============================================================================
 
-class _RecipeImage
-    extends StatelessWidget {
+class _RecipeImage extends StatelessWidget {
   final String imageUrl;
 
-  const _RecipeImage({
-    required this.imageUrl,
-  });
+  const _RecipeImage({required this.imageUrl});
 
   @override
-  Widget build(
-    BuildContext context,
-  ) {
+  Widget build(BuildContext context) {
     return Image.network(
       imageUrl,
 
-      fit:
-          BoxFit.cover,
+      fit: BoxFit.cover,
 
-      width:
-          double.infinity,
+      width: double.infinity,
 
-      height:
-          double.infinity,
+      height: double.infinity,
 
       // =======================================================================
       // IMAGE LOADING
       // =======================================================================
-
-      loadingBuilder:
-          (
-        context,
-        child,
-        progress,
-      ) {
-        if (progress ==
-            null) {
+      loadingBuilder: (context, child, progress) {
+        if (progress == null) {
           return child;
         }
 
         return const AppShimmer(
-          width:
-              double.infinity,
-          height:
-              double.infinity,
-          radius:
-              16,
+          width: double.infinity,
+          height: double.infinity,
+          radius: 16,
         );
       },
 
       // =======================================================================
       // IMAGE ERROR
       // =======================================================================
-
-      errorBuilder:
-          (
-        context,
-        error,
-        stackTrace,
-      ) {
+      errorBuilder: (context, error, stackTrace) {
         return Container(
-          color:
-              const Color(
-            0xFFF4F4F4,
-          ),
-          alignment:
-              Alignment.center,
-          child:
-              const Column(
-            mainAxisAlignment:
-                MainAxisAlignment
-                    .center,
+          color: const Color(0xFFF4F4F4),
+          alignment: Alignment.center,
+          child: const Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
-                Icons
-                    .image_not_supported_outlined,
-                color:
-                    Color(
-                  0xFFF70707,
-                ),
-                size:
-                    30,
+                Icons.image_not_supported_outlined,
+                color: Color(0xFFF70707),
+                size: 30,
               ),
 
-              SizedBox(
-                height:
-                    6,
-              ),
+              SizedBox(height: 6),
 
               Text(
                 'Image unavailable',
-                style:
-                    TextStyle(
-                  color:
-                      Color(
-                    0xFF777777,
-                  ),
-                  fontSize:
-                      11,
-                ),
+                style: TextStyle(color: Color(0xFF777777), fontSize: 11),
               ),
             ],
           ),

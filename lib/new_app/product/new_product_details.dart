@@ -19,8 +19,13 @@ import '../dashboard/new_wishlist.dart';
 
 class NewProductDetailsPage extends StatefulWidget {
   final ProductItem product;
+  final bool isOutOfStock;
 
-  const NewProductDetailsPage({super.key, required this.product});
+  const NewProductDetailsPage({
+    super.key,
+    required this.product,
+    this.isOutOfStock = false,
+  });
 
   @override
   State<NewProductDetailsPage> createState() => _NewProductDetailsPageState();
@@ -146,7 +151,9 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
       _quantity = 1;
       _wasInCart = _isInCart;
       _activeTab = 0;
-      _imageController.jumpToPage(0);
+      if (_imageController.hasClients) {
+        _imageController.jumpToPage(0);
+      }
     }
   }
 
@@ -220,7 +227,7 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
 
   Future<void> _addToCart({bool openCart = false}) async {
     final ProductVariant? variant = _selectedVariant;
-    if (variant == null || _isAddingToCart) return;
+    if (widget.isOutOfStock || variant == null || _isAddingToCart) return;
 
     setState(() => _isAddingToCart = true);
     try {
@@ -254,7 +261,9 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
   }
 
   Future<void> _changeQuantity(int change) async {
-    if (_isAddingToCart || _isUpdatingCartQuantity) return;
+    if (widget.isOutOfStock || _isAddingToCart || _isUpdatingCartQuantity) {
+      return;
+    }
 
     final item = _cartItem;
     if (item == null) {
@@ -360,30 +369,78 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
             controller: _imageController,
             itemCount: _images.length,
             onPageChanged: (index) {
+              if (!mounted) return;
               setState(() => _selectedImageIndex = index);
             },
             itemBuilder: (context, index) {
               final image = _images[index];
-              return Container(
-                color: AppColors.surface,
-                alignment: Alignment.center,
-                padding: const EdgeInsets.all(18),
-                child: image.isEmpty
-                    ? const Icon(
-                        Icons.image_not_supported_outlined,
-                        size: 56,
-                        color: AppColors.grey,
-                      )
-                    : Image.network(
-                        image,
-                        fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) =>
-                            const Icon(
-                              Icons.broken_image_outlined,
-                              size: 56,
-                              color: AppColors.grey,
-                            ),
+              return Stack(
+                fit: StackFit.expand,
+                children: [
+                  Container(
+                    color: AppColors.surface,
+                    alignment: Alignment.center,
+                    padding: const EdgeInsets.all(18),
+                    child: image.isEmpty
+                        ? const Icon(
+                            Icons.image_not_supported_outlined,
+                            size: 56,
+                            color: AppColors.grey,
+                          )
+                        : Image.network(
+                            image,
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) =>
+                                const Icon(
+                                  Icons.broken_image_outlined,
+                                  size: 56,
+                                  color: AppColors.grey,
+                                ),
+                          ),
+                  ),
+                  if (widget.isOutOfStock)
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: ColoredBox(
+                          color: Colors.white.withValues(alpha: 0.58),
+                        ),
                       ),
+                    ),
+                  if (widget.isOutOfStock)
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      top: 0,
+                      bottom: 0,
+                      child: IgnorePointer(
+                        child: Center(
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(vertical: 9),
+                            decoration: BoxDecoration(
+                              color: HomeColors.disabledBackground.withValues(
+                                alpha: 0.94,
+                              ),
+                              border: Border.symmetric(
+                                horizontal: BorderSide(
+                                  color: HomeColors.disabled,
+                                  width: 0.7,
+                                ),
+                              ),
+                            ),
+                            child: Text(
+                              'Out of stock',
+                              textAlign: TextAlign.center,
+                              style: HomeTextStyles.bodyEmphasis.copyWith(
+                                color: HomeColors.textSecondary,
+                                fontWeight: HomeTextStyles.semiBold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               );
             },
           ),
@@ -396,11 +453,14 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
               children: List.generate(_images.length, (index) {
                 final selected = index == _selectedImageIndex;
                 return GestureDetector(
-                  onTap: () => _imageController.animateToPage(
-                    index,
-                    duration: const Duration(milliseconds: 220),
-                    curve: Curves.easeOut,
-                  ),
+                  onTap: () {
+                    if (!_imageController.hasClients) return;
+                    _imageController.animateToPage(
+                      index,
+                      duration: const Duration(milliseconds: 220),
+                      curve: Curves.easeOut,
+                    );
+                  },
                   child: Container(
                     width: selected ? 22 : 7,
                     height: 7,
@@ -483,19 +543,41 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
           ],
           if (variant != null) ...[
             const SizedBox(height: 12),
-            Text(
-              '₹${variant.price.toStringAsFixed(0)}',
-              style: HomeTextStyles.largePrice.copyWith(
-                color: AppColors.textPrimary,
-              ),
-            ),
-          ],
-          if (_product.discountLabel.trim().isNotEmpty) ...[
-            const SizedBox(height: 8),
-            _summaryChip(_product.discountLabel),
+            _buildVariantPricing(variant),
           ],
         ],
       ),
+    );
+  }
+
+  Widget _buildVariantPricing(ProductVariant variant) {
+    final mrp = variant.mrp;
+    final hasDiscount = mrp != null && mrp > variant.price;
+    final discountLabel = hasDiscount
+        ? '${((mrp - variant.price) / mrp * 100).round()}% OFF'
+        : _product.discountLabel.trim();
+
+    return Wrap(
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 10,
+      runSpacing: 6,
+      children: [
+        Text(
+          '₹${variant.price.toStringAsFixed(0)}',
+          style: HomeTextStyles.largePrice.copyWith(
+            color: AppColors.textPrimary,
+          ),
+        ),
+        if (hasDiscount)
+          Text(
+            '₹${mrp.toStringAsFixed(0)}',
+            style: HomeTextStyles.body.copyWith(
+              color: AppColors.textSecondary,
+              decoration: TextDecoration.lineThrough,
+            ),
+          ),
+        if (discountLabel.isNotEmpty) _summaryChip(discountLabel),
+      ],
     );
   }
 
@@ -1051,7 +1133,8 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
                       IconButton(
                         visualDensity: VisualDensity.compact,
                         onPressed:
-                            variant != null &&
+                            !widget.isOutOfStock &&
+                                variant != null &&
                                 !_isAddingToCart &&
                                 !_isUpdatingCartQuantity &&
                                 (_isInCart || _quantity > 1)
@@ -1066,7 +1149,8 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
                       IconButton(
                         visualDensity: VisualDensity.compact,
                         onPressed:
-                            variant == null ||
+                            widget.isOutOfStock ||
+                                variant == null ||
                                 _isAddingToCart ||
                                 _isUpdatingCartQuantity ||
                                 _displayQuantity >= 99
@@ -1086,7 +1170,7 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
                   child: SizedBox(
                     height: 46,
                     child: OutlinedButton(
-                      onPressed: _isAddingToCart
+                      onPressed: widget.isOutOfStock || _isAddingToCart
                           ? null
                           : variant == null
                           ? null
@@ -1107,7 +1191,11 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
                           : Text(
-                              _isInCart ? 'Go to Cart' : 'Add to Cart',
+                              widget.isOutOfStock
+                                  ? 'Out of stock'
+                                  : _isInCart
+                                  ? 'Go to Cart'
+                                  : 'Add to Cart',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
@@ -1122,7 +1210,10 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
                   child: SizedBox(
                     height: 46,
                     child: ElevatedButton(
-                      onPressed: variant == null || _isAddingToCart
+                      onPressed:
+                          widget.isOutOfStock ||
+                              variant == null ||
+                              _isAddingToCart
                           ? null
                           : _isInCart
                           ? _openNewCart
@@ -1135,8 +1226,8 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
                           borderRadius: BorderRadius.circular(24),
                         ),
                       ),
-                      child: const Text(
-                        'Buy Now',
+                      child: Text(
+                        widget.isOutOfStock ? 'Out of stock' : 'Buy Now',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: HomeTextStyles.button,
