@@ -1,3 +1,4 @@
+
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -385,6 +386,10 @@ Future<void> _openProfilePage() async {
   // ===========================================================================
 
   Future<void> _handleAddToCart(Map<String, dynamic> product) async {
+    if (HomeProductPacks.isOutOfStock(product)) {
+      _homeMessage('This product is currently out of stock.', error: true);
+      return;
+    }
     final model = product['_model'];
     final String productName = model is ProductItem
         ? model.name
@@ -531,6 +536,9 @@ Future<void> _openProfilePage() async {
     }
     Navigator.of(context).push(
       MaterialPageRoute<void>(
+        settings: RouteSettings(
+          arguments: {'isOutOfStock': HomeProductPacks.isOutOfStock(product)},
+        ),
         builder: (_) => NewProductDetailsPage(
           key: ValueKey(id),
           product: ProductItem(
@@ -576,7 +584,6 @@ Future<void> _openProfilePage() async {
   // BUILD
   // ===========================================================================
 
-  @override
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -1449,7 +1456,6 @@ class _SearchWidgetState extends State<SearchWidget> {
     super.dispose();
   }
 
-  @override
   @override
   Widget build(BuildContext context) {
     final bool hasText = _controller.text.trim().isNotEmpty;
@@ -2776,6 +2782,7 @@ class SectionCardWidget extends StatelessWidget {
                         ? ratingValue.toDouble()
                         : 0;
                     return ProductCardWidget(
+                      isOutOfStock: HomeProductPacks.isOutOfStock(product),
                       name: product['name']?.toString() ?? '',
                       imageUrl: product['imageUrl']?.toString() ?? '',
                       price: product['price']?.toString() ?? '',
@@ -2794,7 +2801,8 @@ class SectionCardWidget extends StatelessWidget {
                       ),
                       onGoToCart: onGoToCart,
                       onTap: () => onProductTap?.call(product),
-                      onAddToCart: onAddToCart == null
+                      onAddToCart: onAddToCart == null ||
+                              HomeProductPacks.isOutOfStock(product)
                           ? null
                           : () => onAddToCart!(product),
                     );
@@ -2814,6 +2822,7 @@ class SectionCardWidget extends StatelessWidget {
 // ==========================================================================
 
 class ProductCardWidget extends StatelessWidget {
+  final bool isOutOfStock;
   final String name;
   final String imageUrl;
   final String price;
@@ -2832,6 +2841,7 @@ class ProductCardWidget extends StatelessWidget {
 
   const ProductCardWidget({
     super.key,
+    this.isOutOfStock = false,
     required this.name,
     required this.imageUrl,
     this.price = '',
@@ -2871,18 +2881,21 @@ class ProductCardWidget extends StatelessWidget {
                   Positioned.fill(
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(14),
-                      child: ColoredBox(
-                        color: HomeColors.disabledBackground,
-                        child: Padding(
-                          padding: const EdgeInsets.all(6),
-                          child: _productImage(),
+                      child: ProductStockOverlay(
+                        isOutOfStock: isOutOfStock,
+                        child: ColoredBox(
+                          color: HomeColors.disabledBackground,
+                          child: Padding(
+                            padding: const EdgeInsets.all(6),
+                            child: _productImage(),
+                          ),
                         ),
                       ),
                     ),
                   ),
                   // The original cart operation is unchanged. The visual
                   // treatment is now the circular + button on the image.
-                  if (onAddToCart != null)
+                  if (!isOutOfStock && onAddToCart != null)
                     Positioned(
                       right: 0,
                       bottom: 0,
@@ -3251,6 +3264,7 @@ class PopularSearchWidget extends StatelessWidget {
                     return SizedBox(
                       width: tileWidth,
                       child: _PopularSearchTile(
+                        isOutOfStock: HomeProductPacks.isOutOfStock(product),
                         name: product['name']?.toString() ?? '',
                         imageUrl: product['imageUrl']?.toString() ?? '',
                         discountLabel: product['discountLabel']?.toString(),
@@ -3277,6 +3291,7 @@ class PopularSearchWidget extends StatelessWidget {
 // =============================================================================
 
 class _PopularSearchTile extends StatelessWidget {
+  final bool isOutOfStock;
   final String weight;
   final String price;
   final String name;
@@ -3285,6 +3300,7 @@ class _PopularSearchTile extends StatelessWidget {
   final VoidCallback? onTap;
 
   const _PopularSearchTile({
+    this.isOutOfStock = false,
     this.weight = '',
     this.price = '',
     required this.name,
@@ -3327,9 +3343,12 @@ class _PopularSearchTile extends StatelessWidget {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    _buildImage(),
+                    ProductStockOverlay(
+                      isOutOfStock: isOutOfStock,
+                      child: _buildImage(),
+                    ),
 
-                    if (discountLabel != null &&
+                    if (!isOutOfStock && discountLabel != null &&
                         discountLabel!.trim().isNotEmpty)
                       Positioned(
                         top: 6,

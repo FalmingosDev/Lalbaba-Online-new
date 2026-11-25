@@ -1,3 +1,5 @@
+
+
 import 'package:flutter/material.dart';
 import 'package:lalbaba_online/core/constants/asset_constants.dart';
 
@@ -20,6 +22,37 @@ import 'new_product_details.dart';
 // Replace these records with verified API/catalog prices before production.
 class HomeProductPacks {
   HomeProductPacks._();
+
+  // DEMO STOCK FLAGS: set an ID to true to mark it OUT OF STOCK everywhere.
+  // All entries are false until stock availability is provided by an API.
+  static const Map<String, bool> demoOutOfStock = {
+    'home-superior-minikit': true,
+    'home-basmati-steam': false,
+    'home-jeer-rice': false,
+    'home-basmati': false,
+    'home-ratna-basmati': false,
+  };
+
+  static bool isOutOfStock(Map<String, dynamic> product) {
+    final flag = product['isOutOfStock'];
+    if (flag is bool) return flag;
+    if (flag is num) return flag != 0;
+    if (flag is String) {
+      if (flag.toLowerCase() == 'true' || flag == '1') return true;
+      if (flag.toLowerCase() == 'false' || flag == '0') return false;
+    }
+    final inStock = product['inStock'];
+    if (inStock is bool) return !inStock;
+    final qty = product['stockQuantity'] ?? product['stock'];
+    if (qty is num) return qty <= 0;
+    if (qty is String && num.tryParse(qty.trim()) != null) {
+      return num.parse(qty.trim()) <= 0;
+    }
+    final status = product['stockStatus']?.toString().toLowerCase().trim();
+    if (status == 'out_of_stock' || status == 'out of stock') return true;
+    final key = product['id']?.toString();
+    return demoOutOfStock[key] ?? demoOutOfStock[_demoKey(product)] ?? false;
+  }
 
   static const Map<String, List<Map<String, dynamic>>> demoPacks = {
     'home-superior-minikit': [
@@ -248,6 +281,7 @@ class HomeProductPacks {
       return {
         ...raw,
         'id': id,
+        'isOutOfStock': isOutOfStock(raw),
         'variants': <Map<String, dynamic>>[],
         if (model != null) '_model': model,
       };
@@ -260,6 +294,7 @@ class HomeProductPacks {
     return {
       ...raw,
       'id': id,
+      'isOutOfStock': isOutOfStock(raw),
       if (model != null) '_model': model,
       'weight': pack['weight'],
       'price': money(price),
@@ -377,6 +412,62 @@ class HomeProductPacks {
 // =============================================================
 // CONSTANT STYLE
 // =============================================================
+
+/// Screenshot-style "Sold Out" ribbon: the product remains visible.
+/// Use this widget on the IMAGE only, not around the entire product card.
+class ProductStockOverlay extends StatelessWidget {
+  final bool isOutOfStock;
+  final Widget child;
+
+  const ProductStockOverlay({
+    super.key,
+    required this.isOutOfStock,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (!isOutOfStock) return child;
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        child,
+        Positioned.fill(
+          child: IgnorePointer(
+            child: ColoredBox(
+              color: HomeColors.disabledBackground.withValues(alpha: 0.20),
+            ),
+          ),
+        ),
+        Center(
+          child: IgnorePointer(
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 7),
+              decoration: BoxDecoration(
+                color: HomeColors.disabledBackground.withValues(alpha: 0.94),
+                border: Border.symmetric(
+                  horizontal: BorderSide(
+                    color: HomeColors.disabled,
+                    width: 0.7,
+                  ),
+                ),
+              ),
+              child: Text(
+                'Sold Out',
+                textAlign: TextAlign.center,
+                style: HomeTextStyles.bodyEmphasis.copyWith(
+                  color: HomeColors.textSecondary,
+                  fontWeight: HomeTextStyles.semiBold,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
 
 class ProductListStyle {
   ProductListStyle._();
@@ -752,6 +843,7 @@ class _ProductListPageState extends State<ProductListPage> {
   // ===========================================================
 
   void _increaseQuantity(Map<String, dynamic> product) {
+    if (HomeProductPacks.isOutOfStock(product)) return;
     if (_busy.contains(_key(product))) return;
 
     final variant = _selectedVariant(product);
@@ -775,6 +867,7 @@ class _ProductListPageState extends State<ProductListPage> {
   // ===========================================================
 
   void _decreaseQuantity(Map<String, dynamic> product) {
+    if (HomeProductPacks.isOutOfStock(product)) return;
     if (_busy.contains(_key(product))) return;
 
     final variant = _selectedVariant(product);
@@ -825,6 +918,7 @@ class _ProductListPageState extends State<ProductListPage> {
   // ===========================================================
 
   Future<void> _addToCart(Map<String, dynamic> product) async {
+    if (HomeProductPacks.isOutOfStock(product)) return;
     final variant = _selectedVariant(product);
     final key = _key(product);
     final quantityKey = _quantityKey(product);
@@ -955,6 +1049,9 @@ class _ProductListPageState extends State<ProductListPage> {
 
     Navigator.of(context).push(
       MaterialPageRoute<void>(
+        settings: RouteSettings(
+          arguments: {'isOutOfStock': HomeProductPacks.isOutOfStock(product)},
+        ),
         builder: (_) => NewProductDetailsPage(product: detailProduct),
       ),
     );
@@ -1638,7 +1735,7 @@ class _ProductListPageState extends State<ProductListPage> {
                     controller: _scrollController,
 
                     physics: const ClampingScrollPhysics(),
-padding: const EdgeInsets.fromLTRB(12, 12, 12, 32),
+                    padding: const EdgeInsets.fromLTRB(12, 12, 12, 32),
                     //padding: const EdgeInsets.all(12),
 
                     itemCount: products.length,
@@ -1663,6 +1760,7 @@ padding: const EdgeInsets.fromLTRB(12, 12, 12, 32),
                           : _cartItem(product, variant);
 
                       return _ProductCard(
+                        isOutOfStock: HomeProductPacks.isOutOfStock(product),
                         product: product,
 
                         money: _money,
@@ -1679,7 +1777,10 @@ padding: const EdgeInsets.fromLTRB(12, 12, 12, 32),
 
                         adding: _busy.contains(key),
 
-                        enabled: _cartReady && variant != null,
+                        enabled:
+                            _cartReady &&
+                            variant != null &&
+                            !HomeProductPacks.isOutOfStock(product),
 
                         onOpenDetails: () {
                           _openProductDetails(product);
@@ -1706,6 +1807,7 @@ padding: const EdgeInsets.fromLTRB(12, 12, 12, 32),
                         },
 
                         onAdd: () {
+                          if (HomeProductPacks.isOutOfStock(product)) return;
                           if (cartItem != null) {
                             _openCart();
                           } else {
@@ -1789,6 +1891,7 @@ class _ListVariant {
 
 class _ProductCard extends StatelessWidget {
   final Map<String, dynamic> product;
+  final bool isOutOfStock;
 
   final String Function(double) money;
 
@@ -1813,6 +1916,7 @@ class _ProductCard extends StatelessWidget {
 
   const _ProductCard({
     required this.product,
+    required this.isOutOfStock,
     required this.money,
     required this.variants,
     required this.selected,
@@ -1942,7 +2046,10 @@ class _ProductCard extends StatelessWidget {
 
                         alignment: Alignment.center,
 
-                        child: _buildImage(url),
+                        child: ProductStockOverlay(
+                          isOutOfStock: isOutOfStock,
+                          child: _buildImage(url),
+                        ),
                       ),
                     ),
 
