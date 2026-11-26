@@ -81,7 +81,7 @@ class LalbabaApp extends StatelessWidget {
     return ScreenUtilInit(
       designSize: const Size(375, 812),
       minTextAdapt: true,
-      splitScreenMode: true,
+      splitScreenMode: true,    
       builder: (context, child) {
         return MaterialApp.router(
           title: 'LALBABA ONLINE',

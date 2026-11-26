@@ -78,6 +78,73 @@ class _NewCartPageState extends State<NewCartPage> {
     );
   }
 
+  void _openProductDetails(CartNotificationItem item) {
+    ProductItem? catalogProduct = ProductRepository.findById(item.productId);
+    final normalizedName = item.name.trim().toLowerCase();
+    catalogProduct ??= ProductRepository.allProducts
+        .where((product) => product.name.trim().toLowerCase() == normalizedName)
+        .firstOrNull;
+
+    final variants = List<ProductVariant>.from(
+      catalogProduct?.variants ?? const <ProductVariant>[],
+    );
+    final weight = item.weight?.trim();
+    var selectedVariant = weight == null || weight.isEmpty
+        ? -1
+        : variants.indexWhere(
+            (variant) =>
+                variant.weight.trim().toLowerCase() == weight.toLowerCase(),
+          );
+
+    if (selectedVariant < 0 && weight?.isNotEmpty == true) {
+      variants.add(
+        ProductVariant(weight: weight!, price: _parsePrice(item.price)),
+      );
+      selectedVariant = variants.length - 1;
+    }
+
+    if (variants.isEmpty) {
+      variants.add(
+        ProductVariant(
+          weight: weight?.isNotEmpty == true ? weight! : '1 item',
+          price: _parsePrice(item.price),
+        ),
+      );
+      selectedVariant = 0;
+    } else if (selectedVariant < 0) {
+      selectedVariant = 0;
+    }
+
+    final product = ProductItem(
+      id: catalogProduct?.id ?? item.productId,
+      name: catalogProduct?.name ?? item.name,
+      images: catalogProduct?.images.isNotEmpty == true
+          ? catalogProduct!.images
+          : null,
+      imageUrl: catalogProduct?.imageUrl.isNotEmpty == true
+          ? catalogProduct!.imageUrl
+          : item.imageUrl,
+      rating: catalogProduct?.rating ?? 0,
+      reviewCount: catalogProduct?.reviewCount ?? 0,
+      deliveryDays: catalogProduct?.deliveryDays ?? 3,
+      variants: variants,
+      discountLabel: catalogProduct?.discountLabel ?? '',
+      processedAt: catalogProduct?.processedAt ?? '',
+      shortTagline: catalogProduct?.shortTagline ?? '',
+      description: catalogProduct?.description ?? '',
+      specifications: catalogProduct?.specifications ?? const [],
+      reviews: catalogProduct?.reviews ?? const [],
+      faqs: catalogProduct?.faqs ?? const [],
+      selectedVariant: selectedVariant,
+    );
+
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => NewProductDetailsPage(product: product),
+      ),
+    );
+  }
+
   // ==========================================================
   // MAIN BUILD
   // ==========================================================
@@ -186,7 +253,10 @@ class _NewCartPageState extends State<NewCartPage> {
                                 (item) => Padding(
                                   padding: const EdgeInsets.only(bottom: 12),
 
-                                  child: _CartItemCard(item: item),
+                                  child: _CartItemCard(
+                                    item: item,
+                                    onImageTap: () => _openProductDetails(item),
+                                  ),
                                 ),
                               ),
                             ],
@@ -340,8 +410,9 @@ class _CartSectionHeader extends StatelessWidget {
 
 class _CartItemCard extends StatelessWidget {
   final CartNotificationItem item;
+  final VoidCallback onImageTap;
 
-  const _CartItemCard({required this.item});
+  const _CartItemCard({required this.item, required this.onImageTap});
 
   @override
   Widget build(BuildContext context) {
@@ -379,31 +450,32 @@ class _CartItemCard extends StatelessWidget {
           // PRODUCT IMAGE
           // ==================================================
 
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-
-            child: Container(
-              width: 82,
-              height: 82,
-              color: HomeColors.background,
-              alignment: Alignment.center,
-
-              child: item.imageUrl.trim().isEmpty
-                  ? const Icon(
-                      Icons.shopping_bag_outlined,
-                      color: HomeColors.textHint,
-                      size: 34,
-                    )
-                  : Image.network(
-                      item.imageUrl,
-                      fit: BoxFit.contain,
-
-                      errorBuilder: (context, error, stackTrace) => const Icon(
+          GestureDetector(
+            onTap: onImageTap,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Container(
+                width: 82,
+                height: 82,
+                color: HomeColors.background,
+                alignment: Alignment.center,
+                child: item.imageUrl.trim().isEmpty
+                    ? const Icon(
                         Icons.shopping_bag_outlined,
                         color: HomeColors.textHint,
                         size: 34,
+                      )
+                    : Image.network(
+                        item.imageUrl,
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Icon(
+                              Icons.shopping_bag_outlined,
+                              color: HomeColors.textHint,
+                              size: 34,
+                            ),
                       ),
-                    ),
+              ),
             ),
           ),
 

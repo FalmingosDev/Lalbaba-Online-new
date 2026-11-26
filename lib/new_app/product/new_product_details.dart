@@ -44,6 +44,7 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
   int _activeTab = 0;
   bool _isAddingToCart = false;
   bool _isUpdatingCartQuantity = false;
+  bool _isCartInitialized = false;
   bool _showBackToTop = false;
   Timer? _addToCartSnackBarTimer;
 
@@ -78,7 +79,10 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
     CartService.items.addListener(_onCartChanged);
     CartService.initialize().then((_) {
       if (!mounted) return;
-      setState(() => _wasInCart = _isInCart);
+      setState(() {
+        _isCartInitialized = true;
+        _wasInCart = _isInCart;
+      });
     });
   }
 
@@ -225,9 +229,14 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
     context.push(RouteNames.newCart);
   }
 
-  Future<void> _addToCart({bool openCart = false}) async {
+  Future<void> _addToCart() async {
     final ProductVariant? variant = _selectedVariant;
-    if (widget.isOutOfStock || variant == null || _isAddingToCart) return;
+    if (widget.isOutOfStock ||
+        variant == null ||
+        !_isCartInitialized ||
+        _isAddingToCart) {
+      return;
+    }
 
     setState(() => _isAddingToCart = true);
     try {
@@ -246,11 +255,7 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
         _wasInCart = _isInCart;
       });
 
-      if (openCart) {
-        _openNewCart();
-      } else {
-        _showAddedToCartSnackBar();
-      }
+      _showAddedToCartSnackBar();
     } catch (error) {
       if (!mounted) return;
       setState(() => _isAddingToCart = false);
@@ -1115,130 +1120,178 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
             Row(
               children: [
                 Expanded(
-                  child: Text(
-                    'Quantity',
-                    style: HomeTextStyles.bodySmall.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ),
-                Container(
-                  height: 38,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: AppColors.border),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        visualDensity: VisualDensity.compact,
-                        onPressed:
-                            !widget.isOutOfStock &&
-                                variant != null &&
-                                !_isAddingToCart &&
-                                !_isUpdatingCartQuantity &&
-                                (_isInCart || _quantity > 1)
-                            ? () => _changeQuantity(-1)
-                            : null,
-                        icon: const Icon(Icons.remove, size: 18),
-                      ),
-                      Text(
-                        '$_displayQuantity',
-                        style: HomeTextStyles.productTitle,
-                      ),
-                      IconButton(
-                        visualDensity: VisualDensity.compact,
-                        onPressed:
-                            widget.isOutOfStock ||
-                                variant == null ||
-                                _isAddingToCart ||
-                                _isUpdatingCartQuantity ||
-                                _displayQuantity >= 99
-                            ? null
-                            : () => _changeQuantity(1),
-                        icon: const Icon(Icons.add, size: 18),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
                   child: SizedBox(
-                    height: 46,
-                    child: OutlinedButton(
-                      onPressed: widget.isOutOfStock || _isAddingToCart
-                          ? null
-                          : variant == null
-                          ? null
-                          : _isInCart
-                          ? _openNewCart
-                          : () => _addToCart(),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: HomeColors.secondary,
-                        side: const BorderSide(color: HomeColors.secondary),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                      ),
-                      child: _isAddingToCart
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : Text(
-                              widget.isOutOfStock
-                                  ? 'Out of stock'
-                                  : _isInCart
-                                  ? 'Go to Cart'
-                                  : 'Add to Cart',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontWeight: HomeTextStyles.bold,
-                              ),
+                    height: 54,
+                    child: ValueListenableBuilder<int>(
+                      valueListenable: CartService.count,
+                      builder: (context, count, child) {
+                        return ElevatedButton(
+                          onPressed: _openNewCart,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: HomeColors.secondaryLight,
+                            foregroundColor: HomeColors.secondary,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(28),
                             ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.shopping_bag_outlined, size: 21),
+                              const SizedBox(width: 8),
+                              Flexible(
+                                child: Text(
+                                  'Cart',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: HomeTextStyles.button.copyWith(
+                                    color: HomeColors.secondary,
+                                  ),
+                                ),
+                              ),
+                              if (count > 0) ...[
+                                const SizedBox(width: 6),
+                                Container(
+                                  constraints: const BoxConstraints(
+                                    minWidth: 22,
+                                    minHeight: 22,
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 5,
+                                    vertical: 2,
+                                  ),
+                                  decoration: const BoxDecoration(
+                                    color: HomeColors.secondary,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    '$count',
+                                    style: HomeTextStyles.caption.copyWith(
+                                      color: AppColors.white,
+                                      fontWeight: HomeTextStyles.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: SizedBox(
-                    height: 46,
-                    child: ElevatedButton(
-                      onPressed:
-                          widget.isOutOfStock ||
-                              variant == null ||
-                              _isAddingToCart
-                          ? null
-                          : _isInCart
-                          ? _openNewCart
-                          : () => _addToCart(openCart: true),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: HomeColors.secondary,
-                        foregroundColor: AppColors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                      ),
-                      child: Text(
-                        widget.isOutOfStock ? 'Out of stock' : 'Buy Now',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: HomeTextStyles.button,
-                      ),
-                    ),
+                    height: 54,
+                    child: _isInCart
+                        ? _buildQuantityActions(variant)
+                        : ElevatedButton(
+                            onPressed:
+                                widget.isOutOfStock ||
+                                    variant == null ||
+                                    !_isCartInitialized ||
+                                    _isAddingToCart
+                                ? null
+                                : _addToCart,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: HomeColors.secondary,
+                              foregroundColor: AppColors.white,
+                              disabledBackgroundColor: HomeColors.secondary
+                                  .withValues(alpha: 0.5),
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(28),
+                              ),
+                            ),
+                            child: _isAddingToCart || !_isCartInitialized
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: AppColors.white,
+                                    ),
+                                  )
+                                : Text(
+                                    widget.isOutOfStock
+                                        ? 'Out of stock'
+                                        : 'Add to Cart',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: HomeTextStyles.button,
+                                  ),
+                          ),
                   ),
                 ),
               ],
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildQuantityActions(ProductVariant? variant) {
+    final canChangeQuantity =
+        !widget.isOutOfStock &&
+        variant != null &&
+        _isCartInitialized &&
+        !_isAddingToCart &&
+        !_isUpdatingCartQuantity;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        border: Border.all(color: AppColors.border),
+        borderRadius: BorderRadius.circular(28),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _quantityActionButton(
+            icon: Icons.remove,
+            enabled: canChangeQuantity && _displayQuantity > 0,
+            onPressed: () => _changeQuantity(-1),
+          ),
+          _isUpdatingCartQuantity
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: HomeColors.secondary,
+                  ),
+                )
+              : Text(
+                  '$_displayQuantity',
+                  style: HomeTextStyles.productTitle.copyWith(
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+          _quantityActionButton(
+            icon: Icons.add,
+            enabled: canChangeQuantity && _displayQuantity < 99,
+            onPressed: () => _changeQuantity(1),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _quantityActionButton({
+    required IconData icon,
+    required bool enabled,
+    required VoidCallback onPressed,
+  }) {
+    return IconButton(
+      onPressed: enabled ? onPressed : null,
+      icon: Icon(icon, color: HomeColors.secondary),
+      style: IconButton.styleFrom(
+        backgroundColor: HomeColors.secondaryLight,
+        disabledBackgroundColor: AppColors.background,
       ),
     );
   }
