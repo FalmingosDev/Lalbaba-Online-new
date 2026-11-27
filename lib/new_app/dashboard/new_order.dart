@@ -82,6 +82,8 @@ class _NewOrdersPageState extends ConsumerState<NewOrdersPage> {
         title: 'My Orders',
         centerTitle: true,
         backgroundColor: HomeColors.secondary,
+
+        ////test
         titleColor: HomeColors.white,
         iconColor: HomeColors.white,
       ),
