@@ -53,7 +53,7 @@ class ProductRepository {
       id: 'lalbaba-gobindo-bhog',
       name: 'Lalbaba Gobindo Bhog',
       imageUrl:
-          'https://lalbabaonline.com/public/uploads/all/BKEcfif3FQ8gsCt9q8Z93emvxfe0b33WSMoWs5oB.webp',
+          'https://lalbabaonline.com/public/uploads/all/RELpVSRhk9O2YI4mFP18hzuRxzobrGGsTBSd9Jq9.jpg',
       rating: 4.5,
       reviewCount: 8,
       deliveryDays: 7,

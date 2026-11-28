@@ -11,6 +11,7 @@ import '../../core/services/cart_notification_item.dart';
 import '../../core/services/wishlist_service.dart';
 import '../../features/product/presentation/model/product_models.dart';
 import '../../features/product/presentation/widgets/product_details_widget/product_repository.dart';
+import '../../features/product/presentation/widgets/product_details_widget/product_image_zoom_viewer.dart';
 import '../constant/constantappbar.dart';
 import '../constant/new_back_to_top_button.dart';
 import '../constant/constantcolour.dart';
@@ -382,63 +383,87 @@ class _NewProductDetailsPageState extends State<NewProductDetailsPage> {
               return Stack(
                 fit: StackFit.expand,
                 children: [
-                  Container(
-                    color: AppColors.surface,
-                    alignment: Alignment.center,
-                    padding: const EdgeInsets.all(18),
-                    child: image.isEmpty
-                        ? const Icon(
-                            Icons.image_not_supported_outlined,
-                            size: 56,
-                            color: AppColors.grey,
-                          )
-                        : Image.network(
-                            image,
-                            fit: BoxFit.contain,
-                            errorBuilder: (context, error, stackTrace) =>
-                                const Icon(
-                                  Icons.broken_image_outlined,
-                                  size: 56,
-                                  color: AppColors.grey,
-                                ),
-                          ),
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => showProductImageZoomViewer(
+                      context,
+                      images: _images,
+                      initialIndex: index,
+                    ),
+                    child: Container(
+                      color: AppColors.surface,
+                      alignment: Alignment.center,
+                      padding: const EdgeInsets.all(18),
+                      child: image.isEmpty
+                          ? const Icon(
+                              Icons.image_not_supported_outlined,
+                              size: 56,
+                              color: AppColors.grey,
+                            )
+                          : Image.network(
+                              image,
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  const Icon(
+                                    Icons.broken_image_outlined,
+                                    size: 56,
+                                    color: AppColors.grey,
+                                  ),
+                            ),
+                    ),
                   ),
                   if (widget.isOutOfStock)
                     Positioned.fill(
                       child: IgnorePointer(
                         child: ColoredBox(
-                          color: Colors.white.withValues(alpha: 0.58),
+                          color: Colors.white.withValues(alpha: 0.18),
                         ),
                       ),
                     ),
                   if (widget.isOutOfStock)
                     Positioned(
-                      left: 0,
-                      right: 0,
-                      top: 0,
-                      bottom: 0,
+                      left: -28,
+                      top: 18,
+                      width: 150,
+                      height: 34,
                       child: IgnorePointer(
                         child: Center(
-                          child: Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(vertical: 9),
-                            decoration: BoxDecoration(
-                              color: HomeColors.disabledBackground.withValues(
-                                alpha: 0.94,
-                              ),
-                              border: Border.symmetric(
-                                horizontal: BorderSide(
-                                  color: HomeColors.disabled,
-                                  width: 0.7,
+                          child: Transform.rotate(
+                            angle: -0.785398,
+                            child: Container(
+                              width: 150,
+                              height: 34,
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [
+                                    Color(0xFFFFF176),
+                                    Color(0xFFFFC928),
+                                  ],
                                 ),
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.90),
+                                  width: 1,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(
+                                      0xFFFFB300,
+                                    ).withValues(alpha: 0.24),
+                                    blurRadius: 7,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
                               ),
-                            ),
-                            child: Text(
-                              'Out of stock',
-                              textAlign: TextAlign.center,
-                              style: HomeTextStyles.bodyEmphasis.copyWith(
-                                color: HomeColors.textSecondary,
-                                fontWeight: HomeTextStyles.semiBold,
+                              alignment: Alignment.center,
+                              child: Text(
+                                'OUT OF STOCK',
+                                maxLines: 1,
+                                style: HomeTextStyles.bodyEmphasis.copyWith(
+                                  color: const Color(0xFFC62828),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.8,
+                                ),
                               ),
                             ),
                           ),
